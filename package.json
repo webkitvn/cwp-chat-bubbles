@@ -1,0 +1,106 @@
+{
+  "name": "cwp-chat-bubbles",
+  "version": "1.0.0",
+  "description": "WordPress plugin for auto-injecting chat bubbles with 8 messaging platform support and QR code integration",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node build.js --dev --watch",
+    "build": "node build.js --production",
+    "build:dev": "node build.js --dev",
+    "lint": "eslint src/js/**/*.js",
+    "lint:fix": "eslint src/js/**/*.js --fix",
+    "scss-lint": "stylelint src/scss/**/*.scss",
+    "scss-lint:fix": "stylelint src/scss/**/*.scss --fix",
+    "clean": "rimraf assets/css/*.css assets/js/*.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [
+    "wordpress",
+    "plugin",
+    "chat-bubbles",
+    "messaging",
+    "whatsapp",
+    "zalo",
+    "telegram",
+    "viber",
+    "messenger",
+    "line",
+    "kakaotalk",
+    "qr-code"
+  ],
+  "author": "CWP Development Team",
+  "license": "GPL-2.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/webkitvn/cwp-chat-bubbles"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.0",
+    "sass": "^1.77.0",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "eslint": "^8.57.0",
+    "stylelint": "^16.6.0",
+    "stylelint-config-standard-scss": "^13.1.0",
+    "rimraf": "^5.0.7",
+    "chokidar": "^3.6.0"
+  },
+  "browserslist": [
+    "defaults",
+    "not IE < 11",
+    "not dead",
+    "> 0.25%"
+  ],
+  "pnpm": {
+    "packageExtensions": {
+      "esbuild": {
+        "optionalDependencies": {
+          "@esbuild/darwin-arm64": "*",
+          "@esbuild/darwin-x64": "*",
+          "@esbuild/linux-x64": "*",
+          "@esbuild/win32-x64": "*"
+        }
+      }
+    }
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "es2020": true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+      "ecmaVersion": 2020,
+      "sourceType": "module"
+    },
+    "rules": {
+      "no-unused-vars": "warn",
+      "no-console": "warn",
+      "prefer-const": "error",
+      "no-var": "error"
+    }
+  },
+  "stylelint": {
+    "extends": [
+      "stylelint-config-standard-scss"
+    ],
+    "rules": {
+      "scss/at-rule-no-unknown": [
+        true,
+        {
+          "ignoreAtRules": [
+            "apply",
+            "variants",
+            "responsive",
+            "screen"
+          ]
+        }
+      ]
+    }
+  }
+}
