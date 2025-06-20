@@ -76,6 +76,7 @@ class CWP_Chat_Bubbles_Options_Page {
         add_action('wp_ajax_cwp_chat_bubbles_save_item', array($this, 'ajax_save_item'));
         add_action('wp_ajax_cwp_chat_bubbles_delete_item', array($this, 'ajax_delete_item'));
         add_action('wp_ajax_cwp_chat_bubbles_reorder_items', array($this, 'ajax_reorder_items'));
+        add_action('wp_ajax_get_attachment_url', array($this, 'ajax_get_attachment_url'));
     }
 
     /**
@@ -464,8 +465,6 @@ class CWP_Chat_Bubbles_Options_Page {
         <?php
     }
 
-
-
     /**
      * Handle form submission
      *
@@ -518,7 +517,13 @@ class CWP_Chat_Bubbles_Options_Page {
                 $platform_config = isset($supported_platforms[$item['platform']]) ? $supported_platforms[$item['platform']] : null;
                 $platform_label = $platform_config ? $platform_config['label'] : ucfirst($item['platform']);
                 ?>
-                <div class="cwp-item" data-item-id="<?php echo esc_attr($item['id']); ?>">
+                <div class="cwp-item" 
+                     data-item-id="<?php echo esc_attr($item['id']); ?>"
+                     data-platform="<?php echo esc_attr($item['platform']); ?>"
+                     data-label="<?php echo esc_attr($item['label']); ?>"
+                     data-contact-value="<?php echo esc_attr($item['contact_value']); ?>"
+                     data-enabled="<?php echo esc_attr($item['enabled']); ?>"
+                     data-qr-code-id="<?php echo esc_attr($item['qr_code_id']); ?>">
                     <span class="cwp-item-drag dashicons dashicons-move"></span>
                     <img class="cwp-item-icon" src="<?php echo esc_url($this->get_platform_icon_url($item['platform'])); ?>" alt="<?php echo esc_attr($platform_label); ?>">
                     <div class="cwp-item-info">
@@ -676,5 +681,28 @@ class CWP_Chat_Bubbles_Options_Page {
      */
     private function get_platform_icon_url($platform) {
         return $this->items_manager->get_platform_icon_url($platform);
+    }
+
+    /**
+     * AJAX handler for getting attachment URL
+     *
+     * @since 1.0.0
+     */
+    public function ajax_get_attachment_url() {
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Insufficient permissions', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+        }
+
+        $attachment_id = !empty($_POST['attachment_id']) ? (int) $_POST['attachment_id'] : 0;
+        
+        if ($attachment_id > 0) {
+            $url = wp_get_attachment_url($attachment_id);
+            if ($url) {
+                wp_send_json_success(array('url' => $url));
+            }
+        }
+        
+        wp_send_json_error(__('Invalid attachment ID', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
     }
 } 

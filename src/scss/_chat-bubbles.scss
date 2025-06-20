@@ -41,7 +41,7 @@
             border-radius: 0;
             z-index: 2;
             position: relative;
-            &.close {
+            &.chat-icon-close {
                 display: none;
                 width: 40%;
                 opacity: 1;
@@ -213,7 +213,7 @@
 
             img {
                 display: none;
-                &.close {
+                &.chat-icon-close {
                     display: block;
                 }
             }

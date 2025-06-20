@@ -373,7 +373,7 @@
     }
 
     /**
-     * Reset modal form
+     * Reset modal form to initial state
      */
     function resetModalForm() {
         $('#cwp-item-form')[0].reset();
@@ -386,9 +386,14 @@
         // Remove old error messages (backwards compatibility)
         $('.error-message').remove();
         
+        // Reset QR code state
         removeQRCodePreview();
+        
         // Reset contact field to default state (this now handles empty platform properly)
         updateContactFieldForPlatform('');
+        
+        // Reset current editing item
+        currentEditingItem = null;
     }
 
     /**
@@ -414,25 +419,14 @@
      * Extract item data from DOM element
      */
     function extractItemDataFromDOM($item) {
-        // This is a simplified version - in practice you might store data attributes
-        // or fetch from server
-        const $info = $item.find('.cwp-item-info');
-        const label = $info.find('strong').text();
-        const details = $info.find('small').text();
-        const enabled = $item.find('.dashicons-yes-alt').length > 0;
-        
-        // Parse platform and contact from details text
-        const parts = details.split(': ');
-        const platform = parts[0].toLowerCase().replace(/\s+/g, '');
-        const contactValue = parts[1] || '';
-        
+        // Use data attributes instead of parsing text content
         return {
             id: $item.data('item-id'),
-            platform: platform,
-            label: label,
-            contact_value: contactValue,
-            enabled: enabled,
-            qr_code_id: 0 // Would need to be stored in data attribute
+            platform: $item.data('platform'),
+            label: $item.data('label'),
+            contact_value: $item.data('contact-value'),
+            enabled: $item.data('enabled') == 1,
+            qr_code_id: $item.data('qr-code-id') || 0
         };
     }
 
@@ -441,15 +435,40 @@
      */
     function populateModalForm(itemData) {
         $('#item-id').val(itemData.id);
-        $('#platform').val(itemData.platform);
+        $('#platform').val(itemData.platform).trigger('change'); // Trigger change to update contact field
         $('#label').val(itemData.label);
         $('#contact-value').val(itemData.contact_value);
         $('#enabled').prop('checked', itemData.enabled);
         
-        updateContactFieldForPlatform(itemData.platform);
-        
-        if (itemData.qr_code_id) {
-            setQRCodePreview(itemData.qr_code_id, ''); // Would need actual URL
+        // Handle QR code if exists
+        if (itemData.qr_code_id && itemData.qr_code_id > 0) {
+            // Make AJAX call to get QR code image URL
+            $.ajax({
+                url: wpAjax.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'get_attachment_url',
+                    attachment_id: itemData.qr_code_id
+                },
+                success: function(response) {
+                    if (response.success && response.data && response.data.url) {
+                        setQRCodePreview(itemData.qr_code_id, response.data.url);
+                    } else {
+                        // Fallback: Set QR code ID without preview
+                        $('#qr-code-id').val(itemData.qr_code_id);
+                        $('#upload-qr-code').text('Update QR Code');
+                        $('#remove-qr-code').show();
+                    }
+                },
+                error: function() {
+                    // Fallback: Set QR code ID without preview
+                    $('#qr-code-id').val(itemData.qr_code_id);
+                    $('#upload-qr-code').text('Update QR Code');
+                    $('#remove-qr-code').show();
+                }
+            });
+        } else {
+            removeQRCodePreview();
         }
     }
 
