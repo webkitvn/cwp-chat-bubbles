@@ -166,9 +166,18 @@ class CWP_Chat_Bubbles_Frontend {
      * @since 1.0.0
      */
     private function render_template($items, $override_settings = array()) {
+        // Process items to add platform URLs and icons
+        $processed_items = array();
+        foreach ($items as $item) {
+            $processed_item = $item;
+            $processed_item['platform_url'] = $this->generate_platform_url($item['platform'], $item);
+            $processed_item['platform_icon'] = $this->get_platform_icon_url($item['platform']);
+            $processed_items[] = $processed_item;
+        }
+        
         // Template variables
         $template_vars = array(
-            'items' => $items,
+            'items' => $processed_items,
             'settings' => array(
                 'position' => !empty($override_settings['position']) ? $override_settings['position'] : $this->settings->get_option('position', 'bottom-right'),
                 'main_button_color' => $this->settings->get_option('main_button_color', '#52BA00'),

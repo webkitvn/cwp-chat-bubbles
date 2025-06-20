@@ -1,153 +1,119 @@
 <?php
+/**
+ * Chat Bubbles Frontend Template
+ *
+ * Template for displaying chat bubbles on frontend
+ * Uses data from custom table via Items Manager
+ * 
+ * Variables available:
+ * - $items: Array of enabled chat items from custom table with URLs and icons
+ * - $settings: Plugin settings array
+ * - $support_icon: URL to support icon
+ * - $cancel_icon: URL to cancel icon
+ *
+ * @package CWP_Chat_Bubbles
+ * @since 1.0.0
+ */
+
+// Prevent direct access
 defined('ABSPATH') or exit;
 
-$chat_items = [
-    'phone' => [
-        'name' => 'Phone Call',
-        'scheme' => 'tel:',
-        'icon' => 'hotline.svg',
-        'label' => __('Hotline', 'chatbubble'),
-        'btn_bg' => '#52BA00'
-    ],
-    'zalo' => [
-        'name' => 'Zalo',
-        'scheme' => 'https://zalo.me/',
-        'icon' => 'zalo.svg',
-        'label' => __('Chat Zalo', 'chatbubble'),
-        'btn_bg' => '#008BE6'
-    ],
-    'whatsapp' => [
-        'name' => 'WhatsApp',
-        'scheme' => 'https://wa.me/',
-        'icon' => 'whatsapp.svg',
-        'label' => __('Chat WhatsApp', 'chatbubble'),
-        'btn_bg' => '#25D366'
-    ],
-    'wechat' => [
-        'name' => 'WeChat',
-        'scheme' => '',
-        'icon' => 'wechat.svg',
-        'label' => __('Chat WeChat', 'chatbubble'),
-        'btn_bg' => '#2DC100'
-    ],
-    'telegram' => [
-        'name' => 'Telegram',
-        'scheme' => 'https://t.me/',
-        'icon' => 'telegram.svg',
-        'label' => __('Chat Telegram', 'chatbubble'),
-        'btn_bg' => '#0088cc'
-    ],
-    'viber' => [
-        'name' => 'Viber',
-        'scheme' => '',
-        'icon' => 'viber.svg',
-        'label' => __('Chat Viber', 'chatbubble'),
-        'btn_bg' => '#665CAC'
-    ],
-    'facebook' => [
-        'name' => 'Facebook',
-        'scheme' => 'https://m.me/',
-        'icon' => 'messenger.svg',
-        'label' => __('Chat Messenger', 'chatbubble'),
-        'btn_bg' => '#0084FF'
-    ],
-    'line' => [
-        'name' => 'Line',
-        'scheme' => 'https://line.me/ti/p/',
-        'icon' => 'line.svg',
-        'label' => __('Chat Line', 'chatbubble'),
-        'btn_bg' => '#00C300'
-    ],
-    'kakaotalk' => [
-        'name' => 'KakaoTalk',
-        'scheme' => '',
-        'icon' => 'kakaotalk.svg',
-        'label' => __('Chat KakaoTalk', 'chatbubble'),
-        'btn_bg' => '#FFCD00'
-    ]
-];
-
-function get_chat_contact($chat_items) {
-    $contact = [];
-    foreach ($chat_items as $key => $value) {
-        $accountID = get_field('chatbb_' . $key, 'option');
-        if ($accountID) {
-            $contact[$key] = $accountID;
-        }
-    }
-    return $contact;
+// Check if we have items to display
+if (empty($items)) {
+    return;
 }
-
-$contact = get_chat_contact($chat_items);
-if ($contact) :
 ?>
-<div id="chat-bubbles">
-    <a href="#" class="chat-icon chat-btn-toggle" data-twe-ripple-init data-twe-ripple-color="light">
-        <img class="chat-icon-open" src="<?php echo get_stylesheet_directory_uri(); ?>/assets/images/chat-bubble/support.svg"
-            alt="Chat" width="50" height="41" loading="lazy">
-        <img class="close" src="<?php echo get_stylesheet_directory_uri(); ?>/assets/images/chat-bubble/cancel.svg" alt="Close"
-            width="20" height="20" loading="lazy">
-    </a>
+
+<div id="chat-bubbles" class="cwp-chat-bubbles" data-position="<?php echo esc_attr($settings['position']); ?>">
+    <!-- Main Chat Button -->
+    <div class="chat-icon chat-btn-toggle" 
+         style="background-color: <?php echo esc_attr($settings['main_button_color']); ?>">
+        <img src="<?php echo esc_url($support_icon); ?>" 
+             alt="<?php esc_attr_e('Support', 'cwp-chat-bubbles'); ?>" 
+             class="chat-icon-open">
+        <img src="<?php echo esc_url($cancel_icon); ?>" 
+             alt="<?php esc_attr_e('Close', 'cwp-chat-bubbles'); ?>" 
+             class="chat-icon-close">
+    </div>
+    
+    <!-- Platform Items Group -->
     <div class="item-group">
-        <?php foreach ($contact as $item => $accountID) : 
-            $qrcode = get_field('chatbb_qrcode_' . $item, 'option');
-            $qrcodeID = $qrcode['id'] ?? null;
-            $scheme_url = $chat_items[$item]['scheme'] . $accountID;
-            $icon_url = get_stylesheet_directory_uri() . '/assets/images/chat-bubble/socials/' . $chat_items[$item]['icon'];
-        ?>
-        <a href="<?php echo $chat_items[$item]['scheme'] ? $scheme_url : '#' ?>" class="chat-item chat-item-<?php echo esc_attr($item); ?> flex"
-            title="<?php echo esc_attr($chat_items[$item]['label']); ?>" data-twe-ripple-init
-            data-twe-ripple-color="light"
-            <?php echo $qrcodeID ? 'data-bubble-modal="bubble-' . esc_attr($item) . '" target="_self"' : 'target="_blank"'; ?>>
-            <img src="<?php echo esc_url($icon_url); ?>" alt="<?php echo esc_attr($item); ?>" width="24" height="24"
-                loading="lazy">
-            <span class="chat-item-text flex-1 ml-2"><?php echo esc_html($chat_items[$item]['label']); ?></span>
-        </a>
+        <?php foreach ($items as $item): ?>
+            <?php
+            // Check if item has QR code
+            $has_qr = !empty($item['qr_code_id']) && $item['qr_code_id'] > 0;
+            ?>
+            
+            <a href="<?php echo esc_url($item['platform_url']); ?>" 
+               class="chat-item chat-item-<?php echo esc_attr($item['platform']); ?>" 
+               <?php if ($has_qr): ?>
+                   data-bubble-modal="modal-<?php echo esc_attr($item['id']); ?>"
+                   data-no-direct-link="true"
+               <?php else: ?>
+                   target="_blank" 
+                   rel="noopener noreferrer"
+               <?php endif; ?>
+               title="<?php echo esc_attr($item['label']); ?>">
+                
+                <img src="<?php echo esc_url($item['platform_icon']); ?>" 
+                     alt="<?php echo esc_attr($item['platform']); ?>" 
+                     width="24" 
+                     height="24" 
+                     loading="lazy">
+                
+                <?php if ($settings['show_labels']): ?>
+                    <span class="chat-item-text"><?php echo esc_html($item['label']); ?></span>
+                <?php endif; ?>
+            </a>
         <?php endforeach; ?>
     </div>
 
-    <?php foreach ($contact as $item => $accountID) : 
-        
-        $qrcode = get_field('chatbb_qrcode_' . $item, 'option');
-        $qrcodeID = $qrcode['id'] ?? null;
-
-        $icon_url = get_stylesheet_directory_uri() . '/assets/images/chat-bubble/socials/' . $chat_items[$item]['icon'];
-        $scheme_url = $chat_items[$item]['scheme'] . $accountID;
-        if ($qrcodeID) :
-    ?>
-    <div class="bubble-modal" id="bubble-<?php echo esc_attr($item); ?>" tabindex="-1" aria-hidden="true">
-        <button class="bubble-modal-close">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" stroke-width="1.5"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </button>
-        <div class="modal-body">
-            <div class="qrcode">
-                <h3>
-                    <?php echo esc_html($chat_items[$item]['label']); ?>
-                </h3>
-                <?php echo wp_get_attachment_image($qrcodeID, 'full', false, ['class' => 'w-full h-auto', 'loading' => 'lazy']); ?>
-            </div>
+    <!-- QR Code Modals -->
+    <?php foreach ($items as $item): ?>
+        <?php if (!empty($item['qr_code_id']) && $item['qr_code_id'] > 0): ?>
             <?php 
-                if($chat_items[$item]['scheme']) :
+            $qr_image_url = wp_get_attachment_url($item['qr_code_id']);
+            if ($qr_image_url): 
             ?>
-            <a class="btn" href="<?php echo esc_url($chat_items[$item]['scheme'] . $accountID); ?>" data-twe-ripple-init
-                data-twe-ripple-color="light"
-                style="background-color: <?php echo esc_attr($chat_items[$item]['btn_bg']); ?>" target="_blank">
-                <div class="icon">
-                    <img src="<?php echo esc_url($icon_url); ?>" alt="<?php echo esc_attr($item); ?>" width="24"
-                        height="24" loading="lazy">
+            
+            <div class="bubble-modal" 
+                 id="modal-<?php echo esc_attr($item['id']); ?>" 
+                 tabindex="-1" 
+                 aria-hidden="true">
+                 
+                <button class="bubble-modal-close" 
+                        aria-label="<?php esc_attr_e('Close modal', 'cwp-chat-bubbles'); ?>">
+                    <img src="<?php echo esc_url($cancel_icon); ?>" 
+                         alt="<?php esc_attr_e('Close', 'cwp-chat-bubbles'); ?>">
+                </button>
+                
+                <div class="modal-body">
+                    <div class="qrcode">
+                        <h3><?php echo esc_html($item['label']); ?></h3>
+                        <img src="<?php echo esc_url($qr_image_url); ?>" 
+                             alt="<?php echo esc_attr($item['label']); ?> QR Code" 
+                             loading="lazy">
+                    </div>
+                    
+                    <?php if ($item['platform_url'] !== '#'): ?>
+                        <a class="btn" 
+                           href="<?php echo esc_url($item['platform_url']); ?>" 
+                           target="_blank" 
+                           rel="noopener noreferrer">
+                            <div class="icon">
+                                <img src="<?php echo esc_url($item['platform_icon']); ?>" 
+                                     alt="<?php echo esc_attr($item['label']); ?>" 
+                                     width="24" 
+                                     height="24" 
+                                     loading="lazy">
+                            </div>
+                            <span><?php printf(__('Open %s', 'cwp-chat-bubbles'), esc_html($item['label'])); ?></span>
+                        </a>
+                    <?php endif; ?>
                 </div>
-                <span>
-                    <?php 
-                        echo esc_html($accountID);
-                    ?>
-                </span>
-            </a>
+            </div>
+            
             <?php endif; ?>
-        </div>
-    </div>
-    <?php endif; endforeach; ?>
+        <?php endif; ?>
+    <?php endforeach; ?>
 </div>
-<?php endif; ?>
