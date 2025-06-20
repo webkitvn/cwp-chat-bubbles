@@ -328,7 +328,7 @@ class CWP_Chat_Bubbles_Assets {
                 return 'tel:' . $contact_value;
                 
             case 'zalo':
-                return 'https://zalo.me/' . $contact_value;
+                return 'https://zalo.me/' . $contact_value . '?openChat=true';
                 
             case 'whatsapp':
                 return 'https://wa.me/' . $contact_value;

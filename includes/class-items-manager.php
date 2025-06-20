@@ -124,6 +124,24 @@ class CWP_Chat_Bubbles_Items_Manager {
     );
 
     /**
+     * Platform brand colors
+     * Maps platform names to their brand/recognizable colors
+     *
+     * @var array
+     * @since 1.0.0
+     */
+    const PLATFORM_COLORS = array(
+        'phone' => '#52BA00',
+        'zalo' => '#008BE6',
+        'whatsapp' => '#25D366',
+        'viber' => '#665cac',
+        'telegram' => '#0088cc',
+        'messenger' => '#0084ff',
+        'line' => '#38cd01',
+        'kakaotalk' => '#ffeb3b'
+    );
+
+    /**
      * Get instance
      *
      * @return CWP_Chat_Bubbles_Items_Manager
@@ -440,6 +458,17 @@ class CWP_Chat_Bubbles_Items_Manager {
             $icons[$platform] = CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/socials/' . $filename;
         }
         return $icons;
+    }
+
+    /**
+     * Get platform brand color
+     *
+     * @param string $platform Platform name
+     * @return string Color hex code
+     * @since 1.0.0
+     */
+    public function get_platform_color($platform) {
+        return isset(self::PLATFORM_COLORS[$platform]) ? self::PLATFORM_COLORS[$platform] : '#52BA00';
     }
 
     /**

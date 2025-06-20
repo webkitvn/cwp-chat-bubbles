@@ -166,12 +166,16 @@ class CWP_Chat_Bubbles_Frontend {
      * @since 1.0.0
      */
     private function render_template($items, $override_settings = array()) {
-        // Process items to add platform URLs and icons
+        // Get items manager for platform data
+        $items_manager = CWP_Chat_Bubbles_Items_Manager::get_instance();
+        
+        // Process items to add platform URLs, icons, and colors
         $processed_items = array();
         foreach ($items as $item) {
             $processed_item = $item;
             $processed_item['platform_url'] = $this->generate_platform_url($item['platform'], $item);
             $processed_item['platform_icon'] = $this->get_platform_icon_url($item['platform']);
+            $processed_item['platform_color'] = $items_manager->get_platform_color($item['platform']);
             $processed_items[] = $processed_item;
         }
         

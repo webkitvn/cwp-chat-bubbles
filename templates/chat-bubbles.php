@@ -100,7 +100,7 @@ if (empty($items)) {
                             <a class="btn"
                                 href="<?php echo esc_url($item['platform_url']); ?>"
                                 target="_blank"
-                                rel="noopener noreferrer">
+                                rel="noopener noreferrer" style="background-color: <?php echo esc_attr($item['platform_color']); ?>;">
                                 <div class="icon">
                                     <img src="<?php echo esc_url($item['platform_icon']); ?>"
                                         alt="<?php echo esc_attr($item['label']); ?>"
