@@ -85,6 +85,7 @@ class CWP_Chat_Bubbles_Settings {
             'enabled' => true,
             'auto_load' => true,
             'position' => 'bottom-right',
+            'custom_main_icon' => 0,            // Custom main icon attachment ID, 0 = use default
             
             // Display settings
             'main_button_color' => '#52BA00',
@@ -112,6 +113,13 @@ class CWP_Chat_Bubbles_Settings {
         $sanitized['enabled'] = isset($options['enabled']) ? (bool) $options['enabled'] : true;
         $sanitized['auto_load'] = isset($options['auto_load']) ? (bool) $options['auto_load'] : true;
         $sanitized['position'] = isset($options['position']) ? sanitize_text_field($options['position']) : 'bottom-right';
+        
+        // Sanitize custom main icon
+        $sanitized['custom_main_icon'] = isset($options['custom_main_icon']) ? absint($options['custom_main_icon']) : 0;
+        // Validate that attachment exists if not 0
+        if ($sanitized['custom_main_icon'] > 0 && !wp_get_attachment_url($sanitized['custom_main_icon'])) {
+            $sanitized['custom_main_icon'] = 0; // Reset to default if attachment doesn't exist
+        }
 
         // Validate position
         $valid_positions = array('bottom-right', 'bottom-left', 'top-right', 'top-left');

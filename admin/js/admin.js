@@ -28,6 +28,7 @@
         initSortable();
         initFormHandling();
         initQRCodeUpload();
+        initMainIconUpload();
         bindEvents();
     }
 
@@ -233,6 +234,105 @@
         $('#remove-qr-code').on('click', function() {
             removeQRCodePreview();
         });
+    }
+
+    /**
+     * Initialize main icon upload functionality
+     */
+    function initMainIconUpload() {
+        let mainIconUploader = null;
+
+        $('#upload-main-icon').on('click', function(e) {
+            e.preventDefault();
+            
+            if (mainIconUploader) {
+                mainIconUploader.open();
+                return;
+            }
+            
+            mainIconUploader = wp.media({
+                title: 'Select Custom Main Icon',
+                button: {
+                    text: 'Use This Icon'
+                },
+                multiple: false,
+                library: {
+                    type: 'image'
+                }
+            });
+            
+            mainIconUploader.on('select', function() {
+                const attachment = mainIconUploader.state().get('selection').first().toJSON();
+                setMainIconPreview(attachment.id, attachment.url);
+            });
+            
+            mainIconUploader.open();
+        });
+
+        $('#remove-main-icon').on('click', function() {
+            removeMainIconPreview();
+        });
+
+        // Update preview background color when main button color changes
+        $('input[name="cwp_chat_bubbles_options[main_button_color]"]').on('input change', function() {
+            const newColor = $(this).val();
+            const $preview = $('#main-icon-preview');
+            // Only update if there's an image in the preview
+            if ($preview.find('img').length) {
+                $preview.css('background-color', newColor);
+            }
+        });
+    }
+
+    /**
+     * Set main icon preview
+     */
+    function setMainIconPreview(attachmentId, imageUrl) {
+        $('#custom-main-icon').val(attachmentId);
+        
+        // Get the main button color from the color input
+        const mainButtonColor = $('input[name="cwp_chat_bubbles_options[main_button_color]"]').val() || '#52BA00';
+        
+        // Update the preview container to match the new template structure
+        const $preview = $('#main-icon-preview');
+        $preview.css({
+            'display': 'flex',
+            'justify-content': 'center',
+            'align-items': 'center',
+            'border-radius': '50%',
+            'width': '64px',
+            'height': '64px',
+            'background-color': mainButtonColor,
+            'margin-top': '10px'
+        });
+        $preview.html(`<img src="${imageUrl}" alt="Custom main icon preview" style="width: 80%; height: auto;">`);
+        
+        $('#upload-main-icon').text('Change Custom Icon');
+        $('#remove-main-icon').show();
+    }
+
+    /**
+     * Remove main icon preview
+     */
+    function removeMainIconPreview() {
+        $('#custom-main-icon').val(0);
+        
+        // Reset the preview container styles and content
+        const $preview = $('#main-icon-preview');
+        $preview.empty();
+        $preview.css({
+            'display': '',
+            'justify-content': '',
+            'align-items': '',
+            'border-radius': '',
+            'width': '',
+            'height': '',
+            'background-color': '',
+            'margin-top': '10px'
+        });
+        
+        $('#upload-main-icon').text('Upload Custom Icon');
+        $('#remove-main-icon').hide();
     }
 
     /**

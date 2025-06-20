@@ -160,6 +160,31 @@ class CWP_Chat_Bubbles_Options_Page {
                                     <p class="description"><?php esc_html_e('This setting applies to all chat items globally.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
                                 </td>
                             </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Custom Main Icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <div class="cwp-media-upload">
+                                        <input type="hidden" name="cwp_chat_bubbles_options[custom_main_icon]" id="custom-main-icon" value="<?php echo esc_attr($options['custom_main_icon']); ?>">
+                                        <button type="button" class="button" id="upload-main-icon">
+                                            <?php esc_html_e('Upload Custom Icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </button>
+                                        <button type="button" class="button" id="remove-main-icon" style="display: <?php echo $options['custom_main_icon'] > 0 ? 'inline-block' : 'none'; ?>;">
+                                            <?php esc_html_e('Remove Custom Icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </button>
+                                        <div id="main-icon-preview" style="margin-top: 10px; display: flex; justify-content: center; align-items: center; border-radius: 50%; width: 64px; height: 64px; background-color: <?php echo esc_attr($options['main_button_color']); ?>;">
+                                            <?php if ($options['custom_main_icon'] > 0): ?>
+                                                <?php $custom_icon_url = wp_get_attachment_url($options['custom_main_icon']); ?>
+                                                <?php if ($custom_icon_url): ?>
+                                                    <img src="<?php echo esc_url($custom_icon_url); ?>" alt="<?php esc_attr_e('Custom main icon preview', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" style="width:80%; height:auto;">
+                                                <?php endif; ?>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                    <p class="description">
+                                        <?php esc_html_e('Upload a custom icon for the main chat button. Leave empty to use the default support icon. Recommended size: 64x64 pixels.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                    </p>
+                                </td>
+                            </tr>
                         </table>
 
                         <?php submit_button(); ?>

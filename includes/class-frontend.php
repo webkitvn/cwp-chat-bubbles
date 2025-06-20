@@ -188,7 +188,7 @@ class CWP_Chat_Bubbles_Frontend {
                 'animation_enabled' => $this->settings->get_option('animation_enabled', true),
                 'show_labels' => !empty($override_settings['show_labels']) ? (bool) $override_settings['show_labels'] : $this->settings->should_show_labels()
             ),
-            'support_icon' => CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/support.svg',
+            'support_icon' => $this->get_main_icon_url(),
             'cancel_icon' => CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/cancel.svg'
         );
 
@@ -375,5 +375,26 @@ class CWP_Chat_Bubbles_Frontend {
      */
     private function get_platform_icon_url($platform) {
         return CWP_Chat_Bubbles_Items_Manager::get_instance()->get_platform_icon_url($platform);
+    }
+
+    /**
+     * Get main chat button icon URL
+     *
+     * @return string Icon URL (custom or default)
+     * @since 1.0.0
+     */
+    private function get_main_icon_url() {
+        $custom_icon_id = $this->settings->get_option('custom_main_icon', 0);
+        
+        // Try to get custom icon if set
+        if ($custom_icon_id > 0) {
+            $custom_url = wp_get_attachment_url($custom_icon_id);
+            if ($custom_url) {
+                return $custom_url;
+            }
+        }
+        
+        // Fallback to default support icon
+        return CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/support.svg';
     }
 } 
