@@ -54,6 +54,9 @@
         bottom: calc(100% + 10px);
         right: 0;
         background-color: #fff;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
         -webkit-box-shadow: 0 0 10px 0 rgba(0, 0, 0, .1);
         box-shadow: 0 0 10px 0 rgba(0, 0, 0, .1);
         min-width: 200px;
@@ -93,17 +96,25 @@
                 }
             }
         }
-
-        &::before {
-            position: absolute;
-            bottom: -7px;
-            right: 25px;
-            left: auto;
-            display: inline-block !important;
-            border-right: 8px solid rgba(0, 0, 0, 0);
-            border-top: 8px solid #fff;
-            border-left: 8px solid rgba(0, 0, 0, 0);
-            content: "";
+        &.no-labels{
+            min-width: 0;
+            background-color: transparent;
+            box-shadow: none;
+            gap: 5px;
+            right: auto;
+            left: 50%;
+            transform: translateX(-50%);
+            .chat-item{
+                width: 40px;
+                height: 40px;
+                padding: 0;
+                margin: 0;
+                border-bottom: none;
+                img{
+                    width: 100%;
+                    height: auto;
+                }
+            }
         }
     }
     .bubble-modal{

@@ -76,7 +76,7 @@ class CWP_Chat_Bubbles_Options_Page {
         add_action('wp_ajax_cwp_chat_bubbles_save_item', array($this, 'ajax_save_item'));
         add_action('wp_ajax_cwp_chat_bubbles_delete_item', array($this, 'ajax_delete_item'));
         add_action('wp_ajax_cwp_chat_bubbles_reorder_items', array($this, 'ajax_reorder_items'));
-        add_action('wp_ajax_get_attachment_url', array($this, 'ajax_get_attachment_url'));
+        add_action('wp_ajax_cwp_chat_bubbles_get_attachment_url', array($this, 'ajax_get_attachment_url'));
     }
 
     /**
@@ -118,18 +118,24 @@ class CWP_Chat_Bubbles_Options_Page {
         <div class="wrap">
             <h1><?php esc_html_e('CWP Chat Bubbles Settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h1>
             
-            <div id="cwp-admin-tabs">
-                <nav class="nav-tab-wrapper">
-                    <a href="#general-settings" class="nav-tab nav-tab-active"><?php esc_html_e('General Settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
-                    <a href="#chat-items" class="nav-tab"><?php esc_html_e('Chat Items', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
-                    <a href="#display-settings" class="nav-tab"><?php esc_html_e('Display Settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
-                </nav>
+            <?php 
+            // Display admin notices (success/error messages)
+            settings_errors(); 
+            ?>
+            
+            <!-- Single form for all tabs to prevent data loss when switching tabs -->
+            <form method="post" action="">
+                <?php wp_nonce_field('cwp_chat_bubbles_settings', 'cwp_chat_bubbles_nonce'); ?>
+                
+                <div id="cwp-admin-tabs">
+                    <nav class="nav-tab-wrapper">
+                        <a href="#general-settings" class="nav-tab nav-tab-active"><?php esc_html_e('General Settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
+                        <a href="#chat-items" class="nav-tab"><?php esc_html_e('Chat Items', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
+                        <a href="#display-settings" class="nav-tab"><?php esc_html_e('Display Settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
+                    </nav>
 
-                <!-- General Settings Tab -->
-                <div id="general-settings" class="tab-content">
-                    <form method="post" action="">
-                        <?php wp_nonce_field('cwp_chat_bubbles_settings', 'cwp_chat_bubbles_nonce'); ?>
-                        
+                    <!-- General Settings Tab -->
+                    <div id="general-settings" class="tab-content">
                         <table class="form-table">
                             <tr>
                                 <th scope="row"><?php esc_html_e('Enable Plugin', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
@@ -186,10 +192,7 @@ class CWP_Chat_Bubbles_Options_Page {
                                 </td>
                             </tr>
                         </table>
-
-                        <?php submit_button(); ?>
-                    </form>
-                </div>
+                    </div>
 
                 <!-- Chat Items Tab -->
                 <div id="chat-items" class="tab-content" style="display: none;">
@@ -206,93 +209,10 @@ class CWP_Chat_Bubbles_Options_Page {
                     <div id="cwp-items-container">
                         <?php $this->render_items_list($items); ?>
                     </div>
-
-                    <!-- Add/Edit Item Modal -->
-                    <div id="cwp-item-modal" class="cwp-modal" style="display: none;">
-                        <div class="cwp-modal-content">
-                            <div class="cwp-modal-header">
-                                <h3 id="modal-title"><?php esc_html_e('Add New Item', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
-                                <button type="button" class="cwp-modal-close">&times;</button>
-                            </div>
-                            <div class="cwp-modal-body">
-                                <form id="cwp-item-form">
-                                    <input type="hidden" id="item-id" name="item_id" value="">
-                                    
-                                    <table class="form-table">
-                                        <tr>
-                                            <th scope="row">
-                                                <label for="platform"><?php esc_html_e('Platform Type', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
-                                            </th>
-                                            <td>
-                                                <select id="platform" name="platform" required>
-                                                    <option value=""><?php esc_html_e('Select Platform', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
-                                                    <?php foreach ($supported_platforms as $platform => $config): ?>
-                                                        <option value="<?php echo esc_attr($platform); ?>">
-                                                            <?php echo esc_html($config['label']); ?>
-                                                        </option>
-                                                    <?php endforeach; ?>
-                                                </select>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">
-                                                <label for="label"><?php esc_html_e('Display Label', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
-                                            </th>
-                                            <td>
-                                                <input type="text" id="label" name="label" class="regular-text" placeholder="<?php esc_attr_e('e.g., Business Support', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" required>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">
-                                                <label for="contact-value" id="contact-label"><?php esc_html_e('Contact Info', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
-                                            </th>
-                                            <td>
-                                                <input type="text" id="contact-value" name="contact_value" class="regular-text" placeholder="" required>
-                                                <p class="description" id="contact-description"></p>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">
-                                                <label for="qr-code"><?php esc_html_e('QR Code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
-                                            </th>
-                                            <td>
-                                                <input type="hidden" id="qr-code-id" name="qr_code_id" value="0">
-                                                <button type="button" class="button" id="upload-qr-code">
-                                                    <?php esc_html_e('Upload QR Code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                                </button>
-                                                <button type="button" class="button" id="remove-qr-code" style="display: none;">
-                                                    <?php esc_html_e('Remove QR Code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                                </button>
-                                                <div id="qr-preview" style="margin-top: 10px;"></div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">
-                                                <label for="enabled"><?php esc_html_e('Status', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
-                                            </th>
-                                            <td>
-                                                <label>
-                                                    <input type="checkbox" id="enabled" name="enabled" value="1" checked>
-                                                    <?php esc_html_e('Enable this item', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                                </label>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </form>
-                            </div>
-                            <div class="cwp-modal-footer">
-                                <button type="button" class="button" id="cancel-item"><?php esc_html_e('Cancel', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></button>
-                                <button type="button" class="button button-primary" id="save-item"><?php esc_html_e('Save Item', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Display Settings Tab -->
-                <div id="display-settings" class="tab-content" style="display: none;">
-                    <form method="post" action="">
-                        <?php wp_nonce_field('cwp_chat_bubbles_settings', 'cwp_chat_bubbles_nonce'); ?>
-                        
+                    <!-- Display Settings Tab -->
+                    <div id="display-settings" class="tab-content" style="display: none;">
                         <table class="form-table">
                             <tr>
                                 <th scope="row"><?php esc_html_e('Position', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
@@ -321,9 +241,92 @@ class CWP_Chat_Bubbles_Options_Page {
                                 </td>
                             </tr>
                         </table>
-
-                        <?php submit_button(); ?>
-                    </form>
+                    </div>
+                </div>
+                
+                <!-- Single submit button for all tabs -->
+                <div style="margin-top: 20px; padding: 20px; background: #fff; border: 1px solid #ddd; border-top: none;">
+                    <?php submit_button(); ?>
+                </div>
+            </form>
+            
+            <!-- Add/Edit Item Modal (outside main form to prevent nesting) -->
+            <div id="cwp-item-modal" class="cwp-modal" style="display: none;">
+                <div class="cwp-modal-content">
+                    <div class="cwp-modal-header">
+                        <h3 id="modal-title"><?php esc_html_e('Add New Item', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
+                        <button type="button" class="cwp-modal-close">&times;</button>
+                    </div>
+                    <div class="cwp-modal-body">
+                        <form id="cwp-item-form">
+                            <input type="hidden" id="item-id" name="item_id" value="">
+                            
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row">
+                                        <label for="platform"><?php esc_html_e('Platform Type', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                    </th>
+                                    <td>
+                                        <select id="platform" name="platform" required>
+                                            <option value=""><?php esc_html_e('Select Platform', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                            <?php foreach ($supported_platforms as $platform => $config): ?>
+                                                <option value="<?php echo esc_attr($platform); ?>">
+                                                    <?php echo esc_html($config['label']); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
+                                        <label for="label"><?php esc_html_e('Display Label', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                    </th>
+                                    <td>
+                                        <input type="text" id="label" name="label" class="regular-text" placeholder="<?php esc_attr_e('e.g., Business Support', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" required>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
+                                        <label for="contact-value" id="contact-label"><?php esc_html_e('Contact Info', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                    </th>
+                                    <td>
+                                        <input type="text" id="contact-value" name="contact_value" class="regular-text" placeholder="" required>
+                                        <p class="description" id="contact-description"></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
+                                        <label for="qr-code"><?php esc_html_e('QR Code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                    </th>
+                                    <td>
+                                        <input type="hidden" id="qr-code-id" name="qr_code_id" value="0">
+                                        <button type="button" class="button" id="upload-qr-code">
+                                            <?php esc_html_e('Upload QR Code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </button>
+                                        <button type="button" class="button" id="remove-qr-code" style="display: none;">
+                                            <?php esc_html_e('Remove QR Code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </button>
+                                        <div id="qr-preview" style="margin-top: 10px;"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
+                                        <label for="enabled"><?php esc_html_e('Status', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                    </th>
+                                    <td>
+                                        <label>
+                                            <input type="checkbox" id="enabled" name="enabled" value="1" checked>
+                                            <?php esc_html_e('Enable this item', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </label>
+                                    </td>
+                                </tr>
+                            </table>
+                        </form>
+                    </div>
+                    <div class="cwp-modal-footer">
+                        <button type="button" class="button" id="cancel-item"><?php esc_html_e('Cancel', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></button>
+                        <button type="button" class="button button-primary" id="save-item"><?php esc_html_e('Save Item', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -505,14 +508,33 @@ class CWP_Chat_Bubbles_Options_Page {
         if (isset($_POST['cwp_chat_bubbles_options'])) {
             $options = $_POST['cwp_chat_bubbles_options'];
             
-            if ($this->settings->update_options($options)) {
-                add_action('admin_notices', function() {
-                    echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Settings saved successfully!', CWP_CHAT_BUBBLES_TEXT_DOMAIN) . '</p></div>';
-                });
+            // Debug: Log the submitted options
+            error_log('CWP Chat Bubbles - Submitted options: ' . print_r($options, true));
+            
+            $result = $this->settings->update_options($options);
+            
+            // Debug: Log the result
+            error_log('CWP Chat Bubbles - Update result: ' . ($result ? 'SUCCESS' : 'FAILED'));
+            
+            if ($result) {
+                add_settings_error(
+                    'cwp_chat_bubbles_messages',
+                    'cwp_chat_bubbles_message',
+                    __('Settings saved successfully!', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'success'
+                );
             } else {
-                add_action('admin_notices', function() {
-                    echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__('Failed to save settings.', CWP_CHAT_BUBBLES_TEXT_DOMAIN) . '</p></div>';
-                });
+                add_settings_error(
+                    'cwp_chat_bubbles_messages',
+                    'cwp_chat_bubbles_message',
+                    __('Failed to save settings.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'error'
+                );
+            }
+        } else {
+            // Debug: Check if POST data exists but without the expected key
+            if ($_POST) {
+                error_log('CWP Chat Bubbles - POST data exists but cwp_chat_bubbles_options not found: ' . print_r($_POST, true));
             }
         }
     }
@@ -602,6 +624,27 @@ class CWP_Chat_Bubbles_Options_Page {
         $contact_value = sanitize_text_field($_POST['contact_value']);
         $qr_code_id = !empty($_POST['qr_code_id']) ? (int) $_POST['qr_code_id'] : 0;
         $enabled = !empty($_POST['enabled']) ? 1 : 0;
+
+        // Enhanced validation
+        if (empty($platform) || empty($label) || empty($contact_value)) {
+            wp_send_json_error(__('Required fields are missing', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+        }
+
+        // Validate platform is supported
+        $supported_platforms = $this->items_manager->get_supported_platforms();
+        if (!array_key_exists($platform, $supported_platforms)) {
+            wp_send_json_error(__('Invalid platform selected', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+        }
+
+        // Validate label length
+        if (strlen($label) < 2 || strlen($label) > 50) {
+            wp_send_json_error(__('Label must be between 2 and 50 characters', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+        }
+
+        // Validate contact value format based on platform
+        if (!$this->items_manager->validate_contact_value($platform, $contact_value)) {
+            wp_send_json_error(__('Invalid contact value format for selected platform', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+        }
 
         $item_data = array(
             'platform' => $platform,
@@ -714,6 +757,11 @@ class CWP_Chat_Bubbles_Options_Page {
      * @since 1.0.0
      */
     public function ajax_get_attachment_url() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'cwp_chat_bubbles_admin')) {
+            wp_die(__('Security check failed', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+        }
+
         // Check permissions
         if (!current_user_can('manage_options')) {
             wp_die(__('Insufficient permissions', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
@@ -722,9 +770,13 @@ class CWP_Chat_Bubbles_Options_Page {
         $attachment_id = !empty($_POST['attachment_id']) ? (int) $_POST['attachment_id'] : 0;
         
         if ($attachment_id > 0) {
-            $url = wp_get_attachment_url($attachment_id);
-            if ($url) {
-                wp_send_json_success(array('url' => $url));
+            // Verify attachment exists and is actually an image
+            $attachment = get_post($attachment_id);
+            if ($attachment && $attachment->post_type === 'attachment') {
+                $url = wp_get_attachment_url($attachment_id);
+                if ($url) {
+                    wp_send_json_success(array('url' => $url));
+                }
             }
         }
         

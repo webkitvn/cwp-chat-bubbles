@@ -38,7 +38,7 @@ if (empty($items)) {
     </div>
 
     <!-- Platform Items Group -->
-    <div class="item-group">
+    <div class="item-group <?php echo !$settings['show_labels'] ? 'no-labels' : ''; ?>">
         <?php foreach ($items as $item): ?>
             <?php
             // Check if item has QR code
@@ -46,7 +46,7 @@ if (empty($items)) {
             ?>
 
             <a href="<?php echo esc_url($item['platform_url']); ?>"
-                class="chat-item chat-item-<?php echo esc_attr($item['platform']); ?> <?php echo !$item['show_label'] ? 'chat-item-no-label' : ''; ?>"
+                class="chat-item chat-item-<?php echo esc_attr($item['platform']); ?>"
                 <?php if ($has_qr): ?>
                 data-bubble-modal="modal-<?php echo esc_attr($item['id']); ?>"
                 data-no-direct-link="true"

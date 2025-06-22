@@ -221,12 +221,17 @@ class CWP_Chat_Bubbles_Items_Manager {
     public function get_all_items($enabled_only = false) {
         global $wpdb;
 
-        $where = $enabled_only ? "WHERE enabled = 1" : "";
-
-        $results = $wpdb->get_results(
-            "SELECT * FROM {$this->table_name} {$where} ORDER BY sort_order ASC, id ASC",
-            ARRAY_A
-        );
+        if ($enabled_only) {
+            $results = $wpdb->get_results(
+                $wpdb->prepare("SELECT * FROM {$this->table_name} WHERE enabled = %d ORDER BY sort_order ASC, id ASC", 1),
+                ARRAY_A
+            );
+        } else {
+            $results = $wpdb->get_results(
+                $wpdb->prepare("SELECT * FROM {$this->table_name} ORDER BY sort_order ASC, id ASC"),
+                ARRAY_A
+            );
+        }
 
         return $results ? $results : array();
     }
@@ -279,7 +284,7 @@ class CWP_Chat_Bubbles_Items_Manager {
 
         // Get next sort order if not provided
         if (!isset($sanitized_data['sort_order'])) {
-            $max_order = $wpdb->get_var("SELECT MAX(sort_order) FROM {$this->table_name}");
+            $max_order = $wpdb->get_var($wpdb->prepare("SELECT MAX(sort_order) FROM {$this->table_name}"));
             $sanitized_data['sort_order'] = ($max_order ? (int) $max_order : 0) + 1;
         }
 
@@ -294,7 +299,13 @@ class CWP_Chat_Bubbles_Items_Manager {
             array('%s', '%d', '%s', '%s', '%d', '%d')
         );
 
-        return $result ? $wpdb->insert_id : false;
+        if ($result) {
+            // Clear cache when data changes
+            $this->clear_frontend_cache();
+            return $wpdb->insert_id;
+        }
+
+        return false;
     }
 
     /**
@@ -341,7 +352,21 @@ class CWP_Chat_Bubbles_Items_Manager {
             array('%d')
         );
 
+        if ($result !== false) {
+            // Clear cache when data changes
+            $this->clear_frontend_cache();
+        }
+
         return $result !== false;
+    }
+
+    /**
+     * Clear frontend data cache
+     *
+     * @since 1.0.0
+     */
+    private function clear_frontend_cache() {
+        wp_cache_delete('cwp_chat_bubbles_frontend_data', 'cwp_chat_bubbles');
     }
 
     /**
@@ -365,6 +390,11 @@ class CWP_Chat_Bubbles_Items_Manager {
             array('id' => $id),
             array('%d')
         );
+
+        if ($result !== false) {
+            // Clear cache when data changes
+            $this->clear_frontend_cache();
+        }
 
         return $result !== false;
     }
@@ -397,6 +427,11 @@ class CWP_Chat_Bubbles_Items_Manager {
             if ($result === false) {
                 $success = false;
             }
+        }
+
+        if ($success) {
+            // Clear cache when data changes
+            $this->clear_frontend_cache();
         }
 
         return $success;

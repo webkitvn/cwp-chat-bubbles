@@ -289,6 +289,14 @@ class CWP_Chat_Bubbles_Assets {
      * @since 1.0.0
      */
     private function get_frontend_platform_data() {
+        // Try to get cached data first
+        $cache_key = 'cwp_chat_bubbles_frontend_data';
+        $cached_data = wp_cache_get($cache_key, 'cwp_chat_bubbles');
+        
+        if (false !== $cached_data) {
+            return $cached_data;
+        }
+
         $items_manager = CWP_Chat_Bubbles_Items_Manager::get_instance();
         $enabled_items = $items_manager->get_all_items(true); // Get enabled items only
         $frontend_data = array();
@@ -304,6 +312,9 @@ class CWP_Chat_Bubbles_Assets {
                 'has_qr' => !empty($item['qr_code_id'])
             );
         }
+
+        // Cache for 1 hour
+        wp_cache_set($cache_key, $frontend_data, 'cwp_chat_bubbles', HOUR_IN_SECONDS);
 
         return $frontend_data;
     }

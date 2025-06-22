@@ -110,8 +110,9 @@ class CWP_Chat_Bubbles_Settings {
         $sanitized = array();
 
         // Sanitize general settings
-        $sanitized['enabled'] = isset($options['enabled']) ? (bool) $options['enabled'] : true;
-        $sanitized['auto_load'] = isset($options['auto_load']) ? (bool) $options['auto_load'] : true;
+        // Note: For checkboxes, if not present in POST data, it means unchecked
+        $sanitized['enabled'] = isset($options['enabled']) ? (bool) $options['enabled'] : false;
+        $sanitized['auto_load'] = isset($options['auto_load']) ? (bool) $options['auto_load'] : false;
         $sanitized['position'] = isset($options['position']) ? sanitize_text_field($options['position']) : 'bottom-right';
         
         // Sanitize custom main icon
@@ -136,11 +137,11 @@ class CWP_Chat_Bubbles_Settings {
             
         $sanitized['animation_enabled'] = isset($options['animation_enabled'])
             ? (bool) $options['animation_enabled']
-            : true;
+            : false;
             
         $sanitized['show_labels'] = isset($options['show_labels'])
             ? (bool) $options['show_labels']
-            : true;
+            : false;
 
         // Sanitize advanced settings
         $sanitized['custom_css'] = isset($options['custom_css'])
@@ -149,7 +150,7 @@ class CWP_Chat_Bubbles_Settings {
             
         $sanitized['load_on_mobile'] = isset($options['load_on_mobile'])
             ? (bool) $options['load_on_mobile']
-            : true;
+            : false;
 
         // Sanitize exclude pages
         $sanitized['exclude_pages'] = array();
