@@ -85,7 +85,7 @@ class CWP_Chat_Bubbles_Options_Page {
      * @since 1.0.0
      */
     public function add_admin_menu() {
-        add_menu_page(
+        $hook = add_menu_page(
             __('Chat Bubbles', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
             __('Chat Bubbles', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
             'manage_options',
@@ -94,6 +94,41 @@ class CWP_Chat_Bubbles_Options_Page {
             'dashicons-format-chat',
             30
         );
+        
+        // Add security headers when loading our admin page
+        add_action('load-' . $hook, array($this, 'add_security_headers'));
+    }
+
+    /**
+     * Add security headers to admin page
+     *
+     * @since 1.0.0
+     */
+    public function add_security_headers() {
+        // Prevent clickjacking
+        header('X-Frame-Options: DENY');
+        
+        // Prevent MIME sniffing
+        header('X-Content-Type-Options: nosniff');
+        
+        // XSS Protection
+        header('X-XSS-Protection: 1; mode=block');
+        
+        // Referrer Policy
+        header('Referrer-Policy: strict-origin-when-cross-origin');
+        
+        // Basic CSP for admin interface
+        $csp_directives = array(
+            "default-src 'self'",
+            "script-src 'self' 'unsafe-inline'", // WordPress admin requires inline scripts
+            "style-src 'self' 'unsafe-inline'",  // WordPress admin requires inline styles
+            "img-src 'self' data: https:",
+            "font-src 'self'",
+            "connect-src 'self'",
+            "frame-ancestors 'none'"
+        );
+        
+        header('Content-Security-Policy: ' . implode('; ', $csp_directives));
     }
 
     /**
@@ -505,18 +540,33 @@ class CWP_Chat_Bubbles_Options_Page {
 
         check_admin_referer('cwp_chat_bubbles_settings', 'cwp_chat_bubbles_nonce');
 
+        // Rate limiting: Check if too many requests in short time
+        $user_id = get_current_user_id();
+        $transient_key = 'cwp_chat_bubbles_rate_limit_' . $user_id;
+        $request_count = get_transient($transient_key);
+        
+        if ($request_count && $request_count >= 10) {
+            add_settings_error(
+                'cwp_chat_bubbles_messages',
+                'cwp_chat_bubbles_message',
+                __('Too many requests. Please wait a moment before trying again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                'error'
+            );
+            return;
+        }
+        
+        // Increment rate limit counter
+        set_transient($transient_key, ($request_count ? $request_count + 1 : 1), 60);
+
         if (isset($_POST['cwp_chat_bubbles_options'])) {
             $options = $_POST['cwp_chat_bubbles_options'];
             
-            // Debug: Log the submitted options
-            error_log('CWP Chat Bubbles - Submitted options: ' . print_r($options, true));
-            
             $result = $this->settings->update_options($options);
             
-            // Debug: Log the result
-            error_log('CWP Chat Bubbles - Update result: ' . ($result ? 'SUCCESS' : 'FAILED'));
-            
             if ($result) {
+                // Log successful settings update
+                $this->log_admin_action('settings_updated', 'General settings updated successfully');
+                
                 add_settings_error(
                     'cwp_chat_bubbles_messages',
                     'cwp_chat_bubbles_message',
@@ -524,17 +574,15 @@ class CWP_Chat_Bubbles_Options_Page {
                     'success'
                 );
             } else {
+                // Log failed settings update
+                $this->log_admin_action('settings_error', 'Failed to save general settings');
+                
                 add_settings_error(
                     'cwp_chat_bubbles_messages',
                     'cwp_chat_bubbles_message',
                     __('Failed to save settings.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
                     'error'
                 );
-            }
-        } else {
-            // Debug: Check if POST data exists but without the expected key
-            if ($_POST) {
-                error_log('CWP Chat Bubbles - POST data exists but cwp_chat_bubbles_options not found: ' . print_r($_POST, true));
             }
         }
     }
@@ -603,6 +651,63 @@ class CWP_Chat_Bubbles_Options_Page {
     }
 
     /**
+     * Log admin actions for audit trail
+     *
+     * @param string $action Action performed
+     * @param string $message Additional message
+     * @since 1.0.0
+     */
+    private function log_admin_action($action, $message = '') {
+        $user_id = get_current_user_id();
+        $user_info = get_userdata($user_id);
+        $username = $user_info ? $user_info->user_login : 'unknown';
+        $ip_address = $this->get_client_ip();
+        
+        $log_entry = array(
+            'timestamp' => current_time('mysql'),
+            'user_id' => $user_id,
+            'username' => $username,
+            'ip_address' => $ip_address,
+            'action' => $action,
+            'message' => $message,
+            'user_agent' => isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field($_SERVER['HTTP_USER_AGENT']) : ''
+        );
+        
+        // Get existing log entries
+        $log_entries = get_option('cwp_chat_bubbles_audit_log', array());
+        
+        // Add new entry
+        array_unshift($log_entries, $log_entry);
+        
+        // Keep only last 100 entries to prevent database bloat
+        $log_entries = array_slice($log_entries, 0, 100);
+        
+        // Save back to database
+        update_option('cwp_chat_bubbles_audit_log', $log_entries);
+    }
+
+    /**
+     * Get client IP address safely
+     *
+     * @return string IP address
+     * @since 1.0.0
+     */
+    private function get_client_ip() {
+        $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR');
+        
+        foreach ($ip_keys as $key) {
+            if (array_key_exists($key, $_SERVER) === true) {
+                $ip = sanitize_text_field($_SERVER[$key]);
+                if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                    return $ip;
+                }
+            }
+        }
+        
+        return isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field($_SERVER['REMOTE_ADDR']) : '0.0.0.0';
+    }
+
+    /**
      * AJAX handler for saving item
      *
      * @since 1.0.0
@@ -610,13 +715,28 @@ class CWP_Chat_Bubbles_Options_Page {
     public function ajax_save_item() {
         // Verify nonce
         if (!wp_verify_nonce($_POST['nonce'], 'cwp_chat_bubbles_admin')) {
+            $this->log_admin_action('security_violation', 'Invalid nonce for ajax_save_item');
             wp_die(__('Security check failed', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
 
         // Check permissions
         if (!current_user_can('manage_options')) {
+            $this->log_admin_action('security_violation', 'Insufficient permissions for ajax_save_item');
             wp_die(__('Insufficient permissions', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
+
+        // Rate limiting for AJAX requests
+        $user_id = get_current_user_id();
+        $transient_key = 'cwp_chat_bubbles_ajax_rate_limit_' . $user_id;
+        $request_count = get_transient($transient_key);
+        
+        if ($request_count && $request_count >= 20) {
+            $this->log_admin_action('rate_limited', 'AJAX request rate limited for ajax_save_item');
+            wp_send_json_error(__('Too many requests. Please wait a moment before trying again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+        }
+        
+        // Increment rate limit counter
+        set_transient($transient_key, ($request_count ? $request_count + 1 : 1), 60);
 
         $item_id = !empty($_POST['item_id']) ? (int) $_POST['item_id'] : 0;
         $platform = sanitize_text_field($_POST['platform']);
@@ -665,11 +785,13 @@ class CWP_Chat_Bubbles_Options_Page {
         }
 
         if ($result) {
+            $this->log_admin_action('item_' . $action, "Item {$action}: {$label} ({$platform})");
             wp_send_json_success(array(
                 'message' => sprintf(__('Item %s successfully', CWP_CHAT_BUBBLES_TEXT_DOMAIN), $action),
                 'items_html' => $this->get_items_list_html()
             ));
         } else {
+            $this->log_admin_action('item_save_error', "Failed to {$action} item: {$label} ({$platform})");
             wp_send_json_error(__('Failed to save item', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
     }
@@ -682,22 +804,38 @@ class CWP_Chat_Bubbles_Options_Page {
     public function ajax_delete_item() {
         // Verify nonce
         if (!wp_verify_nonce($_POST['nonce'], 'cwp_chat_bubbles_admin')) {
+            $this->log_admin_action('security_violation', 'Invalid nonce for ajax_delete_item');
             wp_die(__('Security check failed', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
 
         // Check permissions
         if (!current_user_can('manage_options')) {
+            $this->log_admin_action('security_violation', 'Insufficient permissions for ajax_delete_item');
             wp_die(__('Insufficient permissions', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
+
+        // Rate limiting (shared with other AJAX endpoints)
+        $user_id = get_current_user_id();
+        $transient_key = 'cwp_chat_bubbles_ajax_rate_limit_' . $user_id;
+        $request_count = get_transient($transient_key);
+        
+        if ($request_count && $request_count >= 20) {
+            $this->log_admin_action('rate_limited', 'AJAX request rate limited for ajax_delete_item');
+            wp_send_json_error(__('Too many requests. Please wait a moment before trying again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+        }
+        
+        set_transient($transient_key, ($request_count ? $request_count + 1 : 1), 60);
 
         $item_id = (int) $_POST['item_id'];
 
         if ($this->items_manager->delete_item($item_id)) {
+            $this->log_admin_action('item_deleted', "Deleted item ID: {$item_id}");
             wp_send_json_success(array(
                 'message' => __('Item deleted successfully', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
                 'items_html' => $this->get_items_list_html()
             ));
         } else {
+            $this->log_admin_action('item_delete_error', "Failed to delete item ID: {$item_id}");
             wp_send_json_error(__('Failed to delete item', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
     }
@@ -710,19 +848,41 @@ class CWP_Chat_Bubbles_Options_Page {
     public function ajax_reorder_items() {
         // Verify nonce
         if (!wp_verify_nonce($_POST['nonce'], 'cwp_chat_bubbles_admin')) {
+            $this->log_admin_action('security_violation', 'Invalid nonce for ajax_reorder_items');
             wp_die(__('Security check failed', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
 
         // Check permissions
         if (!current_user_can('manage_options')) {
+            $this->log_admin_action('security_violation', 'Insufficient permissions for ajax_reorder_items');
             wp_die(__('Insufficient permissions', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
 
+        // Rate limiting (shared with other AJAX endpoints)
+        $user_id = get_current_user_id();
+        $transient_key = 'cwp_chat_bubbles_ajax_rate_limit_' . $user_id;
+        $request_count = get_transient($transient_key);
+        
+        if ($request_count && $request_count >= 20) {
+            $this->log_admin_action('rate_limited', 'AJAX request rate limited for ajax_reorder_items');
+            wp_send_json_error(__('Too many requests. Please wait a moment before trying again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+        }
+        
+        set_transient($transient_key, ($request_count ? $request_count + 1 : 1), 60);
+
         $ordered_ids = array_map('intval', $_POST['ordered_ids']);
 
+        // Validate that ordered_ids is reasonable (max 50 items)
+        if (count($ordered_ids) > 50) {
+            $this->log_admin_action('security_violation', 'Too many items in reorder request: ' . count($ordered_ids));
+            wp_send_json_error(__('Too many items to reorder.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+        }
+
         if ($this->items_manager->reorder_items($ordered_ids)) {
+            $this->log_admin_action('items_reordered', 'Reordered ' . count($ordered_ids) . ' items');
             wp_send_json_success(__('Items reordered successfully', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         } else {
+            $this->log_admin_action('reorder_error', 'Failed to reorder ' . count($ordered_ids) . ' items');
             wp_send_json_error(__('Failed to reorder items', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
     }
@@ -759,13 +919,27 @@ class CWP_Chat_Bubbles_Options_Page {
     public function ajax_get_attachment_url() {
         // Verify nonce
         if (!wp_verify_nonce($_POST['nonce'], 'cwp_chat_bubbles_admin')) {
+            $this->log_admin_action('security_violation', 'Invalid nonce for ajax_get_attachment_url');
             wp_die(__('Security check failed', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
 
         // Check permissions
         if (!current_user_can('manage_options')) {
+            $this->log_admin_action('security_violation', 'Insufficient permissions for ajax_get_attachment_url');
             wp_die(__('Insufficient permissions', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
+
+        // Rate limiting for AJAX requests (shared with other AJAX endpoints)
+        $user_id = get_current_user_id();
+        $transient_key = 'cwp_chat_bubbles_ajax_rate_limit_' . $user_id;
+        $request_count = get_transient($transient_key);
+        
+        if ($request_count && $request_count >= 20) {
+            $this->log_admin_action('rate_limited', 'AJAX request rate limited for ajax_get_attachment_url');
+            wp_die(__('Too many requests. Please wait a moment before trying again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+        }
+        
+        set_transient($transient_key, ($request_count ? $request_count + 1 : 1), 60);
 
         $attachment_id = !empty($_POST['attachment_id']) ? (int) $_POST['attachment_id'] : 0;
         
@@ -773,13 +947,42 @@ class CWP_Chat_Bubbles_Options_Page {
             // Verify attachment exists and is actually an image
             $attachment = get_post($attachment_id);
             if ($attachment && $attachment->post_type === 'attachment') {
+                // Enhanced file validation
+                $file_path = get_attached_file($attachment_id);
+                $mime_type = get_post_mime_type($attachment_id);
+                
+                // Check if it's an image
+                $allowed_mime_types = array(
+                    'image/jpeg',
+                    'image/jpg', 
+                    'image/png',
+                    'image/gif',
+                    'image/webp'
+                );
+                
+                if (!in_array($mime_type, $allowed_mime_types)) {
+                    $this->log_admin_action('security_violation', "Invalid file type uploaded: {$mime_type}");
+                    wp_send_json_error(__('Invalid file type. Only images are allowed.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+                }
+                
+                // Check file size (max 2MB for QR codes)
+                if ($file_path && file_exists($file_path)) {
+                    $file_size = filesize($file_path);
+                    if ($file_size > 2 * 1024 * 1024) { // 2MB
+                        $this->log_admin_action('security_violation', "File too large: " . number_format($file_size / 1024 / 1024, 2) . "MB");
+                        wp_send_json_error(__('File too large. Maximum size is 2MB.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+                    }
+                }
+                
                 $url = wp_get_attachment_url($attachment_id);
                 if ($url) {
+                    $this->log_admin_action('attachment_retrieved', "Retrieved attachment URL for ID: {$attachment_id}");
                     wp_send_json_success(array('url' => $url));
                 }
             }
         }
         
+        $this->log_admin_action('invalid_attachment', "Invalid attachment ID requested: {$attachment_id}");
         wp_send_json_error(__('Invalid attachment ID', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
     }
 } 

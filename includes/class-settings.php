@@ -143,10 +143,35 @@ class CWP_Chat_Bubbles_Settings {
             ? (bool) $options['show_labels']
             : false;
 
-        // Sanitize advanced settings
-        $sanitized['custom_css'] = isset($options['custom_css'])
-            ? wp_strip_all_tags($options['custom_css'])
-            : '';
+        // Sanitize advanced settings - Enhanced CSS validation
+        $sanitized['custom_css'] = '';
+        if (isset($options['custom_css']) && !empty($options['custom_css'])) {
+            $css = wp_strip_all_tags($options['custom_css']);
+            
+            // Additional CSS security - remove potentially dangerous functions
+            $dangerous_patterns = array(
+                '/javascript\s*:/i',
+                '/expression\s*\(/i',
+                '/url\s*\(\s*["\']?\s*javascript:/i',
+                '/url\s*\(\s*["\']?\s*data:/i',
+                '/import\s*["\']?/i',
+                '/@import/i',
+                '/behavior\s*:/i',
+                '/binding\s*:/i',
+                '/mozbinding\s*:/i'
+            );
+            
+            foreach ($dangerous_patterns as $pattern) {
+                $css = preg_replace($pattern, '', $css);
+            }
+            
+            // Limit CSS length to prevent abuse
+            if (strlen($css) > 5000) {
+                $css = substr($css, 0, 5000);
+            }
+            
+            $sanitized['custom_css'] = $css;
+        }
             
         $sanitized['load_on_mobile'] = isset($options['load_on_mobile'])
             ? (bool) $options['load_on_mobile']

@@ -52,7 +52,7 @@ class CWP_Chat_Bubbles_Items_Manager {
         'phone' => array(
             'label' => 'Phone/Hotline',
             'contact_field' => 'number',
-            'pattern' => '/^[\+]?[0-9\s\-\(\)]{7,20}$/',
+            'pattern' => '/^\+?[0-9\s\-\(\)]{7,20}$/',
             'placeholder' => '+1234567890'
         ),
         'zalo' => array(
@@ -64,37 +64,37 @@ class CWP_Chat_Bubbles_Items_Manager {
         'whatsapp' => array(
             'label' => 'WhatsApp',
             'contact_field' => 'number',
-            'pattern' => '/^[\+]?[1-9][\d]{0,15}$/',
+            'pattern' => '/^\+?[1-9][0-9]{6,15}$/',
             'placeholder' => '1234567890'
         ),
         'viber' => array(
             'label' => 'Viber',
             'contact_field' => 'number',
-            'pattern' => '/^[\+]?[0-9\s\-\(\)]{7,20}$/',
+            'pattern' => '/^\+?[0-9\s\-\(\)]{7,20}$/',
             'placeholder' => '+1234567890'
         ),
         'telegram' => array(
             'label' => 'Telegram',
             'contact_field' => 'username',
-            'pattern' => '/^[a-zA-Z0-9_]{5,32}$/',
+            'pattern' => '/^[a-zA-Z][a-zA-Z0-9_]{4,31}$/',
             'placeholder' => 'username'
         ),
         'messenger' => array(
             'label' => 'Facebook Messenger',
             'contact_field' => 'username',
-            'pattern' => '/^[a-zA-Z0-9.]{1,50}$/',
+            'pattern' => '/^[a-zA-Z0-9][a-zA-Z0-9\.]{0,49}$/',
             'placeholder' => 'username'
         ),
         'line' => array(
             'label' => 'Line',
             'contact_field' => 'id',
-            'pattern' => '/^[a-zA-Z0-9._-]{1,50}$/',
+            'pattern' => '/^[a-zA-Z0-9][a-zA-Z0-9\._-]{0,49}$/',
             'placeholder' => 'your-line-id'
         ),
         'kakaotalk' => array(
             'label' => 'KakaoTalk',
             'contact_field' => 'id',
-            'pattern' => '/^[a-zA-Z0-9_-]{1,50}$/',
+            'pattern' => '/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,49}$/',
             'placeholder' => 'your-kakao-id'
         )
     );
@@ -521,7 +521,32 @@ class CWP_Chat_Bubbles_Items_Manager {
             return false;
         }
 
-        return preg_match($config['pattern'], trim($contact_value));
+        $contact_value = trim($contact_value);
+        
+        // Additional security checks
+        if (strlen($contact_value) > 100) {
+            return false;
+        }
+        
+        // Check for potentially malicious content
+        $malicious_patterns = array(
+            '/<script/i',
+            '/javascript:/i',
+            '/onload=/i',
+            '/onerror=/i',
+            '/onclick=/i',
+            '/onmouseover=/i',
+            '/expression\(/i',
+            '/vbscript:/i'
+        );
+        
+        foreach ($malicious_patterns as $pattern) {
+            if (preg_match($pattern, $contact_value)) {
+                return false;
+            }
+        }
+
+        return preg_match($config['pattern'], $contact_value);
     }
 
     /**
