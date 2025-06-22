@@ -117,14 +117,15 @@ class CWP_Chat_Bubbles_Options_Page {
         // Referrer Policy
         header('Referrer-Policy: strict-origin-when-cross-origin');
         
-        // Basic CSP for admin interface
+        // WordPress-compatible CSP for admin interface
         $csp_directives = array(
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline'", // WordPress admin requires inline scripts
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // WordPress Media Library requires unsafe-eval for templates
             "style-src 'self' 'unsafe-inline'",  // WordPress admin requires inline styles
-            "img-src 'self' data: https:",
-            "font-src 'self'",
+            "img-src 'self' data: https: blob:",  // blob: needed for media library previews
+            "font-src 'self' data:",  // data: needed for WordPress admin fonts
             "connect-src 'self'",
+            "worker-src 'self' blob:",  // blob: needed for media library workers
             "frame-ancestors 'none'"
         );
         
@@ -261,6 +262,29 @@ class CWP_Chat_Bubbles_Options_Page {
                                 </td>
                             </tr>
                             <tr>
+                                <th scope="row"><?php esc_html_e('Position Offset', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <fieldset>
+                                        <legend class="screen-reader-text"><?php esc_html_e('Position Offset Settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></legend>
+                                        <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+                                            <label style="display: flex; align-items: center; gap: 5px;">
+                                                <span style="min-width: 20px;"><?php esc_html_e('X:', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></span>
+                                                <input type="number" name="cwp_chat_bubbles_options[offset_x]" value="<?php echo esc_attr($options['offset_x']); ?>" min="-200" max="200" step="1" style="width: 80px;">
+                                                <span style="color: #666;">px</span>
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 5px;">
+                                                <span style="min-width: 20px;"><?php esc_html_e('Y:', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></span>
+                                                <input type="number" name="cwp_chat_bubbles_options[offset_y]" value="<?php echo esc_attr($options['offset_y']); ?>" min="-200" max="200" step="1" style="width: 80px;">
+                                                <span style="color: #666;">px</span>
+                                            </label>
+                                        </div>
+                                        <p class="description">
+                                            <?php esc_html_e('Fine-tune the position with pixel-level adjustments. Positive X moves right, negative moves left. Positive Y moves down, negative moves up.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </p>
+                                    </fieldset>
+                                </td>
+                            </tr>
+                            <tr>
                                 <th scope="row"><?php esc_html_e('Main Button Color', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
                                     <input type="color" name="cwp_chat_bubbles_options[main_button_color]" value="<?php echo esc_attr($options['main_button_color']); ?>" class="color-field">
@@ -272,6 +296,15 @@ class CWP_Chat_Bubbles_Options_Page {
                                     <label>
                                         <input type="checkbox" name="cwp_chat_bubbles_options[animation_enabled]" value="1" <?php checked($options['animation_enabled']); ?>>
                                         <?php esc_html_e('Enable animations and effects', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                    </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Load on Mobile', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <label>
+                                        <input type="checkbox" name="cwp_chat_bubbles_options[load_on_mobile]" value="1" <?php checked($options['load_on_mobile']); ?>>
+                                        <?php esc_html_e('Show chat bubbles on mobile devices', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                     </label>
                                 </td>
                             </tr>
@@ -561,21 +594,23 @@ class CWP_Chat_Bubbles_Options_Page {
         if (isset($_POST['cwp_chat_bubbles_options'])) {
             $options = $_POST['cwp_chat_bubbles_options'];
             
-            $result = $this->settings->update_options($options);
-            
-            if ($result) {
+            try {
+                // Process settings update
+                $this->settings->update_options($options);
+                
                 // Log successful settings update
                 $this->log_admin_action('settings_updated', 'General settings updated successfully');
                 
+                // Always show success message when save completes without errors
                 add_settings_error(
                     'cwp_chat_bubbles_messages',
                     'cwp_chat_bubbles_message',
                     __('Settings saved successfully!', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
                     'success'
                 );
-            } else {
+            } catch (Exception $e) {
                 // Log failed settings update
-                $this->log_admin_action('settings_error', 'Failed to save general settings');
+                $this->log_admin_action('settings_error', 'Failed to save general settings: ' . $e->getMessage());
                 
                 add_settings_error(
                     'cwp_chat_bubbles_messages',

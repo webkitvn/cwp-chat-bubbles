@@ -91,6 +91,8 @@ class CWP_Chat_Bubbles_Settings {
             'main_button_color' => '#52BA00',
             'animation_enabled' => true,
             'show_labels' => true,              // Global setting for all items
+            'offset_x' => 0,                    // Horizontal offset in pixels (-200 to 200)
+            'offset_y' => 0,                    // Vertical offset in pixels (-200 to 200)
             
             // Advanced settings
             'custom_css' => '',
@@ -142,6 +144,15 @@ class CWP_Chat_Bubbles_Settings {
         $sanitized['show_labels'] = isset($options['show_labels'])
             ? (bool) $options['show_labels']
             : false;
+
+        // Sanitize offset settings
+        $sanitized['offset_x'] = isset($options['offset_x']) 
+            ? max(-200, min(200, (int) $options['offset_x'])) 
+            : 0;
+            
+        $sanitized['offset_y'] = isset($options['offset_y']) 
+            ? max(-200, min(200, (int) $options['offset_y'])) 
+            : 0;
 
         // Sanitize advanced settings - Enhanced CSS validation
         $sanitized['custom_css'] = '';
@@ -202,12 +213,43 @@ class CWP_Chat_Bubbles_Settings {
      * Update plugin options
      *
      * @param array $options New options
-     * @return bool Whether the option was updated
+     * @return bool Always returns true unless there's an error
      * @since 1.0.0
      */
     public function update_options($options) {
         $sanitized_options = $this->sanitize_options($options);
-        return update_option($this->option_name, $sanitized_options);
+        
+        // update_option returns false if the value hasn't changed, not if there's an error
+        // We always want to clear caches and return success for UX purposes
+        update_option($this->option_name, $sanitized_options);
+        
+        // Always clear frontend caches when settings are processed
+        $this->clear_frontend_caches();
+        
+        // Return true to indicate successful processing
+        return true;
+    }
+
+    /**
+     * Clear frontend caches when settings change
+     *
+     * @since 1.0.0
+     */
+    private function clear_frontend_caches() {
+        // Clear specific cache keys first
+        $cache_keys_to_clear = array(
+            'cwp_chat_bubbles_data_version',
+            'cwp_chat_bubbles_frontend_data'
+        );
+        
+        foreach ($cache_keys_to_clear as $key) {
+            wp_cache_delete($key, 'cwp_chat_bubbles');
+        }
+        
+        // Try to clear cache group if function exists (not all cache systems support this)
+        if (function_exists('wp_cache_delete_group')) {
+            wp_cache_delete_group('cwp_chat_bubbles');
+        }
     }
 
     /**

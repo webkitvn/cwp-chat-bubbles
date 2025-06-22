@@ -191,17 +191,29 @@ class CWP_Chat_Bubbles_Assets {
 
         $custom_css = '';
         
+        // CSS Variables for consistent styling
+        $css_variables = array();
+        
         // Main button color
         $main_color = $this->settings->get_option('main_button_color', '#52BA00');
-        if ($main_color && $main_color !== '#52BA00') {
-            $custom_css .= "
-                #chat-bubbles .chat-icon {
-                    background-color: {$main_color} !important;
-                }
-                #chat-bubbles .chat-icon::before {
-                    background-color: {$main_color} !important;
-                }
-            ";
+        $css_variables['--cwp-chat-bubbles-primary-color'] = $main_color;
+        
+        // Position offsets
+        $offset_x = $this->settings->get_option('offset_x', 0);
+        $offset_y = $this->settings->get_option('offset_y', 0);
+        
+        if ($offset_x != 0 || $offset_y != 0) {
+            $css_variables['--cwp-chat-bubbles-offset-x'] = $offset_x . 'px';
+            $css_variables['--cwp-chat-bubbles-offset-y'] = $offset_y . 'px';
+        }
+        
+        // Output CSS variables if we have any
+        if (!empty($css_variables)) {
+            $custom_css .= ":root {\n";
+            foreach ($css_variables as $var_name => $var_value) {
+                $custom_css .= "    {$var_name}: {$var_value};\n";
+            }
+            $custom_css .= "}\n";
         }
 
         // Position
@@ -229,6 +241,11 @@ class CWP_Chat_Bubbles_Assets {
         if ($user_custom_css) {
             $custom_css .= "\n" . $user_custom_css;
         }
+        
+        // Mobile hiding CSS if load_on_mobile is disabled
+        if (!$this->settings->get_option('load_on_mobile', true)) {
+            $custom_css .= "\n@media (max-width: 768px) { .cwp-chat-bubbles { display: none !important; } }";
+        }
 
         // Output styles if we have any
         if ($custom_css) {
@@ -254,69 +271,25 @@ class CWP_Chat_Bubbles_Assets {
     }
 
     /**
-     * Check if assets should load on current page
+     * Check if assets should load on current page - Optimized with unified logic
      *
      * @return bool Whether to load assets
      * @since 1.0.0
      */
     private function should_load_on_current_page() {
-        // Don't load in admin
-        if (is_admin()) {
-            return false;
-        }
-
-        // Check mobile setting
-        if (wp_is_mobile() && !$this->settings->get_option('load_on_mobile', true)) {
-            return false;
-        }
-
-        // Check excluded pages
-        $excluded_pages = $this->settings->get_option('exclude_pages', array());
-        if (!empty($excluded_pages) && is_page()) {
-            $current_page_id = get_the_ID();
-            if (in_array($current_page_id, $excluded_pages)) {
-                return false;
-            }
-        }
-
-        return true;
+        $data_service = CWP_Chat_Bubbles_Data_Service::get_instance();
+        return $data_service->should_load_on_current_page();
     }
 
     /**
-     * Get frontend platform data for JavaScript
+     * Get frontend platform data for JavaScript - Optimized with unified data service
      *
      * @return array Platform data for frontend
      * @since 1.0.0
      */
     private function get_frontend_platform_data() {
-        // Try to get cached data first
-        $cache_key = 'cwp_chat_bubbles_frontend_data';
-        $cached_data = wp_cache_get($cache_key, 'cwp_chat_bubbles');
-        
-        if (false !== $cached_data) {
-            return $cached_data;
-        }
-
-        $items_manager = CWP_Chat_Bubbles_Items_Manager::get_instance();
-        $enabled_items = $items_manager->get_all_items(true); // Get enabled items only
-        $frontend_data = array();
-
-        foreach ($enabled_items as $item) {
-            $frontend_data[$item['id']] = array(
-                'id' => $item['id'],
-                'platform' => $item['platform'],
-                'label' => $item['label'],
-                'url' => $this->generate_platform_url($item['platform'], $item),
-                'icon' => $this->get_platform_icon_url($item['platform']),
-                'qr_code' => !empty($item['qr_code_id']) ? wp_get_attachment_url($item['qr_code_id']) : '',
-                'has_qr' => !empty($item['qr_code_id'])
-            );
-        }
-
-        // Cache for 1 hour
-        wp_cache_set($cache_key, $frontend_data, 'cwp_chat_bubbles', HOUR_IN_SECONDS);
-
-        return $frontend_data;
+        $data_service = CWP_Chat_Bubbles_Data_Service::get_instance();
+        return $data_service->get_frontend_js_data();
     }
 
     /**

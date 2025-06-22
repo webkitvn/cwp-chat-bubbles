@@ -127,6 +127,10 @@ final class CWP_Chat_Bubbles {
             CWP_Chat_Bubbles_Items_Manager::get_instance();
         }
         
+        if (class_exists('CWP_Chat_Bubbles_Data_Service')) {
+            CWP_Chat_Bubbles_Data_Service::get_instance();
+        }
+        
         if (class_exists('CWP_Chat_Bubbles_Assets')) {
             CWP_Chat_Bubbles_Assets::get_instance();
         }
@@ -152,6 +156,7 @@ final class CWP_Chat_Bubbles {
         $files = array(
             'class-settings.php',
             'class-items-manager.php',
+            'class-data-service.php',
             'class-assets.php',
             'class-frontend.php',
             'class-options-page.php'

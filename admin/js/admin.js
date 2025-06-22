@@ -29,6 +29,7 @@
         initFormHandling();
         initQRCodeUpload();
         initMainIconUpload();
+        initQRCodePreviews();
         bindEvents();
     }
 
@@ -336,6 +337,25 @@
     }
 
     /**
+     * Initialize QR code previews for existing items on page load
+     */
+    function initQRCodePreviews() {
+        // Find all items with QR codes and ensure they have proper indicators
+        $('.cwp-item[data-qr-code-id]').each(function() {
+            const $item = $(this);
+            const qrCodeId = $item.data('qr-code-id');
+            
+            if (qrCodeId && qrCodeId > 0) {
+                // Add QR code indicator if not already present
+                const $info = $item.find('.cwp-item-info');
+                if (!$info.find('.dashicons-format-image').length) {
+                    $info.append('<br><span class="dashicons dashicons-format-image" title="Has QR Code" style="color: #0073aa;"></span>');
+                }
+            }
+        });
+    }
+
+    /**
      * Bind additional events
      */
     function bindEvents() {
@@ -547,7 +567,8 @@
                 url: wpAjax.ajaxurl,
                 type: 'POST',
                 data: {
-                    action: 'get_attachment_url',
+                    action: 'cwp_chat_bubbles_get_attachment_url',
+                    nonce: wpAjax.nonce,
                     attachment_id: itemData.qr_code_id
                 },
                 success: function(response) {
@@ -558,13 +579,16 @@
                         $('#qr-code-id').val(itemData.qr_code_id);
                         $('#upload-qr-code').text('Update QR Code');
                         $('#remove-qr-code').show();
+                        showNotice('warning', 'QR code found but preview unavailable');
                     }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
                     // Fallback: Set QR code ID without preview
                     $('#qr-code-id').val(itemData.qr_code_id);
                     $('#upload-qr-code').text('Update QR Code');
                     $('#remove-qr-code').show();
+                    console.log('QR code preview error:', error);
+                    showNotice('warning', 'QR code found but preview failed to load');
                 }
             });
         } else {

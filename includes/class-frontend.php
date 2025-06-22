@@ -71,49 +71,30 @@ class CWP_Chat_Bubbles_Frontend {
     }
 
     /**
-     * Render chat bubbles (auto-injection)
+     * Render chat bubbles (auto-injection) - Optimized with unified data service
      *
      * @since 1.0.0
      */
     public function render_chat_bubbles() {
-        // Check if plugin is enabled
-        if (!$this->settings->is_enabled()) {
+        $data_service = CWP_Chat_Bubbles_Data_Service::get_instance();
+        
+        // Use unified logic to check if should load (eliminates duplicate checks)
+        if (!$data_service->should_load_on_current_page()) {
             return;
         }
 
-        // Check if auto-loading is enabled
-        if (!$this->settings->is_auto_load_enabled()) {
+        // Get processed frontend data (single source of truth)
+        $frontend_data = $data_service->get_frontend_data();
+        if (false === $frontend_data) {
             return;
         }
 
-        // Don't display in admin
-        if (is_admin()) {
-            return;
-        }
-
-        // Check if we have any enabled items
-        $items_manager = CWP_Chat_Bubbles_Items_Manager::get_instance();
-        $enabled_items = $items_manager->get_all_items(true); // Get enabled items only
-        if (empty($enabled_items)) {
-            return;
-        }
-
-        // Check mobile setting
-        if (wp_is_mobile() && !$this->settings->get_option('load_on_mobile', true)) {
-            return;
-        }
-
-        // Check excluded pages
-        if ($this->is_current_page_excluded()) {
-            return;
-        }
-
-        // Render the template
-        $this->render_template($enabled_items);
+        // Render the template with pre-processed data
+        $this->render_template_optimized($frontend_data);
     }
 
     /**
-     * Shortcode handler
+     * Shortcode handler - Optimized with unified data service
      *
      * @param array $atts Shortcode attributes
      * @return string Shortcode output
@@ -132,19 +113,23 @@ class CWP_Chat_Bubbles_Frontend {
             return '';
         }
 
-        // Get enabled items
-        $items_manager = CWP_Chat_Bubbles_Items_Manager::get_instance();
-        $enabled_items = $items_manager->get_all_items(true); // Get enabled items only
+        // Get processed frontend data
+        $data_service = CWP_Chat_Bubbles_Data_Service::get_instance();
+        $frontend_data = $data_service->get_frontend_data();
+        
+        if (false === $frontend_data) {
+            return '';
+        }
         
         // Filter by shortcode platforms if specified
         if (!empty($atts['platforms'])) {
             $shortcode_platforms = array_map('trim', explode(',', $atts['platforms']));
-            $enabled_items = array_filter($enabled_items, function($item) use ($shortcode_platforms) {
+            $frontend_data['items'] = array_filter($frontend_data['items'], function($item) use ($shortcode_platforms) {
                 return in_array($item['platform'], $shortcode_platforms);
             });
         }
 
-        if (empty($enabled_items)) {
+        if (empty($frontend_data['items'])) {
             return '';
         }
 
@@ -152,14 +137,46 @@ class CWP_Chat_Bubbles_Frontend {
         ob_start();
         
         // Render template with shortcode attributes
-        $this->render_template($enabled_items, $atts);
+        $this->render_template_optimized($frontend_data, $atts);
         
         // Return captured output
         return ob_get_clean();
     }
 
     /**
-     * Render chat bubbles template
+     * Render chat bubbles template with pre-processed data (optimized)
+     *
+     * @param array $frontend_data Pre-processed frontend data from data service
+     * @param array $override_settings Override settings for shortcode
+     * @since 1.0.0
+     */
+    private function render_template_optimized($frontend_data, $override_settings = array()) {
+        // Use pre-processed data directly (no additional processing needed)
+        $template_vars = $frontend_data;
+        
+        // Apply any override settings
+        if (!empty($override_settings['position'])) {
+            $template_vars['settings']['position'] = $override_settings['position'];
+        }
+        if (!empty($override_settings['show_labels'])) {
+            $template_vars['settings']['show_labels'] = (bool) $override_settings['show_labels'];
+        }
+
+        // Load template
+        $template_path = $this->locate_template('chat-bubbles.php');
+        
+        if ($template_path) {
+            // Extract variables for template
+            extract($template_vars);
+            include $template_path;
+        } else {
+            // Fallback inline template
+            $this->render_fallback_template($template_vars);
+        }
+    }
+
+    /**
+     * Render chat bubbles template (legacy method for backward compatibility)
      *
      * @param array $items Enabled items from custom table
      * @param array $override_settings Override settings for shortcode

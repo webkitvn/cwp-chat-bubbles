@@ -271,7 +271,7 @@
   .cwp-modal-content {
     background: #fff;
     border-radius: 8px;
-    padding: var(--cwp-space-xl);
+    padding: 0;
     width: 90%;
     max-width: 500px;
     max-height: 90vh;
@@ -282,11 +282,11 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: var(--cwp-space-lg);
+      margin-bottom: 0;
       border-bottom: 1px solid #e2e4e7;
       padding-bottom: var(--cwp-space-md);
 
-      h2 {
+      h2, h3 {
         margin: 0;
         font-size: 20px;
       }
@@ -359,7 +359,7 @@
       display: flex;
       gap: var(--cwp-space-sm);
       justify-content: flex-end;
-      margin-top: var(--cwp-space-lg);
+      margin-top: 0;
       padding-top: var(--cwp-space-md);
       border-top: 1px solid #e2e4e7;
     }

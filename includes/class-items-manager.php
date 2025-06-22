@@ -219,6 +219,18 @@ class CWP_Chat_Bubbles_Items_Manager {
      * @since 1.0.0
      */
     public function get_all_items($enabled_only = false) {
+        // Create cache key based on data version and enabled filter
+        $data_version = $this->get_data_version();
+        $cache_key = $enabled_only ? 
+            'cwp_items_enabled_v' . $data_version : 
+            'cwp_items_all_v' . $data_version;
+        
+        // Try to get cached data first
+        $cached_results = wp_cache_get($cache_key, 'cwp_chat_bubbles');
+        if (false !== $cached_results) {
+            return $cached_results;
+        }
+
         global $wpdb;
 
         if ($enabled_only) {
@@ -233,23 +245,40 @@ class CWP_Chat_Bubbles_Items_Manager {
             );
         }
 
-        return $results ? $results : array();
+        $results = $results ? $results : array();
+        
+        // Cache the results for 1 hour
+        wp_cache_set($cache_key, $results, 'cwp_chat_bubbles', HOUR_IN_SECONDS);
+
+        return $results;
     }
 
     /**
-     * Get single item by ID
+     * Get single item by ID with caching
      *
      * @param int $id Item ID
      * @return array|null Item data or null if not found
      * @since 1.0.0
      */
     public function get_item($id) {
+        $data_version = $this->get_data_version();
+        $cache_key = 'cwp_item_' . $id . '_v' . $data_version;
+        
+        // Try to get cached data first
+        $cached_result = wp_cache_get($cache_key, 'cwp_chat_bubbles');
+        if (false !== $cached_result) {
+            return $cached_result;
+        }
+
         global $wpdb;
 
         $result = $wpdb->get_row(
             $wpdb->prepare("SELECT * FROM {$this->table_name} WHERE id = %d", $id),
             ARRAY_A
         );
+
+        // Cache the result for 1 hour (even if null)
+        wp_cache_set($cache_key, $result, 'cwp_chat_bubbles', HOUR_IN_SECONDS);
 
         return $result;
     }
@@ -361,12 +390,62 @@ class CWP_Chat_Bubbles_Items_Manager {
     }
 
     /**
-     * Clear frontend data cache
+     * Get current data version for cache invalidation
+     *
+     * @return string Data version
+     * @since 1.0.0
+     */
+    private function get_data_version() {
+        $version = wp_cache_get('cwp_chat_bubbles_data_version', 'cwp_chat_bubbles');
+        
+        if (false === $version) {
+            // Get version from database or create new one
+            $version = get_option('cwp_chat_bubbles_data_version', '1');
+            wp_cache_set('cwp_chat_bubbles_data_version', $version, 'cwp_chat_bubbles', DAY_IN_SECONDS);
+        }
+        
+        return $version;
+    }
+
+    /**
+     * Increment data version to invalidate all item caches
+     *
+     * @since 1.0.0
+     */
+    private function increment_data_version() {
+        $current_version = (int) get_option('cwp_chat_bubbles_data_version', 1);
+        $new_version = $current_version + 1;
+        
+        update_option('cwp_chat_bubbles_data_version', $new_version);
+        wp_cache_set('cwp_chat_bubbles_data_version', $new_version, 'cwp_chat_bubbles', DAY_IN_SECONDS);
+        
+        // Clear all related caches
+        $this->clear_all_item_caches();
+    }
+
+    /**
+     * Clear all item-related caches
+     *
+     * @since 1.0.0
+     */
+    private function clear_all_item_caches() {
+        // Clear frontend data cache
+        wp_cache_delete('cwp_chat_bubbles_frontend_data', 'cwp_chat_bubbles');
+        
+        // Clear versioned item caches (we don't know the exact version, so we increment instead)
+        // The version increment will make old cache keys invalid
+        
+        // Clear data version cache to force refresh
+        wp_cache_delete('cwp_chat_bubbles_data_version', 'cwp_chat_bubbles');
+    }
+
+    /**
+     * Clear frontend data cache (legacy method - now uses versioning)
      *
      * @since 1.0.0
      */
     private function clear_frontend_cache() {
-        wp_cache_delete('cwp_chat_bubbles_frontend_data', 'cwp_chat_bubbles');
+        $this->increment_data_version();
     }
 
     /**
