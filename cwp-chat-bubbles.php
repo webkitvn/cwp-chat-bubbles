@@ -111,34 +111,38 @@ final class CWP_Chat_Bubbles {
 
     /**
      * Initialize plugin components
-     * 
+     *
      * @since 1.0.0
      */
     public function init_components() {
         // Load required files
         $this->load_dependencies();
-        
+
         // Initialize components
         if (class_exists('CWP_Chat_Bubbles_Settings')) {
             CWP_Chat_Bubbles_Settings::get_instance();
         }
-        
+
         if (class_exists('CWP_Chat_Bubbles_Items_Manager')) {
             CWP_Chat_Bubbles_Items_Manager::get_instance();
         }
-        
+
         if (class_exists('CWP_Chat_Bubbles_Data_Service')) {
             CWP_Chat_Bubbles_Data_Service::get_instance();
         }
-        
+
         if (class_exists('CWP_Chat_Bubbles_Assets')) {
             CWP_Chat_Bubbles_Assets::get_instance();
         }
-        
+
         if (class_exists('CWP_Chat_Bubbles_Frontend')) {
             CWP_Chat_Bubbles_Frontend::get_instance();
         }
-        
+
+        if (class_exists('CWP_Chat_Bubbles_AJAX_Handler')) {
+            CWP_Chat_Bubbles_AJAX_Handler::get_instance();
+        }
+
         if (is_admin() && class_exists('CWP_Chat_Bubbles_Options_Page')) {
             CWP_Chat_Bubbles_Options_Page::get_instance();
         }
@@ -146,12 +150,12 @@ final class CWP_Chat_Bubbles {
 
     /**
      * Load plugin dependencies
-     * 
+     *
      * @since 1.0.0
      */
     private function load_dependencies() {
         $includes_dir = CWP_CHAT_BUBBLES_PLUGIN_DIR . 'includes/';
-        
+
         // Core classes
         $files = array(
             'class-settings.php',
@@ -159,9 +163,11 @@ final class CWP_Chat_Bubbles {
             'class-data-service.php',
             'class-assets.php',
             'class-frontend.php',
+            'class-ajax-handler.php',
+            'class-admin-renderer.php',
             'class-options-page.php'
         );
-        
+
         foreach ($files as $file) {
             $file_path = $includes_dir . $file;
             if (file_exists($file_path)) {
