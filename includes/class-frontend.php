@@ -176,53 +176,6 @@ class CWP_Chat_Bubbles_Frontend {
     }
 
     /**
-     * Render chat bubbles template (legacy method for backward compatibility)
-     *
-     * @param array $items Enabled items from custom table
-     * @param array $override_settings Override settings for shortcode
-     * @since 1.0.0
-     */
-    private function render_template($items, $override_settings = array()) {
-        // Get items manager for platform data
-        $items_manager = CWP_Chat_Bubbles_Items_Manager::get_instance();
-        
-        // Process items to add platform URLs, icons, and colors
-        $processed_items = array();
-        foreach ($items as $item) {
-            $processed_item = $item;
-            $processed_item['platform_url'] = $this->generate_platform_url($item['platform'], $item);
-            $processed_item['platform_icon'] = $this->get_platform_icon_url($item['platform']);
-            $processed_item['platform_color'] = $items_manager->get_platform_color($item['platform']);
-            $processed_items[] = $processed_item;
-        }
-        
-        // Template variables
-        $template_vars = array(
-            'items' => $processed_items,
-            'settings' => array(
-                'position' => !empty($override_settings['position']) ? $override_settings['position'] : $this->settings->get_option('position', 'bottom-right'),
-                'main_button_color' => $this->settings->get_option('main_button_color', '#52BA00'),
-                'animation_enabled' => $this->settings->get_option('animation_enabled', true),
-                'show_labels' => !empty($override_settings['show_labels']) ? (bool) $override_settings['show_labels'] : $this->settings->should_show_labels()
-            ),
-            'support_icon' => $this->get_main_icon_url(),
-            'cancel_icon' => CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/cancel.svg'
-        );
-
-        // Load template
-        $template_path = $this->locate_template('chat-bubbles.php');
-        
-        if ($template_path) {
-            // Extract variables for template
-            extract($template_vars);
-            include $template_path;
-        } else {
-            // Fallback inline template
-            $this->render_fallback_template($template_vars);
-        }
-    }
-
-    /**
      * Locate template file
      *
      * @param string $template_name Template file name
@@ -267,17 +220,12 @@ class CWP_Chat_Bubbles_Frontend {
             
             <div class="item-group">
                 <?php foreach ($items as $item): ?>
-                    <?php
-                    $platform_url = $this->generate_platform_url($item['platform'], $item);
-                    $platform_icon = $this->get_platform_icon_url($item['platform']);
-                    $has_qr = !empty($item['qr_code_id']);
-                    ?>
-                    <a href="<?php echo esc_url($platform_url); ?>" 
+                    <a href="<?php echo esc_url($item['platform_url']); ?>" 
                        class="chat-item" 
-                       <?php if ($has_qr): ?>data-bubble-modal="modal-<?php echo esc_attr($item['id']); ?>"<?php endif; ?>
+                       <?php if ($item['has_qr']): ?>data-bubble-modal="modal-<?php echo esc_attr($item['id']); ?>"<?php endif; ?>
                        target="_blank" 
                        rel="noopener noreferrer">
-                        <img src="<?php echo esc_url($platform_icon); ?>" alt="<?php echo esc_attr($item['label']); ?>">
+                        <img src="<?php echo esc_url($item['platform_icon']); ?>" alt="<?php echo esc_attr($item['label']); ?>">
                         <?php if ($settings['show_labels']): ?>
                             <span><?php echo esc_html($item['label']); ?></span>
                         <?php endif; ?>
@@ -286,112 +234,31 @@ class CWP_Chat_Bubbles_Frontend {
             </div>
 
             <?php foreach ($items as $item): ?>
-                <?php if (!empty($item['qr_code_id'])): ?>
-                    <?php $qr_image_url = wp_get_attachment_url($item['qr_code_id']); ?>
-                    <?php if ($qr_image_url): ?>
-                        <div id="modal-<?php echo esc_attr($item['id']); ?>" class="bubble-modal">
-                            <div class="modal-body">
-                                <button class="bubble-modal-close">
-                                    <img src="<?php echo esc_url($cancel_icon); ?>" alt="<?php esc_attr_e('Close', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>">
-                                </button>
-                                <div class="qrcode">
-                                    <h3><?php echo esc_html($item['label']); ?></h3>
-                                    <img src="<?php echo esc_url($qr_image_url); ?>" alt="<?php echo esc_attr($item['label']); ?> QR Code">
-                                </div>
-                                <a href="<?php echo esc_url($this->generate_platform_url($item['platform'], $item)); ?>" 
-                                   class="btn" 
-                                   target="_blank" 
-                                   rel="noopener noreferrer">
-                                    <div class="icon">
-                                        <img src="<?php echo esc_url($this->get_platform_icon_url($item['platform'])); ?>" alt="<?php echo esc_attr($item['label']); ?>">
-                                    </div>
-                                    <span><?php printf(__('Open %s', CWP_CHAT_BUBBLES_TEXT_DOMAIN), $item['label']); ?></span>
-                                </a>
+                <?php if ($item['has_qr'] && $item['qr_code_url']): ?>
+                    <div id="modal-<?php echo esc_attr($item['id']); ?>" class="bubble-modal">
+                        <div class="modal-body">
+                            <button class="bubble-modal-close">
+                                <img src="<?php echo esc_url($cancel_icon); ?>" alt="<?php esc_attr_e('Close', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>">
+                            </button>
+                            <div class="qrcode">
+                                <h3><?php echo esc_html($item['label']); ?></h3>
+                                <img src="<?php echo esc_url($item['qr_code_url']); ?>" alt="<?php echo esc_attr($item['label']); ?> QR Code">
                             </div>
+                            <a href="<?php echo esc_url($item['platform_url']); ?>" 
+                               class="btn" 
+                               target="_blank" 
+                               rel="noopener noreferrer">
+                                <div class="icon">
+                                    <img src="<?php echo esc_url($item['platform_icon']); ?>" alt="<?php echo esc_attr($item['label']); ?>">
+                                </div>
+                                <span><?php printf(__('Open %s', CWP_CHAT_BUBBLES_TEXT_DOMAIN), $item['label']); ?></span>
+                            </a>
                         </div>
-                    <?php endif; ?>
+                    </div>
                 <?php endif; ?>
             <?php endforeach; ?>
         </div>
         <?php
-    }
-
-    /**
-     * Check if current page is excluded
-     *
-     * @return bool Whether current page is excluded
-     * @since 1.0.0
-     */
-    private function is_current_page_excluded() {
-        $excluded_pages = $this->settings->get_option('exclude_pages', array());
-        
-        if (empty($excluded_pages)) {
-            return false;
-        }
-
-        if (is_page()) {
-            $current_page_id = get_the_ID();
-            return in_array($current_page_id, $excluded_pages);
-        }
-
-        return false;
-    }
-
-    /**
-     * Generate platform URL
-     *
-     * @param string $platform Platform name
-     * @param array $item Item data from custom table
-     * @return string Platform URL
-     * @since 1.0.0
-     */
-    private function generate_platform_url($platform, $item) {
-        $contact_value = !empty($item['contact_value']) ? $item['contact_value'] : '';
-        
-        if (empty($contact_value)) {
-            return '#';
-        }
-        
-        switch ($platform) {
-            case 'phone':
-                return 'tel:' . $contact_value;
-                
-            case 'zalo':
-                return 'https://zalo.me/' . $contact_value;
-                
-            case 'whatsapp':
-                return 'https://wa.me/' . $contact_value;
-                
-            case 'viber':
-                return 'viber://contact?number=' . $contact_value;
-                
-            case 'telegram':
-                return 'https://t.me/' . $contact_value;
-                
-            case 'messenger':
-                return 'https://m.me/' . $contact_value;
-                
-            case 'line':
-                return 'https://line.me/ti/p/' . $contact_value;
-                
-            case 'kakaotalk':
-                // KakaoTalk doesn't have a direct web URL, will need custom implementation
-                return '#kakaotalk-' . $contact_value;
-                
-            default:
-                return '#';
-        }
-    }
-
-    /**
-     * Get platform icon URL
-     *
-     * @param string $platform Platform name
-     * @return string Icon URL
-     * @since 1.0.0
-     */
-    private function get_platform_icon_url($platform) {
-        return CWP_Chat_Bubbles_Items_Manager::get_instance()->get_platform_icon_url($platform);
     }
 
     /**

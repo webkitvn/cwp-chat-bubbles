@@ -293,63 +293,6 @@ class CWP_Chat_Bubbles_Assets {
     }
 
     /**
-     * Generate platform URL
-     *
-     * @param string $platform Platform name
-     * @param array $item Item data from custom table
-     * @return string Platform URL
-     * @since 1.0.0
-     */
-    private function generate_platform_url($platform, $item) {
-        $contact_value = !empty($item['contact_value']) ? $item['contact_value'] : '';
-        
-        if (empty($contact_value)) {
-            return '#';
-        }
-        
-        switch ($platform) {
-            case 'phone':
-                return 'tel:' . $contact_value;
-                
-            case 'zalo':
-                return 'https://zalo.me/' . $contact_value . '?openChat=true';
-                
-            case 'whatsapp':
-                return 'https://wa.me/' . $contact_value;
-                
-            case 'viber':
-                return 'viber://contact?number=' . $contact_value;
-                
-            case 'telegram':
-                return 'https://t.me/' . $contact_value;
-                
-            case 'messenger':
-                return 'https://m.me/' . $contact_value;
-                
-            case 'line':
-                return 'https://line.me/ti/p/' . $contact_value;
-                
-            case 'kakaotalk':
-                // KakaoTalk doesn't have a direct web URL, will need custom implementation
-                return '#kakaotalk-' . $contact_value;
-                
-            default:
-                return '#';
-        }
-    }
-
-    /**
-     * Get platform icon URL
-     *
-     * @param string $platform Platform name
-     * @return string Icon URL
-     * @since 1.0.0
-     */
-    private function get_platform_icon_url($platform) {
-        return CWP_Chat_Bubbles_Items_Manager::get_instance()->get_platform_icon_url($platform);
-    }
-
-    /**
      * Get CSS for different positions
      *
      * @param string $position Position setting
