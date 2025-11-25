@@ -3,7 +3,7 @@
  * Plugin Name: CWP Chat Bubbles
  * Plugin URI: https://cuongwp.com/cwp-chat-bubbles
  * Description: Auto-injecting chat bubbles with 8 messaging platform support and QR code integration. Works immediately after activation with zero configuration required.
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: CuongWP
  * Author URI: https://cuongwp.com
  * License: GPL v2 or later

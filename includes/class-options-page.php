@@ -218,7 +218,11 @@ class CWP_Chat_Bubbles_Options_Page {
                                                 <?php $custom_icon_url = wp_get_attachment_url($options['custom_main_icon']); ?>
                                                 <?php if ($custom_icon_url): ?>
                                                     <img src="<?php echo esc_url($custom_icon_url); ?>" alt="<?php esc_attr_e('Custom main icon preview', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" style="width:80%; height:auto;">
+                                                <?php else: ?>
+                                                    <img src="<?php echo esc_url(CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/support.svg'); ?>" alt="<?php esc_attr_e('Default main icon preview', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" style="width:80%; height:auto;">
                                                 <?php endif; ?>
+                                            <?php else: ?>
+                                                <img src="<?php echo esc_url(CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/support.svg'); ?>" alt="<?php esc_attr_e('Default main icon preview', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" style="width:80%; height:auto;">
                                             <?php endif; ?>
                                         </div>
                                     </div>
