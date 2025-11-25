@@ -206,15 +206,15 @@ class CWP_Chat_Bubbles_Options_Page {
                                 <th scope="row"><?php esc_html_e('Custom Main Icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
                                     <div class="cwp-media-upload">
-                                        <input type="hidden" name="cwp_chat_bubbles_options[custom_main_icon]" id="custom-main-icon" value="<?php echo esc_attr($options['custom_main_icon']); ?>">
+                                        <input type="hidden" name="cwp_chat_bubbles_options[custom_main_icon]" id="custom-main-icon" value="<?php echo esc_attr($options['custom_main_icon'] ?? 0); ?>">
                                         <button type="button" class="button" id="upload-main-icon">
                                             <?php esc_html_e('Upload Custom Icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                         </button>
-                                        <button type="button" class="button" id="remove-main-icon" style="display: <?php echo $options['custom_main_icon'] > 0 ? 'inline-block' : 'none'; ?>;">
+                                        <button type="button" class="button" id="remove-main-icon" style="display: <?php echo (isset($options['custom_main_icon']) && $options['custom_main_icon'] > 0) ? 'inline-block' : 'none'; ?>;">
                                             <?php esc_html_e('Remove Custom Icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                         </button>
-                                        <div id="main-icon-preview" style="margin-top: 10px; display: flex; justify-content: center; align-items: center; border-radius: 50%; width: 64px; height: 64px; background-color: <?php echo esc_attr($options['main_button_color']); ?>;">
-                                            <?php if ($options['custom_main_icon'] > 0): ?>
+                                        <div id="main-icon-preview" style="margin-top: 10px; display: flex; justify-content: center; align-items: center; border-radius: 50%; width: 64px; height: 64px; background-color: <?php echo esc_attr($options['main_button_color'] ?? '#52BA00'); ?>;">
+                                            <?php if (isset($options['custom_main_icon']) && $options['custom_main_icon'] > 0): ?>
                                                 <?php $custom_icon_url = wp_get_attachment_url($options['custom_main_icon']); ?>
                                                 <?php if ($custom_icon_url): ?>
                                                     <img src="<?php echo esc_url($custom_icon_url); ?>" alt="<?php esc_attr_e('Custom main icon preview', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" style="width:80%; height:auto;">
@@ -269,12 +269,12 @@ class CWP_Chat_Bubbles_Options_Page {
                                         <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
                                             <label style="display: flex; align-items: center; gap: 5px;">
                                                 <span style="min-width: 20px;"><?php esc_html_e('X:', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></span>
-                                                <input type="number" name="cwp_chat_bubbles_options[offset_x]" value="<?php echo esc_attr($options['offset_x']); ?>" min="-200" max="200" step="1" style="width: 80px;">
+                                                <input type="number" name="cwp_chat_bubbles_options[offset_x]" value="<?php echo esc_attr($options['offset_x'] ?? 0); ?>" min="-200" max="200" step="1" style="width: 80px;">
                                                 <span style="color: #666;">px</span>
                                             </label>
                                             <label style="display: flex; align-items: center; gap: 5px;">
                                                 <span style="min-width: 20px;"><?php esc_html_e('Y:', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></span>
-                                                <input type="number" name="cwp_chat_bubbles_options[offset_y]" value="<?php echo esc_attr($options['offset_y']); ?>" min="-200" max="200" step="1" style="width: 80px;">
+                                                <input type="number" name="cwp_chat_bubbles_options[offset_y]" value="<?php echo esc_attr($options['offset_y'] ?? 0); ?>" min="-200" max="200" step="1" style="width: 80px;">
                                                 <span style="color: #666;">px</span>
                                             </label>
                                         </div>
@@ -287,7 +287,7 @@ class CWP_Chat_Bubbles_Options_Page {
                             <tr>
                                 <th scope="row"><?php esc_html_e('Main Button Color', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
-                                    <input type="color" name="cwp_chat_bubbles_options[main_button_color]" value="<?php echo esc_attr($options['main_button_color']); ?>" class="color-field">
+                                    <input type="color" name="cwp_chat_bubbles_options[main_button_color]" value="<?php echo esc_attr($options['main_button_color'] ?? '#52BA00'); ?>" class="color-field">
                                 </td>
                             </tr>
                             <tr>
