@@ -587,7 +587,6 @@
                     $('#qr-code-id').val(itemData.qr_code_id);
                     $('#upload-qr-code').text('Update QR Code');
                     $('#remove-qr-code').show();
-                    console.log('QR code preview error:', error);
                     showNotice('warning', 'QR code found but preview failed to load');
                 }
             });
