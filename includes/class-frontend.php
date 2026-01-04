@@ -185,53 +185,6 @@ class CWP_Chat_Bubbles_Frontend {
     }
 
     /**
-     * Render chat bubbles template (legacy method for backward compatibility)
-     *
-     * @param array $items Enabled items from custom table
-     * @param array $override_settings Override settings for shortcode
-     * @since 1.0.0
-     */
-    private function render_template($items, $override_settings = array()) {
-        // Get items manager for platform data
-        $items_manager = CWP_Chat_Bubbles_Items_Manager::get_instance();
-        
-        // Process items to add platform URLs, icons, and colors
-        $processed_items = array();
-        foreach ($items as $item) {
-            $processed_item = $item;
-            $processed_item['platform_url'] = $this->items_manager->generate_platform_url($item['platform'], $item);
-            $processed_item['platform_icon'] = $this->get_platform_icon_url($item['platform']);
-            $processed_item['platform_color'] = $items_manager->get_platform_color($item['platform']);
-            $processed_items[] = $processed_item;
-        }
-        
-        // Template variables
-        $template_vars = array(
-            'items' => $processed_items,
-            'settings' => array(
-                'position' => !empty($override_settings['position']) ? $override_settings['position'] : $this->settings->get_option('position', 'bottom-right'),
-                'main_button_color' => $this->settings->get_option('main_button_color', '#52BA00'),
-                'animation_enabled' => $this->settings->get_option('animation_enabled', true),
-                'show_labels' => !empty($override_settings['show_labels']) ? (bool) $override_settings['show_labels'] : $this->settings->should_show_labels()
-            ),
-            'support_icon' => $this->settings->get_main_icon_url(),
-            'cancel_icon' => CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/cancel.svg'
-        );
-
-        // Load template
-        $template_path = $this->locate_template('chat-bubbles.php');
-        
-        if ($template_path) {
-            // Extract variables for template
-            extract($template_vars);
-            include $template_path;
-        } else {
-            // Fallback inline template
-            $this->render_fallback_template($template_vars);
-        }
-    }
-
-    /**
      * Locate template file
      *
      * @param string $template_name Template file name
@@ -323,27 +276,6 @@ class CWP_Chat_Bubbles_Frontend {
             <?php endforeach; ?>
         </div>
         <?php
-    }
-
-    /**
-     * Check if current page is excluded
-     *
-     * @return bool Whether current page is excluded
-     * @since 1.0.0
-     */
-    private function is_current_page_excluded() {
-        $excluded_pages = $this->settings->get_option('exclude_pages', array());
-        
-        if (empty($excluded_pages)) {
-            return false;
-        }
-
-        if (is_page()) {
-            $current_page_id = get_the_ID();
-            return in_array($current_page_id, $excluded_pages);
-        }
-
-        return false;
     }
 
     /**
