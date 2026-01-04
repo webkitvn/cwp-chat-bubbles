@@ -750,8 +750,12 @@
         // Remove existing error message
         $row.find('.field-error').remove();
         
-        // Add new error message
-        $field.after(`<div class="field-error" style="color: #d63638; font-size: 12px; margin-top: 5px;">${message}</div>`);
+        // Add new error message (use text() to prevent XSS)
+        const $errorDiv = $('<div>')
+            .addClass('field-error')
+            .css({ color: '#d63638', fontSize: '12px', marginTop: '5px' })
+            .text(message);
+        $field.after($errorDiv);
     }
 
     /**
@@ -763,8 +767,20 @@
         // Remove existing form error
         $modalBody.find('.form-error').remove();
         
-        // Add new form error at the top
-        $modalBody.prepend(`<div class="form-error" style="background: #fbeaea; border: 1px solid #d63638; border-radius: 4px; padding: 10px; margin-bottom: 15px; color: #d63638; font-weight: 500;">${message}</div>`);
+        // Add new form error at the top (use text() to prevent XSS)
+        const $errorDiv = $('<div>')
+            .addClass('form-error')
+            .css({
+                background: '#fbeaea',
+                border: '1px solid #d63638',
+                borderRadius: '4px',
+                padding: '10px',
+                marginBottom: '15px',
+                color: '#d63638',
+                fontWeight: '500'
+            })
+            .text(message);
+        $modalBody.prepend($errorDiv);
     }
 
     /**
@@ -781,7 +797,13 @@
      */
     function showNotice(type, message) {
         const noticeClass = type === 'success' ? 'notice-success' : 'notice-error';
-        const $notice = $(`<div class="notice ${noticeClass} is-dismissible"><p>${message}</p></div>`);
+        
+        // Build notice element safely (use text() to prevent XSS)
+        const $notice = $('<div>')
+            .addClass('notice')
+            .addClass(noticeClass)
+            .addClass('is-dismissible')
+            .append($('<p>').text(message));
         
         $('.wrap h1').after($notice);
         
