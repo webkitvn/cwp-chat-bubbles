@@ -13,7 +13,8 @@
     "scss-lint": "stylelint src/scss/**/*.scss",
     "scss-lint:fix": "stylelint src/scss/**/*.scss --fix",
     "clean": "node -e \"const fs = require('fs'); fs.rmSync('assets/css', {recursive:true, force:true}); fs.rmSync('assets/js', {recursive:true, force:true});\"",
-    "test": "echo \"No tests specified\" && exit 0"
+    "test": "vendor/bin/phpunit",
+    "test:php": "vendor/bin/phpunit"
   },
   "keywords": [
     "wordpress",
