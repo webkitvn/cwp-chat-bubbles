@@ -323,7 +323,7 @@ class CWP_Chat_Bubbles_Options_Page {
             </form>
             
             <!-- Add/Edit Item Modal (outside main form to prevent nesting) -->
-            <div id="cwp-item-modal" class="cwp-modal" style="display: none;">
+            <div id="cwp-item-modal" class="cwp-modal">
                 <div class="cwp-modal-content">
                     <div class="cwp-modal-header">
                         <h3 id="modal-title"><?php esc_html_e('Add New Item', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
