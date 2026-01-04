@@ -53,6 +53,24 @@ global $wpdb;
 $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_cwp_chat_bubbles%'");
 $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_timeout_cwp_chat_bubbles%'");
 
-// Clear any cached data
-wp_cache_delete('cwp_chat_bubbles_frontend_data', 'cwp_chat_bubbles');
-wp_cache_flush();
+// Clear plugin-specific cached data (avoid wp_cache_flush which clears ALL cache)
+$cache_keys = array(
+    'cwp_chat_bubbles_frontend_data',
+    'cwp_chat_bubbles_data_version',
+);
+
+foreach ($cache_keys as $key) {
+    wp_cache_delete($key, 'cwp_chat_bubbles');
+}
+
+// Clear versioned cache keys (items cache uses data version suffix)
+// These may have various version suffixes, so we clear common patterns
+for ($i = 1; $i <= 100; $i++) {
+    wp_cache_delete('cwp_items_all_v' . $i, 'cwp_chat_bubbles');
+    wp_cache_delete('cwp_items_enabled_v' . $i, 'cwp_chat_bubbles');
+}
+
+// Try to delete cache group if supported by the object cache
+if (function_exists('wp_cache_delete_group')) {
+    wp_cache_delete_group('cwp_chat_bubbles');
+}
