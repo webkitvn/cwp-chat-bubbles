@@ -400,6 +400,15 @@ class CWPChatBubblesAdmin {
             return false;
         }
 
+        if (platform === 'zalo_oa') {
+            const zaloOAPattern = /^(?:https?:\/\/oa\.zalo\.me\/)?[0-9]{10,25}$/;
+            if (!zaloOAPattern.test(contactValue)) {
+                this.showFieldError('contact-value', 'Please enter a valid Zalo OA ID or URL (https://oa.zalo.me/...)');
+                return false;
+            }
+            return true;
+        }
+
         return true;
     }
 

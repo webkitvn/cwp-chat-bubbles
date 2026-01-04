@@ -61,6 +61,12 @@ class CWP_Chat_Bubbles_Items_Manager {
             'pattern' => '/^[0-9]{9,11}$/',
             'placeholder' => '0123456789'
         ),
+        'zalo_oa' => array(
+            'label' => 'Zalo OA',
+            'contact_field' => 'id',
+            'pattern' => '/^(?:https?:\/\/oa\.zalo\.me\/)?([0-9]{10,25})$/',
+            'placeholder' => '4073699630774515920 or https://oa.zalo.me/4073699630774515920'
+        ),
         'whatsapp' => array(
             'label' => 'WhatsApp',
             'contact_field' => 'number',
@@ -109,6 +115,7 @@ class CWP_Chat_Bubbles_Items_Manager {
     const PLATFORM_ICON_MAP = array(
         'phone' => 'phone.svg',
         'zalo' => 'zalo.svg',
+        'zalo_oa' => 'zalo.svg',
         'whatsapp' => 'whatsapp.svg',
         'viber' => 'viber.svg',
         'telegram' => 'telegram.svg',
@@ -133,6 +140,7 @@ class CWP_Chat_Bubbles_Items_Manager {
     const PLATFORM_COLORS = array(
         'phone' => '#52BA00',
         'zalo' => '#008BE6',
+        'zalo_oa' => '#008BE6',
         'whatsapp' => '#25D366',
         'viber' => '#665cac',
         'telegram' => '#0088cc',
@@ -606,7 +614,15 @@ class CWP_Chat_Bubbles_Items_Manager {
                 
             case 'zalo':
                 return 'https://zalo.me/' . $contact_value . '?openChat=true';
-                
+
+            case 'zalo_oa':
+                // Extract OA ID if full URL was provided
+                $oa_id = $contact_value;
+                if (preg_match('/^https?:\/\/oa\.zalo\.me\/([0-9]+)/', $contact_value, $matches)) {
+                    $oa_id = $matches[1];
+                }
+                return 'https://oa.zalo.me/' . $oa_id;
+
             case 'whatsapp':
                 return 'https://wa.me/' . $contact_value;
                 
