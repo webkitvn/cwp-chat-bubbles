@@ -18,11 +18,6 @@ if (!current_user_can('manage_options')) {
     exit;
 }
 
-// Verify this is our plugin being uninstalled
-if (plugin_basename(__FILE__) !== 'cwp-chat-bubbles/uninstall.php') {
-    exit;
-}
-
 // Define plugin constants if not already defined
 if (!defined('CWP_CHAT_BUBBLES_PLUGIN_DIR')) {
     define('CWP_CHAT_BUBBLES_PLUGIN_DIR', plugin_dir_path(__FILE__));
