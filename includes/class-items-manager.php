@@ -782,13 +782,99 @@ class CWP_Chat_Bubbles_Items_Manager {
     /**
      * Migrate QR code from old format
      *
-     * @param string $qr_code_path Old QR code path or URL
+     * @param mixed $qr_code_path Old QR code path, URL, or attachment ID
      * @return int WordPress media ID or 0 if failed
      * @since 1.0.0
      */
     private function migrate_qr_code($qr_code_path) {
-        // This is a placeholder for QR code migration
-        // In a real scenario, you'd handle file uploads to media library
+        if (empty($qr_code_path)) {
+            return 0;
+        }
+
+        // If it's already a numeric attachment ID, validate and return it
+        if (is_numeric($qr_code_path)) {
+            $attachment_id = absint($qr_code_path);
+            if ($attachment_id > 0 && wp_get_attachment_url($attachment_id)) {
+                return $attachment_id;
+            }
+            return 0;
+        }
+
+        // If it's a URL, try to find matching attachment in media library
+        if (filter_var($qr_code_path, FILTER_VALIDATE_URL)) {
+            $attachment_id = $this->get_attachment_id_by_url($qr_code_path);
+            if ($attachment_id > 0) {
+                return $attachment_id;
+            }
+        }
+
+        // If it's a file path, try to find by filename in media library
+        if (is_string($qr_code_path) && !filter_var($qr_code_path, FILTER_VALIDATE_URL)) {
+            $filename = basename($qr_code_path);
+            $attachment_id = $this->get_attachment_id_by_filename($filename);
+            if ($attachment_id > 0) {
+                return $attachment_id;
+            }
+        }
+
+        // Graceful degradation - return 0 if no match found
+        return 0;
+    }
+
+    /**
+     * Get attachment ID by URL
+     *
+     * @param string $url Attachment URL
+     * @return int Attachment ID or 0 if not found
+     * @since 1.0.0
+     */
+    private function get_attachment_id_by_url($url) {
+        global $wpdb;
+
+        // Try using WordPress function first (available since WP 4.0)
+        if (function_exists('attachment_url_to_postid')) {
+            $attachment_id = attachment_url_to_postid($url);
+            if ($attachment_id > 0) {
+                return $attachment_id;
+            }
+        }
+
+        // Fallback: query by guid
+        $attachment_id = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT ID FROM {$wpdb->posts} WHERE guid = %s AND post_type = 'attachment' LIMIT 1",
+                $url
+            )
+        );
+
+        return $attachment_id ? absint($attachment_id) : 0;
+    }
+
+    /**
+     * Get attachment ID by filename
+     *
+     * @param string $filename File name to search for
+     * @return int Attachment ID or 0 if not found
+     * @since 1.0.0
+     */
+    private function get_attachment_id_by_filename($filename) {
+        global $wpdb;
+
+        // Search for attachment by filename in post meta
+        $attachment_id = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT post_id FROM {$wpdb->postmeta} 
+                WHERE meta_key = '_wp_attached_file' 
+                AND meta_value LIKE %s 
+                LIMIT 1",
+                '%' . $wpdb->esc_like($filename)
+            )
+        );
+
+        if ($attachment_id && wp_get_attachment_url($attachment_id)) {
+            return absint($attachment_id);
+        }
+
         return 0;
     }
 
