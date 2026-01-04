@@ -24,7 +24,7 @@
 defined('ABSPATH') or exit;
 
 // Plugin constants
-define('CWP_CHAT_BUBBLES_VERSION', '1.0.0');
+define('CWP_CHAT_BUBBLES_VERSION', '1.0.2');
 define('CWP_CHAT_BUBBLES_PLUGIN_FILE', __FILE__);
 define('CWP_CHAT_BUBBLES_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('CWP_CHAT_BUBBLES_PLUGIN_URL', plugin_dir_url(__FILE__));
