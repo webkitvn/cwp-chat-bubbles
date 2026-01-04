@@ -381,6 +381,62 @@
 }
 
 // Responsive Design
+// Items Header
+.cwp-items-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+
+  h3 {
+    margin: 0 0 5px 0;
+  }
+
+  .description {
+    margin: 0 0 10px 0;
+    color: #666;
+    font-style: italic;
+  }
+}
+
+// Items List Container
+.cwp-items-list {
+  border: 1px solid #ddd;
+  background: #fff;
+  min-height: 200px;
+  padding: 15px;
+}
+
+// Tab Navigation
+.nav-tab-wrapper {
+  margin-bottom: 20px;
+}
+
+.tab-content {
+  background: #fff;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-top: none;
+}
+
+// Form Error State
+.form-error {
+  background: #fbeaea;
+  border: 1px solid #d63638;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 15px;
+  color: #d63638;
+  font-weight: 500;
+}
+
+// Save Button Loading State
+#save-item:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+// Responsive Design
 @media (max-width: 768px) {
   .cwp-item {
     padding: var(--cwp-space-sm);

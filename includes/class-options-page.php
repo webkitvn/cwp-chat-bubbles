@@ -403,161 +403,6 @@ class CWP_Chat_Bubbles_Options_Page {
             </div>
         </div>
 
-        <style>
-        .cwp-items-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
-        }
-        .cwp-items-header h3 {
-            margin: 0 0 5px 0;
-        }
-        .cwp-items-header .description {
-            margin: 0 0 10px 0;
-            color: #666;
-            font-style: italic;
-        }
-        .cwp-items-list {
-            border: 1px solid #ddd;
-            background: #fff;
-            min-height: 200px;
-            padding: 15px;
-        }
-        .cwp-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            border: 1px solid #ddd;
-            margin-bottom: 10px;
-            background: #f9f9f9;
-            cursor: move;
-        }
-        .cwp-item:hover {
-            background: #f0f0f0;
-        }
-        .cwp-item-drag {
-            margin-right: 10px;
-            cursor: grab;
-        }
-        .cwp-item-icon {
-            width: 24px;
-            height: 24px;
-            margin-right: 10px;
-        }
-        .cwp-item-info {
-            flex: 1;
-        }
-        .cwp-item-actions {
-            display: flex;
-            gap: 5px;
-        }
-        .cwp-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 100000;
-        }
-        .cwp-modal-content {
-            position: relative;
-            background: #fff;
-            margin: 5% auto;
-            padding: 0;
-            width: 90%;
-            max-width: 600px;
-            border-radius: 4px;
-        }
-        .cwp-modal-header {
-            padding: 20px;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .cwp-modal-body {
-            padding: 20px;
-        }
-        .cwp-modal-footer {
-            padding: 20px;
-            border-top: 1px solid #ddd;
-            text-align: right;
-        }
-        .cwp-modal-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-        }
-        .nav-tab-wrapper {
-            margin-bottom: 20px;
-        }
-        .tab-content {
-            background: #fff;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-top: none;
-        }
-        .cwp-empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-        
-        /* Enhanced form validation styles */
-        .cwp-modal input.error, 
-        .cwp-modal select.error {
-            border-color: #d63638 !important;
-            box-shadow: 0 0 0 1px #d63638 !important;
-            background-color: #fbeaea;
-        }
-        
-        .field-error {
-            color: #d63638;
-            font-size: 12px;
-            margin-top: 5px;
-            display: block;
-            font-weight: 500;
-        }
-        
-        .form-error {
-            background: #fbeaea;
-            border: 1px solid #d63638;
-            border-radius: 4px;
-            padding: 10px;
-            margin-bottom: 15px;
-            color: #d63638;
-            font-weight: 500;
-        }
-        
-        /* Success state for valid fields */
-        .cwp-modal input:valid:not(:placeholder-shown), 
-        .cwp-modal select:valid {
-            border-color: #46b450;
-        }
-        
-        /* Focus states */
-        .cwp-modal input:focus, 
-        .cwp-modal select:focus {
-            border-color: #2271b1;
-            box-shadow: 0 0 0 1px #2271b1;
-        }
-        
-        /* Loading state for save button */
-        #save-item:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        
-        /* Improve error field transitions */
-        .cwp-modal input, 
-        .cwp-modal select {
-            transition: border-color 0.2s ease, background-color 0.2s ease;
-        }
-        </style>
-
         <script>
         // Platform configuration for dynamic form updates
         window.platformConfigs = <?php echo json_encode($supported_platforms); ?>;
@@ -715,14 +560,20 @@ class CWP_Chat_Bubbles_Options_Page {
         // Get existing log entries
         $log_entries = get_option('cwp_chat_bubbles_audit_log', array());
         
+        // Filter out entries older than 30 days
+        $log_entries = array_filter($log_entries, function($entry) {
+            return isset($entry['timestamp']) && strtotime($entry['timestamp']) > strtotime('-30 days');
+        });
+        $log_entries = array_values($log_entries); // Re-index array
+        
         // Add new entry
         array_unshift($log_entries, $log_entry);
         
         // Keep only last 100 entries to prevent database bloat
         $log_entries = array_slice($log_entries, 0, 100);
         
-        // Save back to database
-        update_option('cwp_chat_bubbles_audit_log', $log_entries);
+        // Save back to database (autoload disabled for performance)
+        update_option('cwp_chat_bubbles_audit_log', $log_entries, false);
     }
 
     /**
