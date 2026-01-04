@@ -385,12 +385,12 @@ class CWPChatBubblesAdmin {
         if (!config) return false;
 
         // Platform-specific validation
-        if (platform === 'phone' && !/^[\+]?[0-9\-\(\)\s]+$/.test(contactValue)) {
+        if (platform === 'phone' && !/^[+]?[0-9\-()\\s]+$/.test(contactValue)) {
             this.showFieldError('contact-value', 'Please enter a valid phone number');
             return false;
         }
 
-        if (platform === 'whatsapp' && !/^[\+]?[0-9]+$/.test(contactValue.replace(/\s/g, ''))) {
+        if (platform === 'whatsapp' && !/^[+]?[0-9]+$/.test(contactValue.replace(/\s/g, ''))) {
             this.showFieldError('contact-value', 'WhatsApp number should contain only digits and +');
             return false;
         }

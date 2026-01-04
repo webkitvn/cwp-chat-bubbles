@@ -12,7 +12,7 @@
     "lint:fix": "eslint src/js/**/*.js --fix",
     "scss-lint": "stylelint src/scss/**/*.scss",
     "scss-lint:fix": "stylelint src/scss/**/*.scss --fix",
-    "clean": "rimraf assets/css/*.css assets/js/*.js",
+    "clean": "node -e \"const fs = require('fs'); fs.rmSync('assets/css', {recursive:true, force:true}); fs.rmSync('assets/js', {recursive:true, force:true});\"",
     "test": "echo \"No tests specified\" && exit 0"
   },
   "keywords": [
@@ -44,10 +44,11 @@
     "sass": "^1.77.0",
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
-    "eslint": "^8.57.0",
+    "eslint": "^9.0.0",
+    "globals": "^16.0.0",
+    "@eslint/js": "^9.0.0",
     "stylelint": "^16.6.0",
     "stylelint-config-standard-scss": "^13.1.0",
-    "rimraf": "^5.0.7",
     "chokidar": "^3.6.0"
   },
   "browserslist": [
@@ -66,23 +67,6 @@
           "@esbuild/win32-x64": "*"
         }
       }
-    }
-  },
-  "eslintConfig": {
-    "env": {
-      "browser": true,
-      "es2020": true
-    },
-    "extends": "eslint:recommended",
-    "parserOptions": {
-      "ecmaVersion": 2020,
-      "sourceType": "module"
-    },
-    "rules": {
-      "no-unused-vars": "warn",
-      "no-console": "warn",
-      "prefer-const": "error",
-      "no-var": "error"
     }
   },
   "stylelint": {
