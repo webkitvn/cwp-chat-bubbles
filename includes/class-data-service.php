@@ -102,7 +102,7 @@ class CWP_Chat_Bubbles_Data_Service {
                 'animation_enabled' => $this->settings->get_option('animation_enabled', true),
                 'show_labels' => $this->settings->should_show_labels()
             ),
-            'support_icon' => $this->get_main_icon_url(),
+            'support_icon' => $this->settings->get_main_icon_url(),
             'cancel_icon' => CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/cancel.svg'
         );
 
@@ -116,7 +116,7 @@ class CWP_Chat_Bubbles_Data_Service {
                 'qr_code_id' => $item['qr_code_id'],
                 'sort_order' => $item['sort_order'],
                 // Pre-processed data for performance
-                'platform_url' => $this->generate_platform_url($item['platform'], $item),
+                'platform_url' => $this->items_manager->generate_platform_url($item['platform'], $item),
                 'platform_icon' => $this->items_manager->get_platform_icon_url($item['platform']),
                 'platform_color' => $this->items_manager->get_platform_color($item['platform']),
                 'qr_code_url' => !empty($item['qr_code_id']) ? wp_get_attachment_url($item['qr_code_id']) : '',
@@ -234,69 +234,5 @@ class CWP_Chat_Bubbles_Data_Service {
         );
         
         return substr(md5(serialize($relevant_settings)), 0, 8);
-    }
-
-    /**
-     * Generate platform URL
-     *
-     * @param string $platform Platform name
-     * @param array $item Item data
-     * @return string Platform URL
-     * @since 1.0.0
-     */
-    private function generate_platform_url($platform, $item) {
-        $contact_value = !empty($item['contact_value']) ? $item['contact_value'] : '';
-        
-        if (empty($contact_value)) {
-            return '#';
-        }
-        
-        switch ($platform) {
-            case 'phone':
-                return 'tel:' . $contact_value;
-                
-            case 'zalo':
-                return 'https://zalo.me/' . $contact_value . '?openChat=true';
-                
-            case 'whatsapp':
-                return 'https://wa.me/' . $contact_value;
-                
-            case 'viber':
-                return 'viber://contact?number=' . $contact_value;
-                
-            case 'telegram':
-                return 'https://t.me/' . $contact_value;
-                
-            case 'messenger':
-                return 'https://m.me/' . $contact_value;
-                
-            case 'line':
-                return 'https://line.me/ti/p/' . $contact_value;
-                
-            case 'kakaotalk':
-                return '#kakaotalk-' . $contact_value;
-                
-            default:
-                return '#';
-        }
-    }
-
-    /**
-     * Get main icon URL
-     *
-     * @return string Main icon URL
-     * @since 1.0.0
-     */
-    private function get_main_icon_url() {
-        $custom_icon_id = $this->settings->get_option('custom_main_icon', 0);
-        
-        if ($custom_icon_id > 0) {
-            $custom_icon_url = wp_get_attachment_url($custom_icon_id);
-            if ($custom_icon_url) {
-                return $custom_icon_url;
-            }
-        }
-        
-        return CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/support.svg';
     }
 } 

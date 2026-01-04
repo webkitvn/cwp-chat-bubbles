@@ -310,4 +310,23 @@ class CWP_Chat_Bubbles_Settings {
     public function should_show_labels() {
         return (bool) $this->get_option('show_labels', true);
     }
+
+    /**
+     * Get main icon URL
+     *
+     * @return string Main icon URL (custom or default)
+     * @since 1.0.2
+     */
+    public function get_main_icon_url() {
+        $custom_icon_id = $this->get_option('custom_main_icon', 0);
+        
+        if ($custom_icon_id > 0) {
+            $custom_icon_url = wp_get_attachment_url($custom_icon_id);
+            if ($custom_icon_url) {
+                return $custom_icon_url;
+            }
+        }
+        
+        return CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/support.svg';
+    }
 } 

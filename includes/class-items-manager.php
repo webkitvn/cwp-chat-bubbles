@@ -586,6 +586,51 @@ class CWP_Chat_Bubbles_Items_Manager {
     }
 
     /**
+     * Generate platform URL
+     *
+     * @param string $platform Platform name
+     * @param array $item Item data with contact_value
+     * @return string Platform URL
+     * @since 1.0.2
+     */
+    public function generate_platform_url($platform, $item) {
+        $contact_value = !empty($item['contact_value']) ? $item['contact_value'] : '';
+        
+        if (empty($contact_value)) {
+            return '#';
+        }
+        
+        switch ($platform) {
+            case 'phone':
+                return 'tel:' . $contact_value;
+                
+            case 'zalo':
+                return 'https://zalo.me/' . $contact_value . '?openChat=true';
+                
+            case 'whatsapp':
+                return 'https://wa.me/' . $contact_value;
+                
+            case 'viber':
+                return 'viber://contact?number=' . $contact_value;
+                
+            case 'telegram':
+                return 'https://t.me/' . $contact_value;
+                
+            case 'messenger':
+                return 'https://m.me/' . $contact_value;
+                
+            case 'line':
+                return 'https://line.me/ti/p/' . $contact_value;
+                
+            case 'kakaotalk':
+                return '#kakaotalk-' . $contact_value;
+                
+            default:
+                return '#';
+        }
+    }
+
+    /**
      * Validate contact value based on platform
      *
      * @param string $platform Platform name
