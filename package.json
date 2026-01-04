@@ -1,6 +1,6 @@
 {
   "name": "cwp-chat-bubbles",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "WordPress plugin for auto-injecting chat bubbles with 8 messaging platform support and QR code integration",
   "private": true,
   "type": "module",

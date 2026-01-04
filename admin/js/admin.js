@@ -61,18 +61,18 @@
             currentEditingItem = null;
             resetModalForm();
             $('#modal-title').text('Add New Item');
-            $('#cwp-item-modal').show();
+            $('#cwp-item-modal').addClass('active');
         });
 
         // Close modal
         $('.cwp-modal-close, #cancel-item').on('click', function() {
-            $('#cwp-item-modal').hide();
+            $('#cwp-item-modal').removeClass('active');
         });
 
         // Close modal when clicking outside
         $('#cwp-item-modal').on('click', function(e) {
             if (e.target === this) {
-                $(this).hide();
+                $(this).removeClass('active');
             }
         });
 
@@ -208,6 +208,9 @@
         $('#upload-qr-code').on('click', function(e) {
             e.preventDefault();
             
+            // Hide item modal so media uploader appears on top
+            $('#cwp-item-modal').removeClass('active');
+            
             if (mediaUploader) {
                 mediaUploader.open();
                 return;
@@ -227,6 +230,13 @@
             mediaUploader.on('select', function() {
                 const attachment = mediaUploader.state().get('selection').first().toJSON();
                 setQRCodePreview(attachment.id, attachment.url);
+                // Show item modal again after selection
+                $('#cwp-item-modal').addClass('active');
+            });
+            
+            mediaUploader.on('close', function() {
+                // Show item modal again when media uploader is closed
+                $('#cwp-item-modal').addClass('active');
             });
             
             mediaUploader.open();
@@ -532,7 +542,7 @@
         
         currentEditingItem = itemId;
         $('#modal-title').text('Edit Item');
-        $('#cwp-item-modal').show();
+        $('#cwp-item-modal').addClass('active');
     }
 
     /**
@@ -623,7 +633,7 @@
             success: function(response) {
                 if (response.success) {
                     $('#cwp-items-container').html(response.data.items_html);
-                    $('#cwp-item-modal').hide();
+                    $('#cwp-item-modal').removeClass('active');
                     showNotice('success', response.data.message);
                     initSortable(); // Reinitialize sortable after content update
                 } else {

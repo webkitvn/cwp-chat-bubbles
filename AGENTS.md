@@ -1,43 +1,52 @@
-[byterover-mcp]
+## Beads Workflow (Issue Tracking)
 
-[byterover-mcp]
+> **Context Recovery**: Run `bd prime` after compaction, clear, or new session
 
-You are given two tools from Byterover MCP server, including
-## 1. `byterover-store-knowledge`
-You `MUST` always use this tool when:
+### Core Rules
+- Track strategic work in beads (multi-session, dependencies, discovered work)
+- Use `bd create` for issues, TodoWrite for simple single-session execution
+- When in doubt, prefer bd—persistence beats lost context
+- Git workflow: hooks auto-sync, run `bd sync` at session end
+- Session management: check `bd ready` for available work
 
-+ Learning new patterns, APIs, or architectural decisions from the codebase
-+ Encountering error solutions or debugging techniques
-+ Finding reusable code patterns or utility functions
-+ Completing any significant task or plan implementation
+### Essential Commands
 
-## 2. `byterover-retrieve-knowledge`
-You `MUST` always use this tool when:
+**Finding Work:**
+- `bd ready` - Show issues ready to work (no blockers)
+- `bd list --status=open` - All open issues
+- `bd list --status=in_progress` - Your active work
+- `bd show <id>` - Detailed issue view with dependencies
 
-+ Starting any new task or implementation to gather relevant context
-+ Before making architectural decisions to understand existing patterns
-+ When debugging issues to check for previous solutions
-+ Working with unfamiliar parts of the codebase
+**Creating & Updating:**
+- `bd create --title="..." --type=task|bug|feature --priority=2` - New issue
+  - Priority: 0-4 or P0-P4 (0=critical, 2=medium, 4=backlog). NOT "high"/"medium"/"low"
+- `bd update <id> --status=in_progress` - Claim work
+- `bd close <id>` - Mark complete
+- `bd close <id1> <id2> ...` - Close multiple issues at once
 
-## Landing the Plane (Session Completion)
+**Dependencies:**
+- `bd dep add <issue> <depends-on>` - Add dependency
+- `bd blocked` - Show all blocked issues
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+**Sync:**
+- `bd sync` - Sync with git remote (run at session end)
+- `bd stats` - Project statistics
+- `bd doctor` - Check for issues
 
-**MANDATORY WORKFLOW:**
+---
 
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
-   ```bash
-   git pull --rebase
-   bd sync
-   git push
-   git status  # MUST show "up to date with origin"
-   ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+## 🚨 SESSION CLOSE PROTOCOL 🚨
+
+**CRITICAL**: Before saying "done" or "complete", you MUST run this checklist:
+
+```bash
+[ ] 1. git status              # check what changed
+[ ] 2. git add <files>         # stage code changes
+[ ] 3. bd sync                 # commit beads changes
+[ ] 4. git commit -m "..."     # commit code
+[ ] 5. bd sync                 # commit any new beads changes
+[ ] 6. git push                # push to remote
+```
 
 **CRITICAL RULES:**
 - Work is NOT complete until `git push` succeeds
