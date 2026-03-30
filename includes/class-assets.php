@@ -121,9 +121,7 @@ class CWP_Chat_Bubbles_Assets {
                     'position' => $this->settings->get_option('position', 'bottom-right'),
                     'animationEnabled' => $this->settings->get_option('animation_enabled', true),
                     'showLabels' => $this->settings->get_option('show_labels', true),
-                    'deviceVisibility' => $this->settings->get_device_visibility(),
                     'behavior' => $this->settings->get_behavior_settings(),
-                    'schedule' => $this->settings->get_schedule_settings(),
                     'analytics' => $this->settings->get_analytics_settings(),
                     'appearance' => $this->settings->get_appearance_settings(),
                 )
@@ -269,12 +267,6 @@ class CWP_Chat_Bubbles_Assets {
         if ($user_custom_css) {
             $custom_css .= "\n" . $user_custom_css;
         }
-        
-        $device_visibility_css = $this->get_device_visibility_css();
-        if ($device_visibility_css) {
-            $custom_css .= "\n" . $device_visibility_css;
-        }
-
         // Output styles if we have any
         if ($custom_css) {
             echo "<style id='cwp-chat-bubbles-custom-css'>\n" . wp_strip_all_tags($custom_css) . "\n</style>\n";
@@ -395,28 +387,4 @@ class CWP_Chat_Bubbles_Assets {
         }
     }
 
-    /**
-     * Get responsive CSS rules for device visibility settings.
-     *
-     * @return string CSS to hide the bubble on disabled device classes.
-     * @since 1.0.3
-     */
-    private function get_device_visibility_css() {
-        $visibility = $this->settings->get_device_visibility();
-        $css = '';
-
-        if (empty($visibility['mobile'])) {
-            $css .= "\n@media (max-width: 767px) { .cwp-chat-bubbles { display: none !important; } }";
-        }
-
-        if (empty($visibility['tablet'])) {
-            $css .= "\n@media (min-width: 768px) and (max-width: 1024px) { .cwp-chat-bubbles { display: none !important; } }";
-        }
-
-        if (empty($visibility['desktop'])) {
-            $css .= "\n@media (min-width: 1025px) { .cwp-chat-bubbles { display: none !important; } }";
-        }
-
-        return $css;
-    }
 }

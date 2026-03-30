@@ -282,7 +282,6 @@ final class CWP_Chat_Bubbles {
             
             // Advanced settings
             'custom_css' => '',
-            'load_on_mobile' => true,
             'exclude_pages' => array()
         );
         

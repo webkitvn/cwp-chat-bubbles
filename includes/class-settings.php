@@ -96,11 +96,7 @@ class CWP_Chat_Bubbles_Settings {
             
             // Advanced settings
             'custom_css' => '',
-            'load_on_mobile' => true,
-            'device_visibility' => $this->get_default_device_visibility(),
             'behavior' => $this->get_default_behavior_settings(),
-            'schedule' => $this->get_default_schedule_settings(),
-            'targeting' => $this->get_default_targeting_settings(),
             'analytics' => $this->get_default_analytics_settings(),
             'appearance' => $this->get_default_appearance_settings(),
             'exclude_pages' => array()
@@ -190,11 +186,7 @@ class CWP_Chat_Bubbles_Settings {
             $sanitized['custom_css'] = $css;
         }
             
-        $sanitized['device_visibility'] = $this->sanitize_device_visibility($options);
-        $sanitized['load_on_mobile'] = $sanitized['device_visibility']['mobile'];
         $sanitized['behavior'] = $this->sanitize_behavior_settings($options);
-        $sanitized['schedule'] = $this->sanitize_schedule_settings($options);
-        $sanitized['targeting'] = $this->sanitize_targeting_settings($options);
         $sanitized['analytics'] = $this->sanitize_analytics_settings($options);
         $sanitized['appearance'] = $this->sanitize_appearance_settings($options);
 
@@ -328,41 +320,6 @@ class CWP_Chat_Bubbles_Settings {
     }
 
     /**
-     * Get normalized device visibility settings.
-     *
-     * @return array<string, bool> Device visibility map
-     * @since 1.0.3
-     */
-    public function get_device_visibility() {
-        return $this->get_option('device_visibility', $this->get_default_device_visibility());
-    }
-
-    /**
-     * Check whether chat bubbles should be shown for a device type.
-     *
-     * @param string $device Device key.
-     * @return bool Whether the device is enabled.
-     * @since 1.0.3
-     */
-    public function is_device_enabled($device) {
-        $visibility = $this->get_device_visibility();
-
-        return array_key_exists($device, $visibility)
-            ? (bool) $visibility[$device]
-            : true;
-    }
-
-    /**
-     * Check whether chat bubbles should load on mobile devices.
-     *
-     * @return bool Whether mobile visibility is enabled.
-     * @since 1.0.3
-     */
-    public function should_load_on_mobile() {
-        return $this->is_device_enabled('mobile');
-    }
-
-    /**
      * Get normalized global behavior settings.
      *
      * @return array<string, mixed> Behavior settings map.
@@ -385,58 +342,6 @@ class CWP_Chat_Bubbles_Settings {
 
         return array_key_exists($key, $behavior)
             ? $behavior[$key]
-            : $default;
-    }
-
-    /**
-     * Get normalized schedule settings.
-     *
-     * @return array<string, mixed> Schedule settings map.
-     * @since 1.0.3
-     */
-    public function get_schedule_settings() {
-        return $this->get_option('schedule', $this->get_default_schedule_settings());
-    }
-
-    /**
-     * Get a single schedule setting.
-     *
-     * @param string $key Schedule key.
-     * @param mixed  $default Fallback value.
-     * @return mixed Schedule setting value.
-     * @since 1.0.3
-     */
-    public function get_schedule_setting($key, $default = null) {
-        $schedule = $this->get_schedule_settings();
-
-        return array_key_exists($key, $schedule)
-            ? $schedule[$key]
-            : $default;
-    }
-
-    /**
-     * Get normalized contextual targeting settings.
-     *
-     * @return array<string, mixed> Targeting settings map.
-     * @since 1.0.3
-     */
-    public function get_targeting_settings() {
-        return $this->get_option('targeting', $this->get_default_targeting_settings());
-    }
-
-    /**
-     * Get a single targeting setting.
-     *
-     * @param string $key Targeting key.
-     * @param mixed  $default Fallback value.
-     * @return mixed Targeting setting value.
-     * @since 1.0.3
-     */
-    public function get_targeting_setting($key, $default = null) {
-        $targeting = $this->get_targeting_settings();
-
-        return array_key_exists($key, $targeting)
-            ? $targeting[$key]
             : $default;
     }
 
@@ -464,76 +369,6 @@ class CWP_Chat_Bubbles_Settings {
         return array_key_exists($key, $analytics)
             ? $analytics[$key]
             : $default;
-    }
-
-    /**
-     * Get the migration contract from the current quick-win display settings to the future unified targeting model.
-     *
-     * This contract exists so follow-on display-rule work can map existing stored options into richer rule groups
-     * without renaming or replacing the current advanced-settings layer on the fly.
-     *
-     * @return array<string, mixed> Structured migration contract.
-     * @since 1.0.3
-     */
-    public function get_display_rules_migration_contract() {
-        return array(
-            'schema_version' => 1,
-            'legacy_aliases' => array(
-                'load_on_mobile' => 'conditions.device_visibility.mobile',
-            ),
-            'quick_win_fields' => array(
-                'device_visibility' => $this->get_device_visibility(),
-                'exclude_pages' => array_values(array_map('absint', (array) $this->get_option('exclude_pages', array()))),
-                'behavior' => $this->get_behavior_settings(),
-                'schedule' => $this->get_schedule_settings(),
-            ),
-            'unified_targeting' => array(
-                'settings_key' => 'targeting',
-                'schema' => $this->get_targeting_settings(),
-                'legacy_field_mappings' => array(
-                    'exclude_pages' => 'targeting.rules.pages.exclude',
-                    'contextual_pages_include' => 'targeting.rules.pages.include',
-                    'contextual_post_types' => 'targeting.rules.post_types',
-                    'special_pages' => 'targeting.rules.special_pages',
-                ),
-                'rule_groups' => array(
-                    array(
-                        'type' => 'device_visibility',
-                        'mode' => 'allow',
-                        'source' => 'device_visibility',
-                    ),
-                    array(
-                        'type' => 'page',
-                        'mode' => 'exclude',
-                        'source' => 'exclude_pages',
-                    ),
-                    array(
-                        'type' => 'schedule',
-                        'mode' => 'allow_when_open',
-                        'source' => 'schedule',
-                    ),
-                ),
-                'engagement' => array(
-                    'source' => 'behavior',
-                    'keys' => array(
-                        'default_state',
-                        'display_delay',
-                        'scroll_trigger_percent',
-                        'dismiss_for_session',
-                    ),
-                ),
-                'non_targeting_fields' => array(
-                    'appearance',
-                    'analytics',
-                    'custom_css',
-                    'main_button_color',
-                    'show_labels',
-                    'offset_x',
-                    'offset_y',
-                    'custom_main_icon',
-                ),
-            ),
-        );
     }
 
     /**
@@ -582,20 +417,6 @@ class CWP_Chat_Bubbles_Settings {
     }
 
     /**
-     * Get the default device visibility settings.
-     *
-     * @return array<string, bool> Default device visibility map.
-     * @since 1.0.3
-     */
-    private function get_default_device_visibility() {
-        return array(
-            'desktop' => true,
-            'tablet' => true,
-            'mobile' => true,
-        );
-    }
-
-    /**
      * Get the default global behavior settings.
      *
      * @return array<string, mixed> Default behavior settings.
@@ -607,55 +428,6 @@ class CWP_Chat_Bubbles_Settings {
             'display_delay' => 0,
             'scroll_trigger_percent' => 0,
             'dismiss_for_session' => false,
-        );
-    }
-
-    /**
-     * Get the default business-hours schedule settings.
-     *
-     * @return array<string, mixed> Default schedule settings.
-     * @since 1.0.3
-     */
-    private function get_default_schedule_settings() {
-        $weekly_hours = array();
-
-        foreach ($this->get_schedule_days() as $day_key => $day_label) {
-            $weekly_hours[ $day_key ] = array(
-                'enabled' => in_array($day_key, array('mon', 'tue', 'wed', 'thu', 'fri'), true),
-                'open' => '09:00',
-                'close' => '17:00',
-            );
-        }
-
-        return array(
-            'enabled' => false,
-            'timezone' => '',
-            'closed_behavior' => 'hide',
-            'weekly_hours' => $weekly_hours,
-        );
-    }
-
-    /**
-     * Get the default contextual targeting settings.
-     *
-     * @return array<string, mixed> Default targeting settings.
-     * @since 1.0.3
-     */
-    private function get_default_targeting_settings() {
-        return array(
-            'schema_version' => 1,
-            'operator' => 'all',
-            'rules' => array(
-                'pages' => array(
-                    'include' => array(),
-                    'exclude' => array(),
-                ),
-                'post_types' => array(
-                    'include' => array(),
-                    'exclude' => array(),
-                ),
-                'special_pages' => $this->get_default_special_page_targets(),
-            ),
         );
     }
 
@@ -702,83 +474,12 @@ class CWP_Chat_Bubbles_Settings {
      */
     private function normalize_options($options) {
         $normalized = array_replace_recursive($this->get_default_options(), $options);
-        $normalized['device_visibility'] = $this->normalize_device_visibility($options);
-        $normalized['load_on_mobile'] = $normalized['device_visibility']['mobile'];
         $normalized['behavior'] = $this->normalize_behavior_settings($options);
-        $normalized['schedule'] = $this->normalize_schedule_settings($options);
-        $normalized['targeting'] = $this->normalize_targeting_settings($options);
         $normalized['analytics'] = $this->normalize_analytics_settings($options);
         $normalized['appearance'] = $this->normalize_appearance_settings($options);
+        unset($normalized['load_on_mobile'], $normalized['device_visibility'], $normalized['schedule'], $normalized['targeting']);
 
         return $normalized;
-    }
-
-    /**
-     * Normalize device visibility from stored options while preserving legacy mobile behavior.
-     *
-     * @param array $options Raw stored options.
-     * @return array<string, bool> Normalized device visibility map.
-     * @since 1.0.3
-     */
-    private function normalize_device_visibility($options) {
-        $default_visibility = $this->get_default_device_visibility();
-
-        if (!is_array($options)) {
-            return $default_visibility;
-        }
-
-        $stored_visibility = isset($options['device_visibility']) && is_array($options['device_visibility'])
-            ? $options['device_visibility']
-            : array();
-
-        $normalized = array();
-        foreach ($default_visibility as $device => $default) {
-            if (array_key_exists($device, $stored_visibility)) {
-                $normalized[$device] = (bool) $stored_visibility[$device];
-                continue;
-            }
-
-            if ('mobile' === $device && array_key_exists('load_on_mobile', $options)) {
-                $normalized[$device] = (bool) $options['load_on_mobile'];
-                continue;
-            }
-
-            $normalized[$device] = $default;
-        }
-
-        return $normalized;
-    }
-
-    /**
-     * Sanitize device visibility settings from submitted options.
-     *
-     * @param array $options Raw submitted options.
-     * @return array<string, bool> Sanitized device visibility map.
-     * @since 1.0.3
-     */
-    private function sanitize_device_visibility($options) {
-        $default_visibility = $this->get_default_device_visibility();
-
-        if (!is_array($options)) {
-            return $default_visibility;
-        }
-
-        if (!isset($options['device_visibility']) || !is_array($options['device_visibility'])) {
-            return array(
-                'desktop' => true,
-                'tablet' => true,
-                'mobile' => isset($options['load_on_mobile']) ? (bool) $options['load_on_mobile'] : false,
-            );
-        }
-
-        $sanitized = array();
-        foreach ($default_visibility as $device => $default) {
-            $sanitized[$device] = isset($options['device_visibility'][ $device ])
-                ? (bool) $options['device_visibility'][ $device ]
-                : false;
-        }
-
-        return $sanitized;
     }
 
     /**
@@ -834,155 +535,6 @@ class CWP_Chat_Bubbles_Settings {
             'dismiss_for_session' => isset($options['behavior']['dismiss_for_session'])
                 ? (bool) $options['behavior']['dismiss_for_session']
                 : false,
-        );
-    }
-
-    /**
-     * Normalize schedule settings from stored options.
-     *
-     * @param array $options Raw stored options.
-     * @return array<string, mixed> Normalized schedule settings.
-     * @since 1.0.3
-     */
-    private function normalize_schedule_settings($options) {
-        $defaults = $this->get_default_schedule_settings();
-
-        if (!is_array($options) || !isset($options['schedule']) || !is_array($options['schedule'])) {
-            return $defaults;
-        }
-
-        $schedule = $options['schedule'];
-        $normalized = array(
-            'enabled' => !empty($schedule['enabled']),
-            'timezone' => $this->sanitize_schedule_timezone($schedule['timezone'] ?? ''),
-            'closed_behavior' => 'hide',
-            'weekly_hours' => array(),
-        );
-
-        foreach ($this->get_schedule_days() as $day_key => $day_label) {
-            $day_defaults = $defaults['weekly_hours'][ $day_key ];
-            $day_settings = isset($schedule['weekly_hours'][ $day_key ]) && is_array($schedule['weekly_hours'][ $day_key ])
-                ? $schedule['weekly_hours'][ $day_key ]
-                : array();
-
-            $normalized['weekly_hours'][ $day_key ] = array(
-                'enabled' => !empty($day_settings['enabled']),
-                'open' => $this->sanitize_schedule_time($day_settings['open'] ?? $day_defaults['open'], $day_defaults['open']),
-                'close' => $this->sanitize_schedule_time($day_settings['close'] ?? $day_defaults['close'], $day_defaults['close']),
-            );
-        }
-
-        return $normalized;
-    }
-
-    /**
-     * Sanitize schedule settings from submitted options.
-     *
-     * @param array $options Raw submitted options.
-     * @return array<string, mixed> Sanitized schedule settings.
-     * @since 1.0.3
-     */
-    private function sanitize_schedule_settings($options) {
-        $defaults = $this->get_default_schedule_settings();
-
-        if (!is_array($options) || !isset($options['schedule']) || !is_array($options['schedule'])) {
-            return $defaults;
-        }
-
-        $schedule = $options['schedule'];
-        $sanitized = array(
-            'enabled' => isset($schedule['enabled']) ? (bool) $schedule['enabled'] : false,
-            'timezone' => $this->sanitize_schedule_timezone($schedule['timezone'] ?? ''),
-            'closed_behavior' => 'hide',
-            'weekly_hours' => array(),
-        );
-
-        foreach ($this->get_schedule_days() as $day_key => $day_label) {
-            $day_defaults = $defaults['weekly_hours'][ $day_key ];
-            $day_settings = isset($schedule['weekly_hours'][ $day_key ]) && is_array($schedule['weekly_hours'][ $day_key ])
-                ? $schedule['weekly_hours'][ $day_key ]
-                : array();
-
-            $sanitized['weekly_hours'][ $day_key ] = array(
-                'enabled' => isset($day_settings['enabled']) ? (bool) $day_settings['enabled'] : false,
-                'open' => $this->sanitize_schedule_time($day_settings['open'] ?? $day_defaults['open'], $day_defaults['open']),
-                'close' => $this->sanitize_schedule_time($day_settings['close'] ?? $day_defaults['close'], $day_defaults['close']),
-            );
-        }
-
-        return $sanitized;
-    }
-
-    /**
-     * Normalize targeting settings from stored options.
-     *
-     * @param array $options Raw stored options.
-     * @return array<string, mixed> Normalized targeting settings.
-     * @since 1.0.3
-     */
-    private function normalize_targeting_settings($options) {
-        $defaults = $this->get_default_targeting_settings();
-
-        if (!is_array($options) || !isset($options['targeting']) || !is_array($options['targeting'])) {
-            return $defaults;
-        }
-
-        return $this->sanitize_targeting_settings(
-            array(
-                'targeting' => $options['targeting'],
-            )
-        );
-    }
-
-    /**
-     * Sanitize targeting settings from submitted options.
-     *
-     * @param array $options Raw submitted options.
-     * @return array<string, mixed> Sanitized targeting settings.
-     * @since 1.0.3
-     */
-    private function sanitize_targeting_settings($options) {
-        $defaults = $this->get_default_targeting_settings();
-
-        if (!is_array($options) || !isset($options['targeting']) || !is_array($options['targeting'])) {
-            return $defaults;
-        }
-
-        $targeting = $options['targeting'];
-        $rules = isset($targeting['rules']) && is_array($targeting['rules'])
-            ? $targeting['rules']
-            : array();
-        $pages = isset($rules['pages']) && is_array($rules['pages'])
-            ? $rules['pages']
-            : array();
-        $post_types = isset($rules['post_types']) && is_array($rules['post_types'])
-            ? $rules['post_types']
-            : array();
-        $special_pages = isset($rules['special_pages']) && is_array($rules['special_pages'])
-            ? $rules['special_pages']
-            : array();
-        $operator = isset($targeting['operator'])
-            ? sanitize_text_field($targeting['operator'])
-            : $defaults['operator'];
-
-        if (!in_array($operator, array('all', 'any'), true)) {
-            $operator = $defaults['operator'];
-        }
-
-        return array(
-            'schema_version' => (int) $defaults['schema_version'],
-            'operator' => $operator,
-            'rules' => array(
-                'pages' => array(
-                    'include' => $this->sanitize_rule_ids($pages['include'] ?? array()),
-                    'exclude' => $this->sanitize_rule_ids($pages['exclude'] ?? array()),
-                ),
-                'post_types' => array(
-                    'include' => $this->sanitize_rule_strings($post_types['include'] ?? array()),
-                    'exclude' => $this->sanitize_rule_strings($post_types['exclude'] ?? array()),
-                ),
-                'special_pages' => $this->sanitize_special_page_targets($special_pages),
-            ),
         );
     }
 
@@ -1048,64 +600,6 @@ class CWP_Chat_Bubbles_Settings {
     }
 
     /**
-     * Sanitize a schedule timezone string.
-     *
-     * @param string $timezone Raw timezone value.
-     * @return string Sanitized timezone or empty string to use the site timezone.
-     * @since 1.0.3
-     */
-    private function sanitize_schedule_timezone($timezone) {
-        $timezone = sanitize_text_field($timezone);
-
-        if ('' === $timezone) {
-            return '';
-        }
-
-        try {
-            new DateTimeZone($timezone);
-            return $timezone;
-        } catch (Exception $exception) {
-            return '';
-        }
-    }
-
-    /**
-     * Sanitize a schedule time in HH:MM format.
-     *
-     * @param string $time Raw time value.
-     * @param string $default Default time.
-     * @return string Sanitized time string.
-     * @since 1.0.3
-     */
-    private function sanitize_schedule_time($time, $default) {
-        $time = sanitize_text_field($time);
-
-        if (1 === preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $time)) {
-            return $time;
-        }
-
-        return $default;
-    }
-
-    /**
-     * Get supported day keys for schedule settings.
-     *
-     * @return array<string, string> Day key to label map.
-     * @since 1.0.3
-     */
-    private function get_schedule_days() {
-        return array(
-            'mon' => 'Monday',
-            'tue' => 'Tuesday',
-            'wed' => 'Wednesday',
-            'thu' => 'Thursday',
-            'fri' => 'Friday',
-            'sat' => 'Saturday',
-            'sun' => 'Sunday',
-        );
-    }
-
-    /**
      * Normalize appearance settings from stored options.
      *
      * @param array $options Raw stored options.
@@ -1162,97 +656,4 @@ class CWP_Chat_Bubbles_Settings {
         );
     }
 
-    /**
-     * Get the default special-page targeting values.
-     *
-     * @return array<string, string> Special-page targeting map.
-     * @since 1.0.3
-     */
-    private function get_default_special_page_targets() {
-        return array(
-            'front_page' => 'ignore',
-            'blog_index' => 'ignore',
-            'search' => 'ignore',
-            '404' => 'ignore',
-            'archive' => 'ignore',
-        );
-    }
-
-    /**
-     * Sanitize a list of numeric IDs used by contextual targeting.
-     *
-     * @param mixed $values Raw values.
-     * @return array<int, int> Sanitized ID list.
-     * @since 1.0.3
-     */
-    private function sanitize_rule_ids($values) {
-        if (!is_array($values)) {
-            return array();
-        }
-
-        $sanitized = array();
-        foreach ($values as $value) {
-            $id = absint($value);
-            if ($id > 0 && !in_array($id, $sanitized, true)) {
-                $sanitized[] = $id;
-            }
-        }
-
-        return $sanitized;
-    }
-
-    /**
-     * Sanitize a list of string identifiers used by contextual targeting.
-     *
-     * @param mixed $values Raw values.
-     * @return array<int, string> Sanitized identifier list.
-     * @since 1.0.3
-     */
-    private function sanitize_rule_strings($values) {
-        if (!is_array($values)) {
-            return array();
-        }
-
-        $sanitized = array();
-        foreach ($values as $value) {
-            $value = strtolower(sanitize_text_field($value));
-            $value = preg_replace('/[^a-z0-9_\-]+/', '', $value);
-
-            if (!empty($value) && !in_array($value, $sanitized, true)) {
-                $sanitized[] = $value;
-            }
-        }
-
-        return $sanitized;
-    }
-
-    /**
-     * Sanitize the special-page targeting tri-state map.
-     *
-     * @param mixed $values Raw values.
-     * @return array<string, string> Sanitized special-page map.
-     * @since 1.0.3
-     */
-    private function sanitize_special_page_targets($values) {
-        $defaults = $this->get_default_special_page_targets();
-
-        if (!is_array($values)) {
-            return $defaults;
-        }
-
-        $sanitized = array();
-        foreach ($defaults as $key => $default) {
-            $value = isset($values[$key])
-                ? sanitize_text_field($values[$key])
-                : $default;
-
-            if (!in_array($value, array('ignore', 'include', 'exclude'), true)) {
-                $value = $default;
-            }
-
-            $sanitized[$key] = $value;
-        }
-
-        return $sanitized;
-    }
 }
