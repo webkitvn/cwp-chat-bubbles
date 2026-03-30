@@ -422,7 +422,7 @@ class CWP_Chat_Bubbles_Options_Page {
                                                                 type="time"
                                                                 name="cwp_chat_bubbles_options[schedule][weekly_hours][<?php echo esc_attr($day_key); ?>][open]"
                                                                 value="<?php echo esc_attr($options['schedule']['weekly_hours'][ $day_key ]['open']); ?>"
-                                                                class="regular-text"
+                                                                class="small-text"
                                                             >
                                                         </td>
                                                         <td>
@@ -430,7 +430,7 @@ class CWP_Chat_Bubbles_Options_Page {
                                                                 type="time"
                                                                 name="cwp_chat_bubbles_options[schedule][weekly_hours][<?php echo esc_attr($day_key); ?>][close]"
                                                                 value="<?php echo esc_attr($options['schedule']['weekly_hours'][ $day_key ]['close']); ?>"
-                                                                class="regular-text"
+                                                                class="small-text"
                                                             >
                                                         </td>
                                                     </tr>

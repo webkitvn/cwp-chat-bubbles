@@ -413,6 +413,13 @@
   tbody th {
     vertical-align: middle;
   }
+
+  input[type="time"] {
+    width: 100%;
+    max-width: 9.5rem;
+    min-width: 0;
+    box-sizing: border-box;
+  }
 }
 
 // Form Error State
