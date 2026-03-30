@@ -939,6 +939,41 @@ class CWP_Chat_Bubbles_Options_Page {
                                 </tr>
                                 <tr>
                                     <th scope="row">
+                                        <label for="interaction-mode"><?php esc_html_e('Interaction Mode', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                    </th>
+                                    <td>
+                                        <select id="interaction-mode" name="interaction_mode">
+                                            <?php foreach ($this->get_item_interaction_mode_labels() as $mode => $mode_label) : ?>
+                                                <option value="<?php echo esc_attr($mode); ?>" <?php echo 'auto' === $mode ? 'selected' : ''; ?>>
+                                                    <?php echo esc_html($mode_label); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                        <p class="description">
+                                            <?php esc_html_e('Auto preserves the current behavior. Direct link always bypasses the QR modal, while QR-first prefers the modal when a QR code is available.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
+                                        <label for="prefill-message"><?php esc_html_e('Prefilled Message', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                    </th>
+                                    <td>
+                                        <textarea
+                                            id="prefill-message"
+                                            name="prefill_message"
+                                            class="large-text"
+                                            rows="4"
+                                            maxlength="500"
+                                            placeholder="<?php esc_attr_e('Optional message to append on platforms that support it.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>"
+                                        ></textarea>
+                                        <p class="description">
+                                            <?php esc_html_e('Saved per item now. Frontend platforms that support message-prefill can consume this value in the next rollout.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
                                         <label for="enabled"><?php esc_html_e('Status', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
                                     </th>
                                     <td>
@@ -1122,6 +1157,20 @@ class CWP_Chat_Bubbles_Options_Page {
     }
 
     /**
+     * Get display labels for per-item interaction modes.
+     *
+     * @return array<string, string> Interaction mode labels keyed by mode.
+     * @since 1.0.3
+     */
+    private function get_item_interaction_mode_labels() {
+        return array(
+            'auto' => __('Auto (current behavior)', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+            'direct_link' => __('Direct link only', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+            'qr_modal' => __('QR-first when available', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+        );
+    }
+
+    /**
      * Render items list for admin interface
      *
      * @param array $items Items from custom table
@@ -1145,6 +1194,14 @@ class CWP_Chat_Bubbles_Options_Page {
                 <?php 
                 $platform_config = isset($supported_platforms[$item['platform']]) ? $supported_platforms[$item['platform']] : null;
                 $platform_label = $platform_config ? $platform_config['label'] : ucfirst($item['platform']);
+                $behavior = $this->items_manager->get_item_behavior_settings($item);
+                $interaction_labels = $this->get_item_interaction_mode_labels();
+                $interaction_label = isset($interaction_labels[$behavior['interaction_mode']])
+                    ? $interaction_labels[$behavior['interaction_mode']]
+                    : $interaction_labels['auto'];
+                $prefill_preview = '' !== $behavior['prefill_message']
+                    ? substr($behavior['prefill_message'], 0, 60)
+                    : '';
                 ?>
                 <div class="cwp-item" 
                      data-item-id="<?php echo esc_attr($item['id']); ?>"
@@ -1152,7 +1209,9 @@ class CWP_Chat_Bubbles_Options_Page {
                      data-label="<?php echo esc_attr($item['label']); ?>"
                      data-contact-value="<?php echo esc_attr($item['contact_value']); ?>"
                      data-enabled="<?php echo esc_attr($item['enabled']); ?>"
-                     data-qr-code-id="<?php echo esc_attr($item['qr_code_id']); ?>">
+                     data-qr-code-id="<?php echo esc_attr($item['qr_code_id']); ?>"
+                     data-interaction-mode="<?php echo esc_attr($behavior['interaction_mode']); ?>"
+                     data-prefill-message="<?php echo esc_attr($behavior['prefill_message']); ?>">
                     <span class="cwp-item-drag dashicons dashicons-move"></span>
                     <img class="cwp-item-icon" src="<?php echo esc_url($this->get_platform_icon_url($item['platform'])); ?>" alt="<?php echo esc_attr($platform_label); ?>">
                     <div class="cwp-item-info">
@@ -1161,6 +1220,21 @@ class CWP_Chat_Bubbles_Options_Page {
                         <small><?php echo esc_html($platform_label); ?>: <?php echo esc_html($item['contact_value']); ?></small>
                         <?php if (!empty($item['qr_code_id'])): ?>
                             <span class="dashicons dashicons-format-image" title="<?php esc_attr_e('Has QR Code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>"></span>
+                        <?php endif; ?>
+                        <?php if ('auto' !== $behavior['interaction_mode'] || '' !== $prefill_preview) : ?>
+                            <br>
+                            <small>
+                                <?php
+                                printf(
+                                    /* translators: %s: interaction mode label */
+                                    esc_html__('Behavior: %s', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                                    esc_html($interaction_label)
+                                );
+                                ?>
+                                <?php if ('' !== $prefill_preview) : ?>
+                                    <?php echo esc_html(' | ' . sprintf(__('Message: %s', CWP_CHAT_BUBBLES_TEXT_DOMAIN), $prefill_preview)); ?>
+                                <?php endif; ?>
+                            </small>
                         <?php endif; ?>
                     </div>
                     <div class="cwp-item-status">
@@ -1284,6 +1358,12 @@ class CWP_Chat_Bubbles_Options_Page {
         $contact_value = sanitize_text_field($_POST['contact_value']);
         $qr_code_id = !empty($_POST['qr_code_id']) ? (int) $_POST['qr_code_id'] : 0;
         $enabled = !empty($_POST['enabled']) ? 1 : 0;
+        $interaction_mode = !empty($_POST['interaction_mode'])
+            ? sanitize_text_field($_POST['interaction_mode'])
+            : 'auto';
+        $prefill_message = isset($_POST['prefill_message'])
+            ? sanitize_textarea_field($_POST['prefill_message'])
+            : '';
 
         // Enhanced validation
         if (empty($platform) || empty($label) || empty($contact_value)) {
@@ -1311,7 +1391,11 @@ class CWP_Chat_Bubbles_Options_Page {
             'label' => $label,
             'contact_value' => $contact_value,
             'qr_code_id' => $qr_code_id,
-            'enabled' => $enabled
+            'enabled' => $enabled,
+            'behavior_settings' => array(
+                'interaction_mode' => $interaction_mode,
+                'prefill_message' => $prefill_message,
+            ),
         );
 
         if ($item_id > 0) {

@@ -40,7 +40,7 @@ class CWP_Chat_Bubbles_Items_Manager {
      * @var string
      * @since 1.0.0
      */
-    private $db_version = '1.0.0';
+    private $db_version = '1.1.0';
 
     /**
      * Supported platforms configuration
@@ -192,6 +192,7 @@ class CWP_Chat_Bubbles_Items_Manager {
             label varchar(255) NOT NULL,
             contact_value varchar(255) NOT NULL,
             qr_code_id int(11) DEFAULT 0,
+            behavior_settings longtext DEFAULT NULL,
             sort_order int(11) DEFAULT 0,
             PRIMARY KEY (id),
             KEY platform (platform),
@@ -253,7 +254,7 @@ class CWP_Chat_Bubbles_Items_Manager {
             );
         }
 
-        $results = $results ? $results : array();
+        $results = $results ? array_map(array($this, 'normalize_item_record'), $results) : array();
         
         // Cache the results for 1 hour
         wp_cache_set($cache_key, $results, 'cwp_chat_bubbles', HOUR_IN_SECONDS);
@@ -284,6 +285,10 @@ class CWP_Chat_Bubbles_Items_Manager {
             $wpdb->prepare("SELECT * FROM {$this->table_name} WHERE id = %d", $id),
             ARRAY_A
         );
+
+        if (is_array($result)) {
+            $result = $this->normalize_item_record($result);
+        }
 
         // Cache the result for 1 hour (even if null)
         wp_cache_set($cache_key, $result, 'cwp_chat_bubbles', HOUR_IN_SECONDS);
@@ -333,7 +338,7 @@ class CWP_Chat_Bubbles_Items_Manager {
         $result = $wpdb->insert(
             $this->table_name,
             $sanitized_data,
-            array('%s', '%d', '%s', '%s', '%d', '%d')
+            $this->get_item_column_formats($sanitized_data)
         );
 
         if ($result) {
@@ -385,7 +390,7 @@ class CWP_Chat_Bubbles_Items_Manager {
             $this->table_name,
             $sanitized_data,
             array('id' => $id),
-            null,
+            $this->get_item_column_formats($sanitized_data),
             array('%d')
         );
 
@@ -714,6 +719,10 @@ class CWP_Chat_Bubbles_Items_Manager {
             $sanitized['qr_code_id'] = (int) $data['qr_code_id'];
         }
 
+        if (array_key_exists('behavior_settings', $data)) {
+            $sanitized['behavior_settings'] = $this->encode_item_behavior_settings($data['behavior_settings']);
+        }
+
         if (isset($data['sort_order'])) {
             $sanitized['sort_order'] = (int) $data['sort_order'];
         }
@@ -892,6 +901,69 @@ class CWP_Chat_Bubbles_Items_Manager {
         }
 
         return array();
+    }
+
+    /**
+     * Normalize a raw database item row so downstream callers always see the stable behavior payload shape.
+     *
+     * @param array<string, mixed> $item Raw item row.
+     * @return array<string, mixed> Normalized item row.
+     * @since 1.0.3
+     */
+    private function normalize_item_record($item) {
+        if (!is_array($item)) {
+            return array();
+        }
+
+        $item['behavior_settings'] = $this->get_item_behavior_settings($item);
+
+        return $item;
+    }
+
+    /**
+     * Encode per-item behavior settings for storage.
+     *
+     * Defaults are stored as NULL so existing installs keep the legacy behavior without unnecessary payload churn.
+     *
+     * @param mixed $behavior_settings Raw behavior payload.
+     * @return string|null Serialized payload or null for defaults.
+     * @since 1.0.3
+     */
+    private function encode_item_behavior_settings($behavior_settings) {
+        $normalized = $this->normalize_item_behavior_settings($behavior_settings);
+
+        if ($normalized === $this->get_default_item_behavior_settings()) {
+            return null;
+        }
+
+        return serialize($normalized);
+    }
+
+    /**
+     * Get dynamic format strings for the item insert/update payload.
+     *
+     * @param array<string, mixed> $data Sanitized item payload.
+     * @return array<int, string> Format strings in the same order as the data keys.
+     * @since 1.0.3
+     */
+    private function get_item_column_formats($data) {
+        $formats = array();
+
+        foreach (array_keys($data) as $key) {
+            switch ($key) {
+                case 'enabled':
+                case 'qr_code_id':
+                case 'sort_order':
+                    $formats[] = '%d';
+                    break;
+
+                default:
+                    $formats[] = '%s';
+                    break;
+            }
+        }
+
+        return $formats;
     }
 
     /**

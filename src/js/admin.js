@@ -385,6 +385,8 @@
         $('#platform').val($item.data('platform'));
         $('#label').val($item.data('label'));
         $('#contact-value').val($item.data('contact-value'));
+        $('#interaction-mode').val($item.data('interaction-mode') || 'auto');
+        $('#prefill-message').val($item.data('prefill-message') || '');
         $('#enabled').prop('checked', Number($item.data('enabled')) === 1);
 
         updateContactFieldForPlatform($item.data('platform'));
@@ -430,6 +432,8 @@
             label: $('#label').val(),
             contact_value: $('#contact-value').val(),
             qr_code_id: $('#qr-code-id').val(),
+            interaction_mode: $('#interaction-mode').val(),
+            prefill_message: $('#prefill-message').val(),
             enabled: $('#enabled').is(':checked') ? 1 : 0
         };
 

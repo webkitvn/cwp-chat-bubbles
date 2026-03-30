@@ -120,6 +120,7 @@ class CWP_Chat_Bubbles_Data_Service {
                 'enabled' => $item['enabled'],
                 'qr_code_id' => $item['qr_code_id'],
                 'sort_order' => $item['sort_order'],
+                'behavior' => $this->items_manager->get_item_behavior_settings($item),
                 // Pre-processed data for performance
                 'platform_url' => $this->items_manager->generate_platform_url($item['platform'], $item),
                 'platform_icon' => $this->items_manager->get_platform_icon_url($item['platform']),
@@ -160,7 +161,8 @@ class CWP_Chat_Bubbles_Data_Service {
                 'url' => $item['platform_url'],
                 'icon' => $item['platform_icon'],
                 'qr_code' => $item['qr_code_url'],
-                'has_qr' => $item['has_qr']
+                'has_qr' => $item['has_qr'],
+                'behavior' => $item['behavior'],
             );
         }
 

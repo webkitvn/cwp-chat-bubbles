@@ -432,6 +432,27 @@ class TestItemsManager extends TestCase {
     }
 
     /**
+     * Test item behavior lookup normalizes stored string payloads.
+     */
+    public function test_get_item_behavior_settings_from_stored_payload() {
+        $behavior = $this->manager->get_item_behavior_settings(
+            array(
+                'id' => 11,
+                'platform' => 'telegram',
+                'behavior_settings' => serialize(
+                    array(
+                        'interaction_mode' => 'qr_modal',
+                        'prefill_message' => 'Hello there',
+                    )
+                ),
+            )
+        );
+
+        $this->assertSame('qr_modal', $behavior['interaction_mode']);
+        $this->assertSame('Hello there', $behavior['prefill_message']);
+    }
+
+    /**
      * Test item behavior storage contract documents the selected migration strategy.
      */
     public function test_get_item_behavior_storage_contract() {

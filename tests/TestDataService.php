@@ -439,7 +439,7 @@ class TestDataService extends TestCase {
 
         $items_manager = $this->getMockBuilder(CWP_Chat_Bubbles_Items_Manager::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(array('get_all_items', 'generate_platform_url', 'get_platform_icon_url', 'get_platform_color'))
+            ->onlyMethods(array('get_all_items', 'generate_platform_url', 'get_platform_icon_url', 'get_platform_color', 'get_item_behavior_settings'))
             ->getMock();
 
         $items_manager->method('get_all_items')->willReturn(
@@ -458,6 +458,13 @@ class TestDataService extends TestCase {
         $items_manager->method('generate_platform_url')->willReturn('https://example.com/zalo');
         $items_manager->method('get_platform_icon_url')->willReturn('https://example.com/icon.svg');
         $items_manager->method('get_platform_color')->willReturn('#008BE6');
+        $items_manager->method('get_item_behavior_settings')->willReturn(
+            array(
+                'schema_version' => 1,
+                'interaction_mode' => 'direct_link',
+                'prefill_message' => 'Xin chao',
+            )
+        );
 
         $this->setDataServiceProperty('items_manager', $items_manager);
 
@@ -467,6 +474,8 @@ class TestDataService extends TestCase {
         $this->assertSame('ga4', $frontend_data['settings']['analytics']['provider']);
         $this->assertSame('support_chat', $frontend_data['settings']['analytics']['event_prefix']);
         $this->assertSame('zalo', $frontend_data['items'][0]['platform']);
+        $this->assertSame('direct_link', $frontend_data['items'][0]['behavior']['interaction_mode']);
+        $this->assertSame('Xin chao', $frontend_data['items'][0]['behavior']['prefill_message']);
     }
 
     /**
