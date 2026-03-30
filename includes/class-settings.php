@@ -99,6 +99,7 @@ class CWP_Chat_Bubbles_Settings {
             'load_on_mobile' => true,
             'device_visibility' => $this->get_default_device_visibility(),
             'behavior' => $this->get_default_behavior_settings(),
+            'schedule' => $this->get_default_schedule_settings(),
             'exclude_pages' => array()
         );
     }
@@ -189,6 +190,7 @@ class CWP_Chat_Bubbles_Settings {
         $sanitized['device_visibility'] = $this->sanitize_device_visibility($options);
         $sanitized['load_on_mobile'] = $sanitized['device_visibility']['mobile'];
         $sanitized['behavior'] = $this->sanitize_behavior_settings($options);
+        $sanitized['schedule'] = $this->sanitize_schedule_settings($options);
 
         // Sanitize exclude pages
         $sanitized['exclude_pages'] = array();
@@ -381,6 +383,32 @@ class CWP_Chat_Bubbles_Settings {
     }
 
     /**
+     * Get normalized schedule settings.
+     *
+     * @return array<string, mixed> Schedule settings map.
+     * @since 1.0.3
+     */
+    public function get_schedule_settings() {
+        return $this->get_option('schedule', $this->get_default_schedule_settings());
+    }
+
+    /**
+     * Get a single schedule setting.
+     *
+     * @param string $key Schedule key.
+     * @param mixed  $default Fallback value.
+     * @return mixed Schedule setting value.
+     * @since 1.0.3
+     */
+    public function get_schedule_setting($key, $default = null) {
+        $schedule = $this->get_schedule_settings();
+
+        return array_key_exists($key, $schedule)
+            ? $schedule[$key]
+            : $default;
+    }
+
+    /**
      * Get main icon URL
      *
      * @return string Main icon URL (custom or default)
@@ -429,6 +457,31 @@ class CWP_Chat_Bubbles_Settings {
     }
 
     /**
+     * Get the default business-hours schedule settings.
+     *
+     * @return array<string, mixed> Default schedule settings.
+     * @since 1.0.3
+     */
+    private function get_default_schedule_settings() {
+        $weekly_hours = array();
+
+        foreach ($this->get_schedule_days() as $day_key => $day_label) {
+            $weekly_hours[ $day_key ] = array(
+                'enabled' => in_array($day_key, array('mon', 'tue', 'wed', 'thu', 'fri'), true),
+                'open' => '09:00',
+                'close' => '17:00',
+            );
+        }
+
+        return array(
+            'enabled' => false,
+            'timezone' => '',
+            'closed_behavior' => 'hide',
+            'weekly_hours' => $weekly_hours,
+        );
+    }
+
+    /**
      * Normalize stored options so older installs expose the latest schema.
      *
      * @param array $options Raw stored options.
@@ -440,6 +493,7 @@ class CWP_Chat_Bubbles_Settings {
         $normalized['device_visibility'] = $this->normalize_device_visibility($options);
         $normalized['load_on_mobile'] = $normalized['device_visibility']['mobile'];
         $normalized['behavior'] = $this->normalize_behavior_settings($options);
+        $normalized['schedule'] = $this->normalize_schedule_settings($options);
 
         return $normalized;
     }
@@ -565,6 +619,140 @@ class CWP_Chat_Bubbles_Settings {
             'dismiss_for_session' => isset($options['behavior']['dismiss_for_session'])
                 ? (bool) $options['behavior']['dismiss_for_session']
                 : false,
+        );
+    }
+
+    /**
+     * Normalize schedule settings from stored options.
+     *
+     * @param array $options Raw stored options.
+     * @return array<string, mixed> Normalized schedule settings.
+     * @since 1.0.3
+     */
+    private function normalize_schedule_settings($options) {
+        $defaults = $this->get_default_schedule_settings();
+
+        if (!is_array($options) || !isset($options['schedule']) || !is_array($options['schedule'])) {
+            return $defaults;
+        }
+
+        $schedule = $options['schedule'];
+        $normalized = array(
+            'enabled' => !empty($schedule['enabled']),
+            'timezone' => $this->sanitize_schedule_timezone($schedule['timezone'] ?? ''),
+            'closed_behavior' => 'hide',
+            'weekly_hours' => array(),
+        );
+
+        foreach ($this->get_schedule_days() as $day_key => $day_label) {
+            $day_defaults = $defaults['weekly_hours'][ $day_key ];
+            $day_settings = isset($schedule['weekly_hours'][ $day_key ]) && is_array($schedule['weekly_hours'][ $day_key ])
+                ? $schedule['weekly_hours'][ $day_key ]
+                : array();
+
+            $normalized['weekly_hours'][ $day_key ] = array(
+                'enabled' => !empty($day_settings['enabled']),
+                'open' => $this->sanitize_schedule_time($day_settings['open'] ?? $day_defaults['open'], $day_defaults['open']),
+                'close' => $this->sanitize_schedule_time($day_settings['close'] ?? $day_defaults['close'], $day_defaults['close']),
+            );
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * Sanitize schedule settings from submitted options.
+     *
+     * @param array $options Raw submitted options.
+     * @return array<string, mixed> Sanitized schedule settings.
+     * @since 1.0.3
+     */
+    private function sanitize_schedule_settings($options) {
+        $defaults = $this->get_default_schedule_settings();
+
+        if (!is_array($options) || !isset($options['schedule']) || !is_array($options['schedule'])) {
+            return $defaults;
+        }
+
+        $schedule = $options['schedule'];
+        $sanitized = array(
+            'enabled' => isset($schedule['enabled']) ? (bool) $schedule['enabled'] : false,
+            'timezone' => $this->sanitize_schedule_timezone($schedule['timezone'] ?? ''),
+            'closed_behavior' => 'hide',
+            'weekly_hours' => array(),
+        );
+
+        foreach ($this->get_schedule_days() as $day_key => $day_label) {
+            $day_defaults = $defaults['weekly_hours'][ $day_key ];
+            $day_settings = isset($schedule['weekly_hours'][ $day_key ]) && is_array($schedule['weekly_hours'][ $day_key ])
+                ? $schedule['weekly_hours'][ $day_key ]
+                : array();
+
+            $sanitized['weekly_hours'][ $day_key ] = array(
+                'enabled' => isset($day_settings['enabled']) ? (bool) $day_settings['enabled'] : false,
+                'open' => $this->sanitize_schedule_time($day_settings['open'] ?? $day_defaults['open'], $day_defaults['open']),
+                'close' => $this->sanitize_schedule_time($day_settings['close'] ?? $day_defaults['close'], $day_defaults['close']),
+            );
+        }
+
+        return $sanitized;
+    }
+
+    /**
+     * Sanitize a schedule timezone string.
+     *
+     * @param string $timezone Raw timezone value.
+     * @return string Sanitized timezone or empty string to use the site timezone.
+     * @since 1.0.3
+     */
+    private function sanitize_schedule_timezone($timezone) {
+        $timezone = sanitize_text_field($timezone);
+
+        if ('' === $timezone) {
+            return '';
+        }
+
+        try {
+            new DateTimeZone($timezone);
+            return $timezone;
+        } catch (Exception $exception) {
+            return '';
+        }
+    }
+
+    /**
+     * Sanitize a schedule time in HH:MM format.
+     *
+     * @param string $time Raw time value.
+     * @param string $default Default time.
+     * @return string Sanitized time string.
+     * @since 1.0.3
+     */
+    private function sanitize_schedule_time($time, $default) {
+        $time = sanitize_text_field($time);
+
+        if (1 === preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $time)) {
+            return $time;
+        }
+
+        return $default;
+    }
+
+    /**
+     * Get supported day keys for schedule settings.
+     *
+     * @return array<string, string> Day key to label map.
+     * @since 1.0.3
+     */
+    private function get_schedule_days() {
+        return array(
+            'mon' => 'Monday',
+            'tue' => 'Tuesday',
+            'wed' => 'Wednesday',
+            'thu' => 'Thursday',
+            'fri' => 'Friday',
+            'sat' => 'Saturday',
+            'sun' => 'Sunday',
         );
     }
 }

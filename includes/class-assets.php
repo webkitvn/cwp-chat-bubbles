@@ -123,6 +123,7 @@ class CWP_Chat_Bubbles_Assets {
                     'showLabels' => $this->settings->get_option('show_labels', true),
                     'deviceVisibility' => $this->settings->get_device_visibility(),
                     'behavior' => $this->settings->get_behavior_settings(),
+                    'schedule' => $this->settings->get_schedule_settings(),
                 )
             ));
         }

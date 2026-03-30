@@ -103,6 +103,7 @@ class CWP_Chat_Bubbles_Data_Service {
                 'show_labels' => $this->settings->should_show_labels(),
                 'device_visibility' => $this->settings->get_device_visibility(),
                 'behavior' => $this->settings->get_behavior_settings(),
+                'schedule' => $this->settings->get_schedule_settings(),
             ),
             'support_icon' => $this->settings->get_main_icon_url(),
             'cancel_icon' => CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/cancel.svg'
@@ -191,6 +192,10 @@ class CWP_Chat_Bubbles_Data_Service {
             return false;
         }
 
+        if (!$this->is_available_for_schedule()) {
+            return false;
+        }
+
         // Check excluded pages
         $excluded_pages = $this->settings->get_option('exclude_pages', array());
         if (!empty($excluded_pages) && is_page()) {
@@ -237,6 +242,7 @@ class CWP_Chat_Bubbles_Data_Service {
             'custom_main_icon' => $this->settings->get_option('custom_main_icon', 0),
             'device_visibility' => $this->settings->get_device_visibility(),
             'behavior' => $this->settings->get_behavior_settings(),
+            'schedule' => $this->settings->get_schedule_settings(),
         );
         
         return substr(md5(serialize($relevant_settings)), 0, 8);
@@ -256,5 +262,136 @@ class CWP_Chat_Bubbles_Data_Service {
         }
 
         return false;
+    }
+
+    /**
+     * Check whether the widget is currently available according to the business-hours schedule.
+     *
+     * @param DateTimeImmutable|null $current_time Optional override time for deterministic checks.
+     * @return bool Whether the widget should be considered open right now.
+     * @since 1.0.3
+     */
+    public function is_available_for_schedule($current_time = null) {
+        $schedule = $this->settings->get_schedule_settings();
+
+        if (empty($schedule['enabled'])) {
+            return true;
+        }
+
+        if (!isset($schedule['closed_behavior']) || 'hide' !== $schedule['closed_behavior']) {
+            return true;
+        }
+
+        $timezone = $this->resolve_schedule_timezone($schedule);
+        $current = $current_time instanceof DateTimeImmutable
+            ? $current_time->setTimezone($timezone)
+            : new DateTimeImmutable('now', $timezone);
+
+        $day_key = strtolower($current->format('D'));
+        if (!isset($schedule['weekly_hours'][ $day_key ]) || !is_array($schedule['weekly_hours'][ $day_key ])) {
+            return false;
+        }
+
+        $day_schedule = $schedule['weekly_hours'][ $day_key ];
+        $current_minutes = ((int) $current->format('H') * 60) + (int) $current->format('i');
+
+        if ($this->matches_schedule_window($day_schedule, $current_minutes, false)) {
+            return true;
+        }
+
+        $previous_day_key = $this->get_previous_day_key($day_key);
+        if (isset($schedule['weekly_hours'][ $previous_day_key ])) {
+            return $this->matches_schedule_window($schedule['weekly_hours'][ $previous_day_key ], $current_minutes, true);
+        }
+
+        return false;
+    }
+
+    /**
+     * Resolve the timezone used for business-hours evaluation.
+     *
+     * @param array $schedule Normalized schedule settings.
+     * @return DateTimeZone Timezone object.
+     * @since 1.0.3
+     */
+    private function resolve_schedule_timezone($schedule) {
+        $timezone_string = !empty($schedule['timezone'])
+            ? $schedule['timezone']
+            : get_option('timezone_string', 'UTC');
+
+        if (empty($timezone_string)) {
+            $timezone_string = 'UTC';
+        }
+
+        try {
+            return new DateTimeZone($timezone_string);
+        } catch (Exception $exception) {
+            return new DateTimeZone('UTC');
+        }
+    }
+
+    /**
+     * Convert an HH:MM string into minutes after midnight.
+     *
+     * @param string $time Time string.
+     * @return int Minutes after midnight.
+     * @since 1.0.3
+     */
+    private function time_to_minutes($time) {
+        $parts = explode(':', (string) $time);
+        $hours = isset($parts[0]) ? (int) $parts[0] : 0;
+        $minutes = isset($parts[1]) ? (int) $parts[1] : 0;
+
+        return ($hours * 60) + $minutes;
+    }
+
+    /**
+     * Check whether the current minutes value matches a schedule window.
+     *
+     * @param array $day_schedule Day schedule settings.
+     * @param int   $current_minutes Current minutes after midnight.
+     * @param bool  $after_midnight Whether this check is evaluating a previous day's overnight spill.
+     * @return bool Whether the schedule window matches.
+     * @since 1.0.3
+     */
+    private function matches_schedule_window($day_schedule, $current_minutes, $after_midnight) {
+        if (empty($day_schedule['enabled'])) {
+            return false;
+        }
+
+        $open_minutes = $this->time_to_minutes($day_schedule['open'] ?? '00:00');
+        $close_minutes = $this->time_to_minutes($day_schedule['close'] ?? '00:00');
+
+        if ($open_minutes === $close_minutes) {
+            return false;
+        }
+
+        if ($open_minutes < $close_minutes) {
+            return !$after_midnight && $current_minutes >= $open_minutes && $current_minutes < $close_minutes;
+        }
+
+        if ($after_midnight) {
+            return $current_minutes < $close_minutes;
+        }
+
+        return $current_minutes >= $open_minutes;
+    }
+
+    /**
+     * Get the previous weekday key used by schedule settings.
+     *
+     * @param string $day_key Current weekday key.
+     * @return string Previous weekday key.
+     * @since 1.0.3
+     */
+    private function get_previous_day_key($day_key) {
+        $days = array('mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun');
+        $index = array_search($day_key, $days, true);
+
+        if (false === $index) {
+            return 'sun';
+        }
+
+        return $days[($index + 6) % 7];
     }
 }

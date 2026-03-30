@@ -41,6 +41,7 @@ class TestSettings extends TestCase {
         $this->assertArrayHasKey('load_on_mobile', $defaults);
         $this->assertArrayHasKey('device_visibility', $defaults);
         $this->assertArrayHasKey('behavior', $defaults);
+        $this->assertArrayHasKey('schedule', $defaults);
         $this->assertArrayHasKey('exclude_pages', $defaults);
         $this->assertArrayHasKey('offset_x', $defaults);
         $this->assertArrayHasKey('offset_y', $defaults);
@@ -77,6 +78,13 @@ class TestSettings extends TestCase {
             ),
             $defaults['behavior']
         );
+        $this->assertFalse($defaults['schedule']['enabled']);
+        $this->assertSame('', $defaults['schedule']['timezone']);
+        $this->assertSame('hide', $defaults['schedule']['closed_behavior']);
+        $this->assertTrue($defaults['schedule']['weekly_hours']['mon']['enabled']);
+        $this->assertFalse($defaults['schedule']['weekly_hours']['sun']['enabled']);
+        $this->assertSame('09:00', $defaults['schedule']['weekly_hours']['mon']['open']);
+        $this->assertSame('17:00', $defaults['schedule']['weekly_hours']['mon']['close']);
         $this->assertEquals('', $defaults['custom_css']);
         $this->assertEquals(array(), $defaults['exclude_pages']);
         $this->assertEquals(0, $defaults['offset_x']);
@@ -106,6 +114,23 @@ class TestSettings extends TestCase {
                 'display_delay' => 5,
                 'scroll_trigger_percent' => 25,
                 'dismiss_for_session' => true,
+            ),
+            'schedule' => array(
+                'enabled' => true,
+                'timezone' => 'Asia/Ho_Chi_Minh',
+                'closed_behavior' => 'hide',
+                'weekly_hours' => array(
+                    'mon' => array(
+                        'enabled' => true,
+                        'open' => '08:30',
+                        'close' => '18:00',
+                    ),
+                    'sun' => array(
+                        'enabled' => false,
+                        'open' => '10:00',
+                        'close' => '12:00',
+                    ),
+                ),
             ),
             'custom_css' => '.test { color: red; }',
             'exclude_pages' => array(1, 2, 3),
@@ -140,6 +165,12 @@ class TestSettings extends TestCase {
             ),
             $sanitized['behavior']
         );
+        $this->assertTrue($sanitized['schedule']['enabled']);
+        $this->assertSame('Asia/Ho_Chi_Minh', $sanitized['schedule']['timezone']);
+        $this->assertSame('hide', $sanitized['schedule']['closed_behavior']);
+        $this->assertSame('08:30', $sanitized['schedule']['weekly_hours']['mon']['open']);
+        $this->assertSame('18:00', $sanitized['schedule']['weekly_hours']['mon']['close']);
+        $this->assertFalse($sanitized['schedule']['weekly_hours']['sun']['enabled']);
         $this->assertEquals('.test { color: red; }', $sanitized['custom_css']);
         $this->assertEquals(array(1, 2, 3), $sanitized['exclude_pages']);
         $this->assertEquals(20, $sanitized['offset_x']);
@@ -268,6 +299,9 @@ class TestSettings extends TestCase {
             ),
             $sanitized['behavior']
         );
+        $this->assertFalse($sanitized['schedule']['enabled']);
+        $this->assertSame('', $sanitized['schedule']['timezone']);
+        $this->assertSame('hide', $sanitized['schedule']['closed_behavior']);
     }
 
     /**
@@ -533,5 +567,63 @@ class TestSettings extends TestCase {
         $this->assertSame(7, $this->settings->get_behavior_setting('display_delay'));
         $this->assertTrue($this->settings->get_behavior_setting('dismiss_for_session'));
         $this->assertNull($this->settings->get_behavior_setting('missing_key'));
+    }
+
+    /**
+     * Test sanitize_options validates schedule settings and falls back safely.
+     */
+    public function test_sanitize_options_schedule_settings() {
+        $input = array(
+            'schedule' => array(
+                'enabled' => true,
+                'timezone' => 'Invalid/Timezone',
+                'closed_behavior' => 'show-message',
+                'weekly_hours' => array(
+                    'mon' => array(
+                        'enabled' => true,
+                        'open' => '25:00',
+                        'close' => '18:70',
+                    ),
+                ),
+            ),
+        );
+
+        $sanitized = $this->settings->sanitize_options($input);
+
+        $this->assertTrue($sanitized['schedule']['enabled']);
+        $this->assertSame('', $sanitized['schedule']['timezone']);
+        $this->assertSame('hide', $sanitized['schedule']['closed_behavior']);
+        $this->assertSame('09:00', $sanitized['schedule']['weekly_hours']['mon']['open']);
+        $this->assertSame('17:00', $sanitized['schedule']['weekly_hours']['mon']['close']);
+    }
+
+    /**
+     * Test schedule helpers expose normalized schedule values.
+     */
+    public function test_schedule_helpers() {
+        global $mock_options;
+
+        $mock_options['cwp_chat_bubbles_options'] = array(
+            'schedule' => array(
+                'enabled' => true,
+                'timezone' => 'UTC',
+                'closed_behavior' => 'hide',
+                'weekly_hours' => array(
+                    'mon' => array(
+                        'enabled' => true,
+                        'open' => '07:00',
+                        'close' => '19:00',
+                    ),
+                ),
+            ),
+        );
+
+        $schedule = $this->settings->get_schedule_settings();
+
+        $this->assertTrue($schedule['enabled']);
+        $this->assertSame('UTC', $schedule['timezone']);
+        $this->assertSame('hide', $this->settings->get_schedule_setting('closed_behavior'));
+        $this->assertSame('07:00', $schedule['weekly_hours']['mon']['open']);
+        $this->assertNull($this->settings->get_schedule_setting('missing_key'));
     }
 }

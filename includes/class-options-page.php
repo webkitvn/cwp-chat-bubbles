@@ -370,6 +370,89 @@ class CWP_Chat_Bubbles_Options_Page {
                                 </td>
                             </tr>
                             <tr>
+                                <th scope="row"><?php esc_html_e('Business Hours', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <fieldset>
+                                        <legend class="screen-reader-text"><?php esc_html_e('Business hours schedule settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></legend>
+                                        <label style="display: block; margin-bottom: 12px;">
+                                            <input type="checkbox" name="cwp_chat_bubbles_options[schedule][enabled]" value="1" <?php checked(!empty($options['schedule']['enabled'])); ?>>
+                                            <?php esc_html_e('Only show the widget during scheduled working hours', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </label>
+                                        <div style="display: flex; gap: 24px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 12px;">
+                                            <p style="margin: 0;">
+                                                <label for="cwp-chat-bubbles-schedule-timezone" style="display: block; font-weight: 600; margin-bottom: 6px;">
+                                                    <?php esc_html_e('Schedule timezone', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                                </label>
+                                                <input
+                                                    id="cwp-chat-bubbles-schedule-timezone"
+                                                    type="text"
+                                                    name="cwp_chat_bubbles_options[schedule][timezone]"
+                                                    value="<?php echo esc_attr($options['schedule']['timezone']); ?>"
+                                                    class="regular-text"
+                                                    placeholder="<?php echo esc_attr($this->get_site_timezone_string()); ?>"
+                                                >
+                                            </p>
+                                            <p style="margin: 0;">
+                                                <label for="cwp-chat-bubbles-closed-behavior" style="display: block; font-weight: 600; margin-bottom: 6px;">
+                                                    <?php esc_html_e('Outside business hours', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                                </label>
+                                                <select id="cwp-chat-bubbles-closed-behavior" name="cwp_chat_bubbles_options[schedule][closed_behavior]">
+                                                    <option value="hide" <?php selected($options['schedule']['closed_behavior'], 'hide'); ?>><?php esc_html_e('Hide the widget', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                                </select>
+                                            </p>
+                                        </div>
+                                        <table class="widefat striped" style="max-width: 720px;">
+                                            <thead>
+                                                <tr>
+                                                    <th><?php esc_html_e('Day', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                                    <th><?php esc_html_e('Enabled', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                                    <th><?php esc_html_e('Open', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                                    <th><?php esc_html_e('Close', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($this->get_schedule_day_labels() as $day_key => $day_label) : ?>
+                                                    <tr>
+                                                        <td><strong><?php echo esc_html($day_label); ?></strong></td>
+                                                        <td>
+                                                            <input
+                                                                type="checkbox"
+                                                                name="cwp_chat_bubbles_options[schedule][weekly_hours][<?php echo esc_attr($day_key); ?>][enabled]"
+                                                                value="1"
+                                                                <?php checked(!empty($options['schedule']['weekly_hours'][ $day_key ]['enabled'])); ?>
+                                                            >
+                                                        </td>
+                                                        <td>
+                                                            <input
+                                                                type="time"
+                                                                name="cwp_chat_bubbles_options[schedule][weekly_hours][<?php echo esc_attr($day_key); ?>][open]"
+                                                                value="<?php echo esc_attr($options['schedule']['weekly_hours'][ $day_key ]['open']); ?>"
+                                                            >
+                                                        </td>
+                                                        <td>
+                                                            <input
+                                                                type="time"
+                                                                name="cwp_chat_bubbles_options[schedule][weekly_hours][<?php echo esc_attr($day_key); ?>][close]"
+                                                                value="<?php echo esc_attr($options['schedule']['weekly_hours'][ $day_key ]['close']); ?>"
+                                                            >
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    </fieldset>
+                                    <p class="description">
+                                        <?php
+                                        printf(
+                                            /* translators: %s: timezone string */
+                                            esc_html__('Leave the timezone blank to use the site timezone (%s). When the current time falls outside the enabled windows, this first version hides the widget entirely.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                                            esc_html($this->get_site_timezone_string())
+                                        );
+                                        ?>
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
                                 <th scope="row"><?php esc_html_e('Device Visibility', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
                                     <fieldset>
@@ -609,6 +692,36 @@ class CWP_Chat_Bubbles_Options_Page {
                 'sort_order'  => 'ASC',
             )
         );
+    }
+
+    /**
+     * Get weekday labels for the schedule table.
+     *
+     * @return array<string, string> Day labels keyed by day slug.
+     * @since 1.0.3
+     */
+    private function get_schedule_day_labels() {
+        return array(
+            'mon' => __('Monday', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+            'tue' => __('Tuesday', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+            'wed' => __('Wednesday', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+            'thu' => __('Thursday', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+            'fri' => __('Friday', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+            'sat' => __('Saturday', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+            'sun' => __('Sunday', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+        );
+    }
+
+    /**
+     * Get the site timezone string used as the schedule fallback.
+     *
+     * @return string Timezone string.
+     * @since 1.0.3
+     */
+    private function get_site_timezone_string() {
+        $timezone = get_option('timezone_string', '');
+
+        return '' !== $timezone ? $timezone : 'UTC';
     }
 
     /**

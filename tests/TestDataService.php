@@ -95,4 +95,114 @@ class TestDataService extends TestCase {
 
         $this->assertTrue($this->data_service->should_load_on_current_page());
     }
+
+    /**
+     * Test schedule availability returns true when schedule logic is disabled.
+     */
+    public function test_schedule_allows_loading_when_disabled() {
+        global $mock_options;
+
+        $mock_options['cwp_chat_bubbles_options'] = array(
+            'schedule' => array(
+                'enabled' => false,
+            ),
+        );
+
+        $this->assertTrue(
+            $this->data_service->is_available_for_schedule(
+                new DateTimeImmutable('2026-03-30 12:00:00', new DateTimeZone('UTC'))
+            )
+        );
+    }
+
+    /**
+     * Test schedule availability is timezone-aware and open during configured hours.
+     */
+    public function test_schedule_allows_loading_during_open_hours() {
+        global $mock_options;
+
+        $mock_options['cwp_chat_bubbles_options'] = array(
+            'schedule' => array(
+                'enabled' => true,
+                'timezone' => 'Asia/Ho_Chi_Minh',
+                'closed_behavior' => 'hide',
+                'weekly_hours' => array(
+                    'mon' => array(
+                        'enabled' => true,
+                        'open' => '09:00',
+                        'close' => '17:00',
+                    ),
+                ),
+            ),
+        );
+
+        $this->assertTrue(
+            $this->data_service->is_available_for_schedule(
+                new DateTimeImmutable('2026-03-30 10:00:00', new DateTimeZone('Asia/Ho_Chi_Minh'))
+            )
+        );
+    }
+
+    /**
+     * Test schedule availability hides the widget outside configured hours.
+     */
+    public function test_schedule_blocks_loading_outside_business_hours() {
+        global $mock_options;
+
+        $mock_options['cwp_chat_bubbles_options'] = array(
+            'enabled' => true,
+            'auto_load' => true,
+            'schedule' => array(
+                'enabled' => true,
+                'timezone' => 'UTC',
+                'closed_behavior' => 'hide',
+                'weekly_hours' => array(
+                    'mon' => array(
+                        'enabled' => true,
+                        'open' => '09:00',
+                        'close' => '17:00',
+                    ),
+                ),
+            ),
+        );
+
+        $this->assertFalse(
+            $this->data_service->is_available_for_schedule(
+                new DateTimeImmutable('2026-03-30 18:00:00', new DateTimeZone('UTC'))
+            )
+        );
+    }
+
+    /**
+     * Test overnight schedule windows remain available across midnight.
+     */
+    public function test_schedule_supports_overnight_hours() {
+        global $mock_options;
+
+        $mock_options['cwp_chat_bubbles_options'] = array(
+            'schedule' => array(
+                'enabled' => true,
+                'timezone' => 'UTC',
+                'closed_behavior' => 'hide',
+                'weekly_hours' => array(
+                    'mon' => array(
+                        'enabled' => true,
+                        'open' => '22:00',
+                        'close' => '02:00',
+                    ),
+                ),
+            ),
+        );
+
+        $this->assertTrue(
+            $this->data_service->is_available_for_schedule(
+                new DateTimeImmutable('2026-03-30 23:30:00', new DateTimeZone('UTC'))
+            )
+        );
+        $this->assertTrue(
+            $this->data_service->is_available_for_schedule(
+                new DateTimeImmutable('2026-03-31 01:00:00', new DateTimeZone('UTC'))
+            )
+        );
+    }
 }
