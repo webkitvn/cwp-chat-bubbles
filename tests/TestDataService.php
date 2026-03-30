@@ -52,6 +52,32 @@ class TestDataService extends TestCase {
         $reflection_property->setValue($this->data_service, $value);
     }
 
+    private function setPluginOptions(array $options) {
+        global $mock_options;
+
+        $mock_options['cwp_chat_bubbles_options'] = array_replace_recursive(
+            array(
+                'enabled' => true,
+                'auto_load' => true,
+            ),
+            $options
+        );
+    }
+
+    private function seedRequestContext(array $context = array()) {
+        global $mock_is_page, $mock_current_page_id, $mock_post_type, $mock_is_front_page,
+            $mock_is_home, $mock_is_search, $mock_is_404, $mock_is_archive;
+
+        $mock_is_page = !empty($context['is_page']);
+        $mock_current_page_id = isset($context['page_id']) ? (int) $context['page_id'] : 0;
+        $mock_post_type = isset($context['post_type']) ? (string) $context['post_type'] : '';
+        $mock_is_front_page = !empty($context['front_page']);
+        $mock_is_home = !empty($context['blog_index']);
+        $mock_is_search = !empty($context['search']);
+        $mock_is_404 = !empty($context['404']);
+        $mock_is_archive = !empty($context['archive']);
+    }
+
     /**
      * Test should_load_on_current_page returns false when every device visibility flag is disabled.
      */
@@ -247,6 +273,152 @@ class TestDataService extends TestCase {
         $mock_is_archive = true;
 
         $this->assertFalse($this->data_service->should_load_on_current_page());
+    }
+
+    /**
+     * Data provider for contextual targeting precedence and matching rules.
+     *
+     * @return array<string, array{0: array, 1: array, 2: bool}>
+     */
+    public static function contextual_targeting_matrix_provider() {
+        return array(
+            'no include buckets means targeting layer allows' => array(
+                array(
+                    'targeting' => array(
+                        'operator' => 'all',
+                        'rules' => array(
+                            'pages' => array(
+                                'include' => array(),
+                                'exclude' => array(),
+                            ),
+                        ),
+                    ),
+                ),
+                array(
+                    'is_page' => true,
+                    'page_id' => 15,
+                    'post_type' => 'page',
+                ),
+                true,
+            ),
+            'matching page include allows when operator is all' => array(
+                array(
+                    'targeting' => array(
+                        'operator' => 'all',
+                        'rules' => array(
+                            'pages' => array(
+                                'include' => array(15),
+                                'exclude' => array(),
+                            ),
+                        ),
+                    ),
+                ),
+                array(
+                    'is_page' => true,
+                    'page_id' => 15,
+                    'post_type' => 'page',
+                ),
+                true,
+            ),
+            'any operator allows matching post type even when page include misses' => array(
+                array(
+                    'targeting' => array(
+                        'operator' => 'any',
+                        'rules' => array(
+                            'pages' => array(
+                                'include' => array(91),
+                                'exclude' => array(),
+                            ),
+                            'post_types' => array(
+                                'include' => array('product'),
+                                'exclude' => array(),
+                            ),
+                        ),
+                    ),
+                ),
+                array(
+                    'is_page' => true,
+                    'page_id' => 15,
+                    'post_type' => 'product',
+                ),
+                true,
+            ),
+            'all operator blocks when one include bucket misses' => array(
+                array(
+                    'targeting' => array(
+                        'operator' => 'all',
+                        'rules' => array(
+                            'pages' => array(
+                                'include' => array(15),
+                                'exclude' => array(),
+                            ),
+                            'post_types' => array(
+                                'include' => array('product'),
+                                'exclude' => array(),
+                            ),
+                        ),
+                    ),
+                ),
+                array(
+                    'is_page' => true,
+                    'page_id' => 15,
+                    'post_type' => 'page',
+                ),
+                false,
+            ),
+            'special page exclude still wins over general allow state' => array(
+                array(
+                    'targeting' => array(
+                        'operator' => 'any',
+                        'rules' => array(
+                            'special_pages' => array(
+                                'front_page' => 'ignore',
+                                'blog_index' => 'ignore',
+                                'search' => 'ignore',
+                                '404' => 'ignore',
+                                'archive' => 'exclude',
+                            ),
+                        ),
+                    ),
+                ),
+                array(
+                    'archive' => true,
+                ),
+                false,
+            ),
+            'special page include can satisfy all when it is the only populated include bucket' => array(
+                array(
+                    'targeting' => array(
+                        'operator' => 'all',
+                        'rules' => array(
+                            'special_pages' => array(
+                                'front_page' => 'ignore',
+                                'blog_index' => 'ignore',
+                                'search' => 'include',
+                                '404' => 'ignore',
+                                'archive' => 'ignore',
+                            ),
+                        ),
+                    ),
+                ),
+                array(
+                    'search' => true,
+                ),
+                true,
+            ),
+        );
+    }
+
+    /**
+     * Test contextual targeting matrix in a table-driven form that doubles as executable documentation.
+     *
+     * @dataProvider contextual_targeting_matrix_provider
+     */
+    public function test_contextual_targeting_matrix(array $options, array $request_context, $expected) {
+        $this->setPluginOptions($options);
+        $this->seedRequestContext($request_context);
+
+        $this->assertSame($expected, $this->data_service->should_load_on_current_page());
     }
 
     /**
