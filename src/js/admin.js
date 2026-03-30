@@ -67,8 +67,8 @@
             e.preventDefault();
             activateTab('#chat-items');
             resetModalForm();
-            $('#modal-title').text('Add New Item');
-            openItemModal('Add New Item');
+            $('#modal-title').text('Add Chat Option');
+            openItemModal('Add Chat Option');
         });
 
         $('#cancel-item').on('click', function(e) {
@@ -158,7 +158,7 @@
             }
 
             mediaUploader = wp.media({
-                title: 'Select QR Code Image',
+                title: 'Choose a QR code image',
                 button: {
                     text: 'Use this image'
                 },
@@ -187,7 +187,7 @@
             e.preventDefault();
 
             const mainIconUploader = wp.media({
-                title: 'Select Custom Main Icon',
+                title: 'Choose a main button icon',
                 button: {
                     text: 'Use this icon'
                 },
@@ -231,9 +231,9 @@
             'background-color': mainButtonColor,
             'margin-top': '10px'
         });
-        $preview.html(`<img src="${imageUrl}" alt="Custom main icon preview" style="width: 80%; height: auto;">`);
+        $preview.html(`<img src="${imageUrl}" alt="Main button icon preview" style="width: 80%; height: auto;">`);
 
-        $('#upload-main-icon').text('Change Custom Icon');
+        $('#upload-main-icon').text('Change Icon');
         $('#remove-main-icon').show();
     }
 
@@ -253,7 +253,7 @@
             'margin-top': '10px'
         });
 
-        $('#upload-main-icon').text('Upload Custom Icon');
+        $('#upload-main-icon').text('Upload Icon');
         $('#remove-main-icon').hide();
     }
 
@@ -265,7 +265,7 @@
             if (qrCodeId && qrCodeId > 0) {
                 const $info = $item.find('.cwp-item-info');
                 if (!$info.find('.dashicons-format-image').length) {
-                    $info.append('<br><span class="dashicons dashicons-format-image" title="Has QR Code"></span>');
+                    $info.append('<br><span class="dashicons dashicons-format-image" title="QR code available"></span>');
                 }
             }
         });
@@ -279,7 +279,7 @@
 
         $(document).on('click', '.delete-item', function() {
             const itemId = $(this).data('item-id');
-            if (confirm('Are you sure you want to delete this item?')) {
+            if (confirm('Delete this chat option? People will no longer see it in the chat bubble.')) {
                 deleteItem(itemId);
             }
         });
@@ -291,9 +291,9 @@
             const $contactLabel = $('#contact-label');
             const $contactDescription = $('#contact-description');
 
-            $contactLabel.text('Contact Value');
-            $contactField.attr('placeholder', 'Enter contact information');
-            $contactDescription.text('Select a platform to see specific instructions.');
+            $contactLabel.text('Contact Details');
+            $contactField.attr('placeholder', 'Add a phone number, username, or link');
+            $contactDescription.text('Choose a chat app to see what to enter here.');
             $contactField.attr('pattern', '');
             return;
         }
@@ -303,21 +303,26 @@
         const $contactLabel = $('#contact-label');
         const $contactDescription = $('#contact-description');
 
-        $contactLabel.text(config.label + ' ' + config.contact_field.charAt(0).toUpperCase() + config.contact_field.slice(1));
         $contactField.attr('placeholder', config.placeholder);
 
+        let fieldLabel = 'Contact Details';
         let description = '';
         switch (config.contact_field) {
             case 'number':
-                description = 'Enter the phone number or ID for this platform.';
+                fieldLabel = 'Phone Number';
+                description = 'Add the phone number people should use to contact you here.';
                 break;
             case 'username':
-                description = 'Enter the username (without @ symbol).';
+                fieldLabel = 'Username';
+                description = 'Add the username people should use. Leave out the @ symbol.';
                 break;
             case 'id':
-                description = 'Enter the unique ID for this platform.';
+                fieldLabel = 'ID or Link';
+                description = 'Add the ID or link people should use to reach you.';
                 break;
         }
+
+        $contactLabel.text(`${config.label} ${fieldLabel}`);
         $contactDescription.text(description);
 
         $contactField.attr('pattern', config.pattern ? config.pattern.slice(1, -1) : '');
@@ -340,35 +345,35 @@
         const isValid = regex.test(contactValue);
 
         if (!isValid) {
-            let errorMessage = 'Invalid format for this platform.';
+            let errorMessage = 'That does not look right for this chat app.';
 
             switch (platform) {
                 case 'phone':
-                    errorMessage = 'Please enter a valid phone number (e.g., +1234567890 or 0123456789)';
+                    errorMessage = 'Enter a valid phone number, like +1234567890 or 0123456789.';
                     break;
                 case 'zalo':
-                    errorMessage = 'Please enter a valid Zalo phone number (9-11 digits, e.g., 0123456789)';
+                    errorMessage = 'Enter a valid Zalo phone number with 9 to 11 digits, like 0123456789.';
                     break;
                 case 'zalo_oa':
-                    errorMessage = 'Please enter a valid Zalo OA ID or full OA URL.';
+                    errorMessage = 'Enter a valid Zalo OA ID or the full OA link.';
                     break;
                 case 'whatsapp':
-                    errorMessage = 'Please enter a valid WhatsApp number with country code (e.g., 1234567890)';
+                    errorMessage = 'Enter a valid WhatsApp number with the country code, like 1234567890.';
                     break;
                 case 'viber':
-                    errorMessage = 'Please enter a valid Viber phone number.';
+                    errorMessage = 'Enter a valid Viber phone number.';
                     break;
                 case 'telegram':
-                    errorMessage = 'Please enter a valid Telegram username starting with a letter.';
+                    errorMessage = 'Enter a valid Telegram username that starts with a letter.';
                     break;
                 case 'messenger':
-                    errorMessage = 'Please enter a valid Facebook Messenger username.';
+                    errorMessage = 'Enter a valid Facebook Messenger username.';
                     break;
                 case 'line':
-                    errorMessage = 'Please enter a valid Line ID.';
+                    errorMessage = 'Enter a valid Line ID.';
                     break;
                 case 'kakaotalk':
-                    errorMessage = 'Please enter a valid KakaoTalk channel ID.';
+                    errorMessage = 'Enter a valid KakaoTalk channel ID.';
                     break;
             }
 
@@ -384,12 +389,12 @@
         const label = $('#label').val().trim();
 
         if (label.length < 2) {
-            showFieldError('label', 'Label must be at least 2 characters long');
+            showFieldError('label', 'Enter a name with at least 2 characters so people know what this option is for.');
             return false;
         }
 
         if (label.length > 50) {
-            showFieldError('label', 'Label must be 50 characters or fewer');
+            showFieldError('label', 'Keep the name under 50 characters.');
             return false;
         }
 
@@ -420,7 +425,7 @@
             return;
         }
 
-        $('#modal-title').text('Edit Item');
+        $('#modal-title').text('Edit Chat Option');
         $('#item-id').val(itemId);
         $('#platform').val($item.data('platform'));
         $('#label').val($item.data('label'));
@@ -446,7 +451,7 @@
             clearQRCodePreview();
         }
 
-        openItemModal('Edit Item');
+        openItemModal('Edit Chat Option');
     }
 
     function deleteItem(itemId) {
@@ -456,7 +461,7 @@
             if (response.success) {
                 refreshItemsList(response.data.items_html);
             } else {
-                alert(response.data || 'Failed to delete item.');
+                alert(response.data || 'We could not delete this chat option. Try again.');
             }
         });
     }
@@ -487,11 +492,11 @@
                     resetModalForm();
                     closeItemModal();
                 } else {
-                    alert(response.data || 'Failed to save item.');
+                    alert(response.data || 'We could not save this chat option. Check your details and try again.');
                 }
             })
             .finally(() => {
-                $saveButton.prop('disabled', false).text('Save Item');
+                $saveButton.prop('disabled', false).text('Save Chat Option');
             });
     }
 
@@ -499,7 +504,7 @@
         let isValid = true;
 
         if (!$('#platform').val()) {
-            showFieldError('platform', 'Please select a platform');
+            showFieldError('platform', 'Choose a chat app.');
             isValid = false;
         } else {
             removeFieldError('platform');
@@ -536,7 +541,7 @@
             ordered_ids: orderedIds
         }).then((response) => {
             if (!response.success) {
-                alert(response.data || 'Failed to save item order.');
+                alert(response.data || 'We could not save the new order. Try again.');
             }
         });
     }
@@ -570,7 +575,7 @@
                 ...data
             }
         }).catch((xhr) => {
-            const message = xhr?.responseJSON?.data || xhr?.responseText || 'Request failed.';
+            const message = xhr?.responseJSON?.data || xhr?.responseText || 'We could not complete that request. Try again.';
             return {
                 success: false,
                 data: message
