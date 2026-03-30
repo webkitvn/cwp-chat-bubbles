@@ -244,9 +244,20 @@ class CWP_Chat_Bubbles_Assets {
                 #chat-bubbles .chat-icon::before {
                     animation: none !important;
                 }
+                #chat-bubbles .chat-icon,
+                #chat-bubbles .chat-item,
+                #chat-bubbles .bubble-modal,
+                #chat-bubbles .bubble-modal-close,
+                #chat-bubbles .bubble-modal .btn {
+                    transition: none !important;
+                }
                 #chat-bubbles .item-group,
                 #chat-bubbles .bubble-modal {
                     transition: none !important;
+                }
+                #chat-bubbles .bubble-modal,
+                #chat-bubbles.active .chat-icon {
+                    transform: none !important;
                 }
             ";
         }

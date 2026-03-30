@@ -27,45 +27,79 @@ if (empty($items)) {
 
 <div id="chat-bubbles" class="cwp-chat-bubbles" data-position="<?php echo esc_attr($settings['position']); ?>">
     <!-- Main Chat Button -->
-    <div class="chat-icon chat-btn-toggle"
-        style="background-color: <?php echo esc_attr($settings['main_button_color']); ?>">
+    <button
+        type="button"
+        class="chat-icon chat-btn-toggle"
+        style="background-color: <?php echo esc_attr($settings['main_button_color']); ?>"
+        aria-expanded="false"
+        aria-controls="chat-bubbles-panel"
+        aria-label="<?php esc_attr_e('Open chat options', 'cwp-chat-bubbles'); ?>"
+        data-label-open="<?php esc_attr_e('Open chat options', 'cwp-chat-bubbles'); ?>"
+        data-label-close="<?php esc_attr_e('Close chat options', 'cwp-chat-bubbles'); ?>"
+    >
         <img src="<?php echo esc_url($support_icon); ?>"
             alt="<?php esc_attr_e('Support', 'cwp-chat-bubbles'); ?>"
             class="chat-icon-open">
         <img src="<?php echo esc_url($cancel_icon); ?>"
             alt="<?php esc_attr_e('Close', 'cwp-chat-bubbles'); ?>"
             class="chat-icon-close">
-    </div>
+    </button>
 
     <!-- Platform Items Group -->
-    <div class="item-group <?php echo !$settings['show_labels'] ? 'no-labels' : ''; ?>">
+    <div
+        id="chat-bubbles-panel"
+        class="item-group <?php echo !$settings['show_labels'] ? 'no-labels' : ''; ?>"
+        role="group"
+        aria-label="<?php esc_attr_e('Available chat channels', 'cwp-chat-bubbles'); ?>"
+        aria-hidden="true"
+    >
         <?php foreach ($items as $item): ?>
             <?php
             // Check if item has QR code
             $has_qr = !empty($item['qr_code_id']) && $item['qr_code_id'] > 0;
+            $modal_id = 'modal-' . $item['id'];
+            $item_label = $item['label'];
             ?>
 
-            <a href="<?php echo esc_url($item['platform_url']); ?>"
-                class="chat-item chat-item-<?php echo esc_attr($item['platform']); ?>"
-                <?php if ($has_qr): ?>
-                data-bubble-modal="modal-<?php echo esc_attr($item['id']); ?>"
-                data-no-direct-link="true"
-                <?php else: ?>
-                target="_blank"
-                rel="noopener noreferrer"
-                <?php endif; ?>
-                title="<?php echo esc_attr($item['label']); ?>">
+            <?php if ($has_qr): ?>
+                <button
+                    type="button"
+                    class="chat-item chat-item-<?php echo esc_attr($item['platform']); ?>"
+                    data-bubble-modal="<?php echo esc_attr($modal_id); ?>"
+                    aria-haspopup="dialog"
+                    aria-controls="<?php echo esc_attr($modal_id); ?>"
+                    aria-label="<?php echo esc_attr(sprintf(__('Open %s QR dialog', 'cwp-chat-bubbles'), $item_label)); ?>"
+                    title="<?php echo esc_attr($item_label); ?>"
+                >
+                    <img src="<?php echo esc_url($item['platform_icon']); ?>"
+                        alt="<?php echo esc_attr($item['platform']); ?>"
+                        width="24"
+                        height="24"
+                        loading="lazy">
 
-                <img src="<?php echo esc_url($item['platform_icon']); ?>"
-                    alt="<?php echo esc_attr($item['platform']); ?>"
-                    width="24"
-                    height="24"
-                    loading="lazy">
+                    <?php if ($settings['show_labels']): ?>
+                        <span class="chat-item-text"><?php echo esc_html($item_label); ?></span>
+                    <?php endif; ?>
+                </button>
+            <?php else: ?>
+                <a href="<?php echo esc_url($item['platform_url']); ?>"
+                    class="chat-item chat-item-<?php echo esc_attr($item['platform']); ?>"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="<?php echo esc_attr(sprintf(__('Open %s', 'cwp-chat-bubbles'), $item_label)); ?>"
+                    title="<?php echo esc_attr($item_label); ?>">
 
-                <?php if ($settings['show_labels']): ?>
-                    <span class="chat-item-text"><?php echo esc_html($item['label']); ?></span>
-                <?php endif; ?>
-            </a>
+                    <img src="<?php echo esc_url($item['platform_icon']); ?>"
+                        alt="<?php echo esc_attr($item['platform']); ?>"
+                        width="24"
+                        height="24"
+                        loading="lazy">
+
+                    <?php if ($settings['show_labels']): ?>
+                        <span class="chat-item-text"><?php echo esc_html($item_label); ?></span>
+                    <?php endif; ?>
+                </a>
+            <?php endif; ?>
         <?php endforeach; ?>
     </div>
 
@@ -73,24 +107,29 @@ if (empty($items)) {
     <?php foreach ($items as $item): ?>
         <?php if (!empty($item['qr_code_id']) && $item['qr_code_id'] > 0): ?>
             <?php
+            $modal_id = 'modal-' . $item['id'];
             $qr_image_url = wp_get_attachment_url($item['qr_code_id']);
             if ($qr_image_url):
             ?>
 
                 <div class="bubble-modal"
-                    id="modal-<?php echo esc_attr($item['id']); ?>"
+                    id="<?php echo esc_attr($modal_id); ?>"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="<?php echo esc_attr($modal_id . '-title'); ?>"
                     tabindex="-1"
                     aria-hidden="true">
 
-                    <button class="bubble-modal-close"
-                        aria-label="<?php esc_attr_e('Close modal', 'cwp-chat-bubbles'); ?>">
+                    <button type="button"
+                        class="bubble-modal-close"
+                        aria-label="<?php echo esc_attr(sprintf(__('Close %s dialog', 'cwp-chat-bubbles'), $item['label'])); ?>">
                         <img src="<?php echo esc_url($cancel_icon); ?>"
                             alt="<?php esc_attr_e('Close', 'cwp-chat-bubbles'); ?>">
                     </button>
 
                     <div class="modal-body">
                         <div class="qrcode">
-                            <h3><?php echo esc_html($item['label']); ?></h3>
+                            <h3 id="<?php echo esc_attr($modal_id . '-title'); ?>"><?php echo esc_html($item['label']); ?></h3>
                             <img src="<?php echo esc_url($qr_image_url); ?>"
                                 alt="<?php echo esc_attr($item['label']); ?> QR Code"
                                 loading="lazy">

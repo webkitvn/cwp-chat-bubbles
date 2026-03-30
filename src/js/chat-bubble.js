@@ -14,23 +14,52 @@ const initChatBubbles = () => {
 
     if (chatBubbles) {
         const chatToggle = chatBubbles.querySelector('.chat-btn-toggle');
+        const chatPanel = chatBubbles.querySelector('.item-group');
         const chatItems = chatBubbles.querySelectorAll('.chat-item');
         const chatModals = chatBubbles.querySelectorAll('.bubble-modal');
+        let activeModalTrigger = null;
+
+        if (!chatToggle || !chatPanel) {
+            return;
+        }
+
+        const setBubbleState = (isOpen) => {
+            chatBubbles.classList.toggle('active', isOpen);
+            chatToggle.setAttribute('aria-expanded', String(isOpen));
+            chatToggle.setAttribute(
+                'aria-label',
+                isOpen ? chatToggle.dataset.labelClose : chatToggle.dataset.labelOpen
+            );
+            chatPanel.setAttribute('aria-hidden', String(!isOpen));
+        };
 
         const toggleChatBubble = () => {
-            chatBubbles.classList.toggle('active');
+            setBubbleState(!chatBubbles.classList.contains('active'));
         };
 
         const closeChatBubble = () => {
-            chatBubbles.classList.remove('active');
+            setBubbleState(false);
         };
 
-        const openChatModal = (targetId) => {
+        const getActiveModal = () => chatBubbles.querySelector('.bubble-modal.active');
+
+        const openChatModal = (targetId, triggerElement) => {
             chatModals.forEach((chatModal) => {
                 if (chatModal.id === targetId) {
                     chatModal.classList.add('active');
+                    chatModal.setAttribute('aria-hidden', 'false');
+                    activeModalTrigger = triggerElement || chatToggle;
+                    const closeButton = chatModal.querySelector('.bubble-modal-close');
+                    window.requestAnimationFrame(() => {
+                        if (closeButton) {
+                            closeButton.focus();
+                        } else {
+                            chatModal.focus();
+                        }
+                    });
                 } else {
                     chatModal.classList.remove('active');
+                    chatModal.setAttribute('aria-hidden', 'true');
                 }
             });
         };
@@ -38,13 +67,55 @@ const initChatBubbles = () => {
         const closeChatModal = () => {
             chatModals.forEach((chatModal) => {
                 chatModal.classList.remove('active');
+                chatModal.setAttribute('aria-hidden', 'true');
             });
+
+            if (activeModalTrigger instanceof HTMLElement) {
+                activeModalTrigger.focus();
+            }
+
+            activeModalTrigger = null;
         };
+
+        const trapModalFocus = (event) => {
+            if (event.key !== 'Tab') {
+                return;
+            }
+
+            const activeModal = getActiveModal();
+            if (!activeModal) {
+                return;
+            }
+
+            const focusableElements = activeModal.querySelectorAll(
+                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            );
+            if (!focusableElements.length) {
+                return;
+            }
+
+            const firstElement = focusableElements[0];
+            const lastElement = focusableElements[focusableElements.length - 1];
+
+            if (event.shiftKey && document.activeElement === firstElement) {
+                event.preventDefault();
+                lastElement.focus();
+            } else if (!event.shiftKey && document.activeElement === lastElement) {
+                event.preventDefault();
+                firstElement.focus();
+            }
+        };
+
+        setBubbleState(false);
+        closeChatModal();
 
         // Main toggle button click handler
         chatToggle.addEventListener('click', (e) => {
             e.preventDefault();
-            closeChatModal();
+            const isOpen = chatBubbles.classList.contains('active');
+            if (isOpen) {
+                closeChatModal();
+            }
             toggleChatBubble();
         });
 
@@ -54,7 +125,7 @@ const initChatBubbles = () => {
                 const target = chatItem.getAttribute('data-bubble-modal');
                 if (target) {
                     e.preventDefault();
-                    openChatModal(target);
+                    openChatModal(target, chatItem);
                 } else {
                     // Let the link open normally if no modal
                     return true;
@@ -71,6 +142,12 @@ const initChatBubbles = () => {
                     closeChatModal();
                 });
             }
+
+            chatModal.addEventListener('click', (event) => {
+                if (event.target === chatModal) {
+                    closeChatModal();
+                }
+            });
         });
 
         // Close Chat Bubble and Modals when clicking outside
@@ -84,9 +161,15 @@ const initChatBubbles = () => {
         // Close modals with Escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
+                if (getActiveModal()) {
+                    closeChatModal();
+                    return;
+                }
+
                 closeChatBubble();
-                closeChatModal();
             }
+
+            trapModalFocus(e);
         });
     }
 };
