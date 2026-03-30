@@ -142,10 +142,52 @@ if (!function_exists('is_page')) {
     }
 }
 
+if (!function_exists('is_front_page')) {
+    function is_front_page() {
+        global $mock_is_front_page;
+        return (bool) $mock_is_front_page;
+    }
+}
+
+if (!function_exists('is_home')) {
+    function is_home() {
+        global $mock_is_home;
+        return (bool) $mock_is_home;
+    }
+}
+
+if (!function_exists('is_search')) {
+    function is_search() {
+        global $mock_is_search;
+        return (bool) $mock_is_search;
+    }
+}
+
+if (!function_exists('is_404')) {
+    function is_404() {
+        global $mock_is_404;
+        return (bool) $mock_is_404;
+    }
+}
+
+if (!function_exists('is_archive')) {
+    function is_archive() {
+        global $mock_is_archive;
+        return (bool) $mock_is_archive;
+    }
+}
+
 if (!function_exists('get_the_ID')) {
     function get_the_ID() {
         global $mock_current_page_id;
         return $mock_current_page_id;
+    }
+}
+
+if (!function_exists('get_post_type')) {
+    function get_post_type($post = null) {
+        global $mock_post_type;
+        return $mock_post_type;
     }
 }
 
@@ -177,7 +219,13 @@ if (!function_exists('wp_cache_delete')) {
 $mock_options = array();
 $mock_is_admin = false;
 $mock_is_page = false;
+$mock_is_front_page = false;
+$mock_is_home = false;
+$mock_is_search = false;
+$mock_is_404 = false;
+$mock_is_archive = false;
 $mock_current_page_id = 0;
+$mock_post_type = '';
 
 // Load the classes we want to test (without WordPress hooks)
 require_once CWP_CHAT_BUBBLES_PLUGIN_DIR . 'includes/class-items-manager.php';

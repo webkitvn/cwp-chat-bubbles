@@ -229,6 +229,10 @@ class CWP_Chat_Bubbles_Data_Service {
             }
         }
 
+        if (!$this->matches_contextual_targeting()) {
+            return false;
+        }
+
         return true;
     }
 
@@ -283,6 +287,168 @@ class CWP_Chat_Bubbles_Data_Service {
     private function has_visible_devices() {
         foreach ($this->settings->get_device_visibility() as $is_visible) {
             if ($is_visible) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Evaluate the normalized contextual targeting schema against the current request.
+     *
+     * Precedence:
+     * 1. Explicit exclude rules always win.
+     * 2. If no include rules are configured, the contextual targeting layer allows display.
+     * 3. When include rules exist, operator "any" requires one populated include bucket to match,
+     *    while operator "all" requires every populated include bucket to match.
+     *
+     * @return bool Whether contextual targeting allows the current request.
+     * @since 1.0.3
+     */
+    private function matches_contextual_targeting() {
+        $targeting = $this->settings->get_targeting_settings();
+        if (empty($targeting['rules']) || !is_array($targeting['rules'])) {
+            return true;
+        }
+
+        $pages = isset($targeting['rules']['pages']) && is_array($targeting['rules']['pages'])
+            ? $targeting['rules']['pages']
+            : array();
+        $post_types = isset($targeting['rules']['post_types']) && is_array($targeting['rules']['post_types'])
+            ? $targeting['rules']['post_types']
+            : array();
+        $special_pages = isset($targeting['rules']['special_pages']) && is_array($targeting['rules']['special_pages'])
+            ? $targeting['rules']['special_pages']
+            : array();
+
+        $context = $this->get_contextual_targeting_context();
+
+        if (
+            (!empty($context['page_id']) && in_array($context['page_id'], (array) ($pages['exclude'] ?? array()), true))
+            || (!empty($context['post_type']) && in_array($context['post_type'], (array) ($post_types['exclude'] ?? array()), true))
+            || $this->matches_special_page_state($special_pages, $context['special_pages'], 'exclude')
+        ) {
+            return false;
+        }
+
+        $include_matches = array();
+
+        if (!empty($pages['include'])) {
+            $include_matches[] = !empty($context['page_id']) && in_array($context['page_id'], $pages['include'], true);
+        }
+
+        if (!empty($post_types['include'])) {
+            $include_matches[] = !empty($context['post_type']) && in_array($context['post_type'], $post_types['include'], true);
+        }
+
+        if ($this->has_special_page_state($special_pages, 'include')) {
+            $include_matches[] = $this->matches_special_page_state($special_pages, $context['special_pages'], 'include');
+        }
+
+        if (empty($include_matches)) {
+            return true;
+        }
+
+        $operator = isset($targeting['operator']) ? $targeting['operator'] : 'all';
+
+        if ('any' === $operator) {
+            return in_array(true, $include_matches, true);
+        }
+
+        return !in_array(false, $include_matches, true);
+    }
+
+    /**
+     * Build the current request context used by contextual targeting.
+     *
+     * @return array<string, mixed> Current page, post-type, and special-page context.
+     * @since 1.0.3
+     */
+    private function get_contextual_targeting_context() {
+        $page_id = is_page() ? absint(get_the_ID()) : 0;
+        $post_type = '';
+
+        if (function_exists('get_post_type')) {
+            $resolved_post_type = get_post_type($page_id ?: null);
+            $post_type = is_string($resolved_post_type) ? $resolved_post_type : '';
+        }
+
+        return array(
+            'page_id' => $page_id,
+            'post_type' => $post_type,
+            'special_pages' => $this->get_current_special_page_contexts(),
+        );
+    }
+
+    /**
+     * Get the active special-page contexts for the current request.
+     *
+     * Optional integrations are guarded with function_exists checks so environments without those plugins remain safe.
+     *
+     * @return array<int, string> Active special-page keys.
+     * @since 1.0.3
+     */
+    private function get_current_special_page_contexts() {
+        $contexts = array();
+
+        if (function_exists('is_front_page') && is_front_page()) {
+            $contexts[] = 'front_page';
+        }
+
+        if (function_exists('is_home') && is_home()) {
+            $contexts[] = 'blog_index';
+        }
+
+        if (function_exists('is_search') && is_search()) {
+            $contexts[] = 'search';
+        }
+
+        if (function_exists('is_404') && is_404()) {
+            $contexts[] = '404';
+        }
+
+        if (function_exists('is_archive') && is_archive()) {
+            $contexts[] = 'archive';
+        }
+
+        if (function_exists('is_shop') && is_shop()) {
+            $contexts[] = 'archive';
+        }
+
+        return array_values(array_unique($contexts));
+    }
+
+    /**
+     * Check whether a special-page targeting map contains any key in the requested state.
+     *
+     * @param array  $special_pages Targeting special-page map.
+     * @param string $state Desired state.
+     * @return bool Whether any special page uses that state.
+     * @since 1.0.3
+     */
+    private function has_special_page_state($special_pages, $state) {
+        foreach ($special_pages as $value) {
+            if ($state === $value) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check whether any active special-page context matches the requested state.
+     *
+     * @param array $special_pages Targeting special-page map.
+     * @param array $active_contexts Active special-page keys for the current request.
+     * @param string $state Desired state.
+     * @return bool Whether any active special page matches that state.
+     * @since 1.0.3
+     */
+    private function matches_special_page_state($special_pages, $active_contexts, $state) {
+        foreach ($active_contexts as $context_key) {
+            if (isset($special_pages[$context_key]) && $state === $special_pages[$context_key]) {
                 return true;
             }
         }

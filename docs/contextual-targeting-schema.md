@@ -67,6 +67,26 @@ The initial named keys are:
 - `404`
 - `archive`
 
+## Runtime Precedence
+
+Runtime evaluation follows these rules:
+
+1. Explicit excludes always win.
+2. If no include buckets are populated, contextual targeting allows the request.
+3. If include buckets exist:
+   - `operator = any` means one populated include bucket must match.
+   - `operator = all` means every populated include bucket must match.
+
+The current runtime implementation treats `pages`, `post_types`, and `special_pages` as separate include buckets.
+
+## Optional Plugin Safety
+
+Special-page detection is guarded so optional plugin environments remain safe:
+
+- Core contexts use standard WordPress conditionals such as `is_front_page()` and `is_archive()`.
+- Optional environments can add matching conditionals without forcing those plugins to be active on every site.
+- The current runtime path avoids calling optional conditionals unless the function exists.
+
 ## Extension Strategy
 
 Future rule types can be added safely by introducing new buckets under `rules`, for example:

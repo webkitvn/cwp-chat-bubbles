@@ -12,12 +12,19 @@ class TestDataService extends TestCase {
     private $data_service;
 
     protected function setUp(): void {
-        global $mock_options, $mock_is_admin, $mock_is_page, $mock_current_page_id;
+        global $mock_options, $mock_is_admin, $mock_is_page, $mock_current_page_id, $mock_is_front_page,
+            $mock_is_home, $mock_is_search, $mock_is_404, $mock_is_archive, $mock_post_type;
 
         $mock_options = array();
         $mock_is_admin = false;
         $mock_is_page = false;
+        $mock_is_front_page = false;
+        $mock_is_home = false;
+        $mock_is_search = false;
+        $mock_is_404 = false;
+        $mock_is_archive = false;
         $mock_current_page_id = 0;
+        $mock_post_type = '';
 
         $this->data_service = $this->createTestableDataService();
     }
@@ -101,6 +108,145 @@ class TestDataService extends TestCase {
         $mock_current_page_id = 42;
 
         $this->assertTrue($this->data_service->should_load_on_current_page());
+    }
+
+    /**
+     * Test contextual targeting excludes override matching includes on specific pages.
+     */
+    public function test_contextual_targeting_exclude_wins_over_include() {
+        global $mock_options, $mock_is_page, $mock_current_page_id;
+
+        $mock_options['cwp_chat_bubbles_options'] = array(
+            'enabled' => true,
+            'auto_load' => true,
+            'targeting' => array(
+                'operator' => 'any',
+                'rules' => array(
+                    'pages' => array(
+                        'include' => array(42),
+                        'exclude' => array(42),
+                    ),
+                ),
+            ),
+        );
+        $mock_is_page = true;
+        $mock_current_page_id = 42;
+
+        $this->assertFalse($this->data_service->should_load_on_current_page());
+    }
+
+    /**
+     * Test contextual targeting with operator any allows a matching include bucket.
+     */
+    public function test_contextual_targeting_any_operator_allows_matching_bucket() {
+        global $mock_options, $mock_is_page, $mock_current_page_id, $mock_post_type;
+
+        $mock_options['cwp_chat_bubbles_options'] = array(
+            'enabled' => true,
+            'auto_load' => true,
+            'targeting' => array(
+                'operator' => 'any',
+                'rules' => array(
+                    'pages' => array(
+                        'include' => array(0),
+                        'exclude' => array(),
+                    ),
+                    'post_types' => array(
+                        'include' => array('page'),
+                        'exclude' => array(),
+                    ),
+                ),
+            ),
+        );
+        $mock_is_page = true;
+        $mock_current_page_id = 24;
+        $mock_post_type = 'page';
+
+        $this->assertTrue($this->data_service->should_load_on_current_page());
+    }
+
+    /**
+     * Test contextual targeting with operator all requires every populated include bucket to match.
+     */
+    public function test_contextual_targeting_all_operator_requires_all_buckets() {
+        global $mock_options, $mock_is_page, $mock_current_page_id, $mock_post_type;
+
+        $mock_options['cwp_chat_bubbles_options'] = array(
+            'enabled' => true,
+            'auto_load' => true,
+            'targeting' => array(
+                'operator' => 'all',
+                'rules' => array(
+                    'pages' => array(
+                        'include' => array(24),
+                        'exclude' => array(),
+                    ),
+                    'post_types' => array(
+                        'include' => array('product'),
+                        'exclude' => array(),
+                    ),
+                ),
+            ),
+        );
+        $mock_is_page = true;
+        $mock_current_page_id = 24;
+        $mock_post_type = 'page';
+
+        $this->assertFalse($this->data_service->should_load_on_current_page());
+    }
+
+    /**
+     * Test contextual targeting can include a special page without calling optional plugin APIs unsafely.
+     */
+    public function test_contextual_targeting_matches_special_page_include() {
+        global $mock_options, $mock_is_search;
+
+        $mock_options['cwp_chat_bubbles_options'] = array(
+            'enabled' => true,
+            'auto_load' => true,
+            'targeting' => array(
+                'operator' => 'all',
+                'rules' => array(
+                    'special_pages' => array(
+                        'front_page' => 'ignore',
+                        'blog_index' => 'ignore',
+                        'search' => 'include',
+                        '404' => 'ignore',
+                        'archive' => 'ignore',
+                    ),
+                ),
+            ),
+        );
+        $mock_is_search = true;
+
+        $this->assertTrue($this->data_service->should_load_on_current_page());
+    }
+
+    /**
+     * Test contextual targeting excludes a matching special page.
+     */
+    public function test_contextual_targeting_blocks_special_page_exclude() {
+        global $mock_options, $mock_is_archive;
+
+        $mock_options['cwp_chat_bubbles_options'] = array(
+            'enabled' => true,
+            'auto_load' => true,
+            'targeting' => array(
+                'operator' => 'any',
+                'rules' => array(
+                    'special_pages' => array(
+                        'front_page' => 'ignore',
+                        'blog_index' => 'ignore',
+                        'search' => 'ignore',
+                        '404' => 'ignore',
+                        'archive' => 'exclude',
+                    ),
+                ),
+            ),
+        );
+        $mock_is_archive = true;
+
+        $this->assertFalse($this->data_service->should_load_on_current_page());
     }
 
     /**
