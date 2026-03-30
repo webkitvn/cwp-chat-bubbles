@@ -150,6 +150,7 @@ class CWP_Chat_Bubbles_Options_Page {
         $options = $this->settings->get_options();
         $items = $this->items_manager->get_all_items();
         $supported_platforms = $this->items_manager->get_supported_platforms();
+        $available_pages = $this->get_available_pages();
         ?>
         <div class="wrap">
             <h1><?php esc_html_e('CWP Chat Bubbles Settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h1>
@@ -168,6 +169,7 @@ class CWP_Chat_Bubbles_Options_Page {
                         <a href="#general-settings" class="nav-tab nav-tab-active"><?php esc_html_e('General Settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
                         <a href="#chat-items" class="nav-tab"><?php esc_html_e('Chat Items', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
                         <a href="#display-settings" class="nav-tab"><?php esc_html_e('Display Settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
+                        <a href="#advanced-settings" class="nav-tab"><?php esc_html_e('Advanced Settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
                     </nav>
 
                     <!-- General Settings Tab -->
@@ -303,13 +305,78 @@ class CWP_Chat_Bubbles_Options_Page {
                                     </label>
                                 </td>
                             </tr>
+                        </table>
+                    </div>
+
+                    <!-- Advanced Settings Tab -->
+                    <div id="advanced-settings" class="tab-content" style="display: none;">
+                        <table class="form-table">
                             <tr>
-                                <th scope="row"><?php esc_html_e('Load on Mobile', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <th scope="row"><?php esc_html_e('Device Visibility', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
-                                    <label>
-                                        <input type="checkbox" name="cwp_chat_bubbles_options[load_on_mobile]" value="1" <?php checked($options['load_on_mobile']); ?>>
-                                        <?php esc_html_e('Show chat bubbles on mobile devices', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                    </label>
+                                    <fieldset>
+                                        <legend class="screen-reader-text"><?php esc_html_e('Device visibility settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></legend>
+                                        <label style="display: block; margin-bottom: 8px;">
+                                            <input type="checkbox" name="cwp_chat_bubbles_options[device_visibility][desktop]" value="1" <?php checked(!empty($options['device_visibility']['desktop'])); ?>>
+                                            <?php esc_html_e('Show on desktop devices', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </label>
+                                        <label style="display: block; margin-bottom: 8px;">
+                                            <input type="checkbox" name="cwp_chat_bubbles_options[device_visibility][tablet]" value="1" <?php checked(!empty($options['device_visibility']['tablet'])); ?>>
+                                            <?php esc_html_e('Show on tablet devices', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </label>
+                                        <label style="display: block;">
+                                            <input type="checkbox" name="cwp_chat_bubbles_options[device_visibility][mobile]" value="1" <?php checked(!empty($options['device_visibility']['mobile'])); ?>>
+                                            <?php esc_html_e('Show on mobile devices', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </label>
+                                    </fieldset>
+                                    <p class="description">
+                                        <?php esc_html_e('Use these rules to decide which device categories can see the floating bubble. Existing installs keep their current mobile behavior until you save new values here.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Exclude Pages', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <?php if (!empty($available_pages)) : ?>
+                                        <select
+                                            name="cwp_chat_bubbles_options[exclude_pages][]"
+                                            multiple
+                                            size="<?php echo esc_attr(min(10, max(4, count($available_pages)))); ?>"
+                                            style="min-width: 320px;"
+                                        >
+                                            <?php foreach ($available_pages as $page) : ?>
+                                                <option
+                                                    value="<?php echo esc_attr($page->ID); ?>"
+                                                    <?php selected(in_array((int) $page->ID, $options['exclude_pages'], true)); ?>
+                                                >
+                                                    <?php echo esc_html($page->post_title ? $page->post_title : sprintf(__('Page #%d', CWP_CHAT_BUBBLES_TEXT_DOMAIN), (int) $page->ID)); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    <?php else : ?>
+                                        <p><?php esc_html_e('No pages are available to exclude yet.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                    <?php endif; ?>
+                                    <p class="description">
+                                        <?php esc_html_e('Selected pages will not auto-load the bubble. Hold Command on macOS or Ctrl on Windows to select multiple pages.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    <label for="cwp-chat-bubbles-custom-css"><?php esc_html_e('Custom CSS', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                </th>
+                                <td>
+                                    <textarea
+                                        id="cwp-chat-bubbles-custom-css"
+                                        name="cwp_chat_bubbles_options[custom_css]"
+                                        class="large-text code"
+                                        rows="12"
+                                        spellcheck="false"
+                                        placeholder=".cwp-chat-bubbles { z-index: 9999; }"
+                                    ><?php echo esc_textarea($options['custom_css']); ?></textarea>
+                                    <p class="description">
+                                        <?php esc_html_e('Add small, focused CSS overrides for the bubble UI. Unsafe patterns are stripped during save, so keep rules simple and self-contained.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                    </p>
                                 </td>
                             </tr>
                         </table>
@@ -469,6 +536,21 @@ class CWP_Chat_Bubbles_Options_Page {
                 );
             }
         }
+    }
+
+    /**
+     * Get a stable list of pages for the page exclusion control.
+     *
+     * @return array Available WordPress pages.
+     * @since 1.0.3
+     */
+    private function get_available_pages() {
+        return get_pages(
+            array(
+                'sort_column' => 'post_title',
+                'sort_order'  => 'ASC',
+            )
+        );
     }
 
     /**

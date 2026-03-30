@@ -11,6 +11,8 @@ if (!defined('CWP_CHAT_BUBBLES_TESTING')) {
 define('ABSPATH', '/tmp/wordpress/');
 define('CWP_CHAT_BUBBLES_PLUGIN_URL', 'http://example.com/wp-content/plugins/cwp-chat-bubbles/');
 define('CWP_CHAT_BUBBLES_PLUGIN_DIR', dirname(__DIR__) . '/');
+define('DAY_IN_SECONDS', 86400);
+define('HOUR_IN_SECONDS', 3600);
 
 // Mock WordPress functions needed for testing
 if (!function_exists('sanitize_text_field')) {
@@ -83,6 +85,27 @@ if (!function_exists('add_action')) {
     }
 }
 
+if (!function_exists('is_admin')) {
+    function is_admin() {
+        global $mock_is_admin;
+        return (bool) $mock_is_admin;
+    }
+}
+
+if (!function_exists('is_page')) {
+    function is_page() {
+        global $mock_is_page;
+        return (bool) $mock_is_page;
+    }
+}
+
+if (!function_exists('get_the_ID')) {
+    function get_the_ID() {
+        global $mock_current_page_id;
+        return $mock_current_page_id;
+    }
+}
+
 if (!function_exists('register_setting')) {
     function register_setting($option_group, $option_name, $args = array()) {
         return true;
@@ -109,7 +132,11 @@ if (!function_exists('wp_cache_delete')) {
 
 // Global mock options storage
 $mock_options = array();
+$mock_is_admin = false;
+$mock_is_page = false;
+$mock_current_page_id = 0;
 
 // Load the classes we want to test (without WordPress hooks)
 require_once CWP_CHAT_BUBBLES_PLUGIN_DIR . 'includes/class-items-manager.php';
 require_once CWP_CHAT_BUBBLES_PLUGIN_DIR . 'includes/class-settings.php';
+require_once CWP_CHAT_BUBBLES_PLUGIN_DIR . 'includes/class-data-service.php';

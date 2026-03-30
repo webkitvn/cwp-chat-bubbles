@@ -100,7 +100,8 @@ class CWP_Chat_Bubbles_Data_Service {
                 'position' => $this->settings->get_option('position', 'bottom-right'),
                 'main_button_color' => $this->settings->get_option('main_button_color', '#52BA00'),
                 'animation_enabled' => $this->settings->get_option('animation_enabled', true),
-                'show_labels' => $this->settings->should_show_labels()
+                'show_labels' => $this->settings->should_show_labels(),
+                'device_visibility' => $this->settings->get_device_visibility(),
             ),
             'support_icon' => $this->settings->get_main_icon_url(),
             'cancel_icon' => CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/cancel.svg'
@@ -184,8 +185,10 @@ class CWP_Chat_Bubbles_Data_Service {
             return false;
         }
 
-        // Mobile display is now handled via CSS media queries
-        // This eliminates unreliable server-side wp_is_mobile() detection
+        // If every device class is disabled, there's nothing to render.
+        if (!$this->has_visible_devices()) {
+            return false;
+        }
 
         // Check excluded pages
         $excluded_pages = $this->settings->get_option('exclude_pages', array());
@@ -230,9 +233,26 @@ class CWP_Chat_Bubbles_Data_Service {
             'main_button_color' => $this->settings->get_option('main_button_color', '#52BA00'),
             'animation_enabled' => $this->settings->get_option('animation_enabled', true),
             'show_labels' => $this->settings->should_show_labels(),
-            'custom_main_icon' => $this->settings->get_option('custom_main_icon', 0)
+            'custom_main_icon' => $this->settings->get_option('custom_main_icon', 0),
+            'device_visibility' => $this->settings->get_device_visibility(),
         );
         
         return substr(md5(serialize($relevant_settings)), 0, 8);
     }
-} 
+
+    /**
+     * Check whether at least one device category can display the bubble.
+     *
+     * @return bool Whether any device visibility flag is enabled.
+     * @since 1.0.3
+     */
+    private function has_visible_devices() {
+        foreach ($this->settings->get_device_visibility() as $is_visible) {
+            if ($is_visible) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}

@@ -120,7 +120,8 @@ class CWP_Chat_Bubbles_Assets {
                 'settings' => array(
                     'position' => $this->settings->get_option('position', 'bottom-right'),
                     'animationEnabled' => $this->settings->get_option('animation_enabled', true),
-                    'showLabels' => $this->settings->get_option('show_labels', true)
+                    'showLabels' => $this->settings->get_option('show_labels', true),
+                    'deviceVisibility' => $this->settings->get_device_visibility(),
                 )
             ));
         }
@@ -242,9 +243,9 @@ class CWP_Chat_Bubbles_Assets {
             $custom_css .= "\n" . $user_custom_css;
         }
         
-        // Mobile hiding CSS if load_on_mobile is disabled
-        if (!$this->settings->get_option('load_on_mobile', true)) {
-            $custom_css .= "\n@media (max-width: 768px) { .cwp-chat-bubbles { display: none !important; } }";
+        $device_visibility_css = $this->get_device_visibility_css();
+        if ($device_visibility_css) {
+            $custom_css .= "\n" . $device_visibility_css;
         }
 
         // Output styles if we have any
@@ -366,4 +367,29 @@ class CWP_Chat_Bubbles_Assets {
                 return '';
         }
     }
-} 
+
+    /**
+     * Get responsive CSS rules for device visibility settings.
+     *
+     * @return string CSS to hide the bubble on disabled device classes.
+     * @since 1.0.3
+     */
+    private function get_device_visibility_css() {
+        $visibility = $this->settings->get_device_visibility();
+        $css = '';
+
+        if (empty($visibility['mobile'])) {
+            $css .= "\n@media (max-width: 767px) { .cwp-chat-bubbles { display: none !important; } }";
+        }
+
+        if (empty($visibility['tablet'])) {
+            $css .= "\n@media (min-width: 768px) and (max-width: 1024px) { .cwp-chat-bubbles { display: none !important; } }";
+        }
+
+        if (empty($visibility['desktop'])) {
+            $css .= "\n@media (min-width: 1025px) { .cwp-chat-bubbles { display: none !important; } }";
+        }
+
+        return $css;
+    }
+}
