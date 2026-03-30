@@ -415,8 +415,8 @@
   }
 
   input[type="time"] {
-    width: 100%;
-    max-width: 9.5rem;
+    width: min(100%, 11rem);
+    max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
   }
