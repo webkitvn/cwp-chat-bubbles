@@ -2,7 +2,7 @@
     position: fixed;
     bottom: 50px;
     right: 15px;
-    z-index: 1000;
+    z-index: var(--cwp-chat-bubbles-z-index-base, 1000);
     /* Apply offset transform if values are set */
     transform: translate(
         var(--cwp-chat-bubbles-offset-x, 0px), 
@@ -16,8 +16,8 @@
         -webkit-box-align: center;
         -ms-flex-align: center;
         align-items: center;
-        width: 60px;
-        height: 60px;
+        width: var(--cwp-chat-bubbles-toggle-size, 60px);
+        height: var(--cwp-chat-bubbles-toggle-size, 60px);
         background-color: var(--cwp-chat-bubbles-primary-color, #52BA00);
         color: #fff;
         border: 1px solid #FFF;
@@ -30,8 +30,8 @@
             content: "";
             position: absolute;
             z-index: 0;
-            width: 60px;
-            height: 60px;
+            width: var(--cwp-chat-bubbles-toggle-size, 60px);
+            height: var(--cwp-chat-bubbles-toggle-size, 60px);
             top: 50%;
             left: 50%;
             transform: translate3d(-50%, -50%, 0);
@@ -64,18 +64,18 @@
         gap: 0;
         -webkit-box-shadow: 0 0 10px 0 rgba(0, 0, 0, .1);
         box-shadow: 0 0 10px 0 rgba(0, 0, 0, .1);
-        min-width: 200px;
-        border-radius: 10px;
+        min-width: var(--cwp-chat-bubbles-panel-width, 200px);
+        border-radius: var(--cwp-chat-bubbles-panel-radius, 10px);
         overflow: hidden;
         opacity: 0;
         visibility: hidden;
         transition: all .3s ease;
         .chat-item {
-            width: 200px;
+            width: var(--cwp-chat-bubbles-panel-width, 200px);
             font-size: 13px;
             display: flex;
             align-items: center;
-            padding: 5px 10px;
+            padding: var(--cwp-chat-bubbles-item-padding-y, 5px) var(--cwp-chat-bubbles-item-padding-x, 10px);
             cursor: pointer;
             text-decoration: none !important;
             transition: background-color .3s ease;
@@ -89,7 +89,7 @@
 
             span {
                 margin-left: 10px;
-                color: #333;
+                color: var(--cwp-chat-bubbles-label-text-color, #333333);
                 transition: all .3s ease;
             }
 
@@ -129,9 +129,9 @@
         position: absolute;
         right: 0;
         bottom: calc(100% + 1rem);
-        z-index: 1055;
+        z-index: calc(var(--cwp-chat-bubbles-z-index-base, 1000) + 55);
         outline: none;
-        border-radius: 10px;
+        border-radius: var(--cwp-chat-bubbles-modal-radius, 10px);
         overflow: hidden;
         box-shadow: 0 0 10px 0 rgba(0, 0, 0, .1);
         opacity: 0;
@@ -169,7 +169,7 @@
         }
         .modal-body{
             background-color: #fff;
-            width: 300px;
+            width: var(--cwp-chat-bubbles-modal-width, 300px);
             height: auto;
             padding: 1.5rem 1rem;
             .qrcode{

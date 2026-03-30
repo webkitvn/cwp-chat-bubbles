@@ -124,6 +124,7 @@ class CWP_Chat_Bubbles_Assets {
                     'deviceVisibility' => $this->settings->get_device_visibility(),
                     'behavior' => $this->settings->get_behavior_settings(),
                     'schedule' => $this->settings->get_schedule_settings(),
+                    'appearance' => $this->settings->get_appearance_settings(),
                 )
             ));
         }
@@ -200,6 +201,17 @@ class CWP_Chat_Bubbles_Assets {
         // Main button color
         $main_color = $this->settings->get_option('main_button_color', '#52BA00');
         $css_variables['--cwp-chat-bubbles-primary-color'] = $main_color;
+
+        $appearance = $this->settings->get_appearance_settings();
+        $css_variables['--cwp-chat-bubbles-z-index-base'] = (int) $appearance['z_index'];
+        $css_variables['--cwp-chat-bubbles-toggle-size'] = (int) $appearance['bubble_size'] . 'px';
+        $css_variables['--cwp-chat-bubbles-panel-width'] = (int) $appearance['panel_width'] . 'px';
+        $css_variables['--cwp-chat-bubbles-panel-radius'] = (int) $appearance['panel_radius'] . 'px';
+        $css_variables['--cwp-chat-bubbles-modal-width'] = (int) $appearance['modal_width'] . 'px';
+        $css_variables['--cwp-chat-bubbles-modal-radius'] = (int) $appearance['modal_radius'] . 'px';
+        $css_variables['--cwp-chat-bubbles-item-padding-y'] = (int) $appearance['item_padding_y'] . 'px';
+        $css_variables['--cwp-chat-bubbles-item-padding-x'] = (int) $appearance['item_padding_x'] . 'px';
+        $css_variables['--cwp-chat-bubbles-label-text-color'] = $appearance['label_text_color'];
         
         // Position offsets
         $offset_x = $this->settings->get_option('offset_x', 0);

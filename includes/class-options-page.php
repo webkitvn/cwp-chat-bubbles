@@ -503,6 +503,159 @@ class CWP_Chat_Bubbles_Options_Page {
                                 </td>
                             </tr>
                             <tr>
+                                <th scope="row"><?php esc_html_e('Appearance', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <fieldset>
+                                        <legend class="screen-reader-text"><?php esc_html_e('Appearance settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></legend>
+                                        <div style="display: flex; gap: 24px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 12px;">
+                                            <p style="margin: 0;">
+                                                <label for="cwp-chat-bubbles-bubble-size" style="display: block; font-weight: 600; margin-bottom: 6px;">
+                                                    <?php esc_html_e('Bubble size', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                                </label>
+                                                <input
+                                                    id="cwp-chat-bubbles-bubble-size"
+                                                    type="number"
+                                                    name="cwp_chat_bubbles_options[appearance][bubble_size]"
+                                                    value="<?php echo esc_attr($options['appearance']['bubble_size']); ?>"
+                                                    min="48"
+                                                    max="96"
+                                                    step="1"
+                                                    style="width: 90px;"
+                                                >
+                                                <span style="color: #666;">px</span>
+                                            </p>
+                                            <p style="margin: 0;">
+                                                <label for="cwp-chat-bubbles-panel-width" style="display: block; font-weight: 600; margin-bottom: 6px;">
+                                                    <?php esc_html_e('Panel width', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                                </label>
+                                                <input
+                                                    id="cwp-chat-bubbles-panel-width"
+                                                    type="number"
+                                                    name="cwp_chat_bubbles_options[appearance][panel_width]"
+                                                    value="<?php echo esc_attr($options['appearance']['panel_width']); ?>"
+                                                    min="160"
+                                                    max="320"
+                                                    step="1"
+                                                    style="width: 90px;"
+                                                >
+                                                <span style="color: #666;">px</span>
+                                            </p>
+                                            <p style="margin: 0;">
+                                                <label for="cwp-chat-bubbles-modal-width" style="display: block; font-weight: 600; margin-bottom: 6px;">
+                                                    <?php esc_html_e('Modal width', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                                </label>
+                                                <input
+                                                    id="cwp-chat-bubbles-modal-width"
+                                                    type="number"
+                                                    name="cwp_chat_bubbles_options[appearance][modal_width]"
+                                                    value="<?php echo esc_attr($options['appearance']['modal_width']); ?>"
+                                                    min="240"
+                                                    max="420"
+                                                    step="1"
+                                                    style="width: 90px;"
+                                                >
+                                                <span style="color: #666;">px</span>
+                                            </p>
+                                            <p style="margin: 0;">
+                                                <label for="cwp-chat-bubbles-z-index" style="display: block; font-weight: 600; margin-bottom: 6px;">
+                                                    <?php esc_html_e('Base z-index', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                                </label>
+                                                <input
+                                                    id="cwp-chat-bubbles-z-index"
+                                                    type="number"
+                                                    name="cwp_chat_bubbles_options[appearance][z_index]"
+                                                    value="<?php echo esc_attr($options['appearance']['z_index']); ?>"
+                                                    min="100"
+                                                    max="99999"
+                                                    step="1"
+                                                    style="width: 110px;"
+                                                >
+                                            </p>
+                                        </div>
+                                        <div style="display: flex; gap: 24px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 12px;">
+                                            <p style="margin: 0;">
+                                                <label for="cwp-chat-bubbles-panel-radius" style="display: block; font-weight: 600; margin-bottom: 6px;">
+                                                    <?php esc_html_e('Panel radius', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                                </label>
+                                                <input
+                                                    id="cwp-chat-bubbles-panel-radius"
+                                                    type="number"
+                                                    name="cwp_chat_bubbles_options[appearance][panel_radius]"
+                                                    value="<?php echo esc_attr($options['appearance']['panel_radius']); ?>"
+                                                    min="0"
+                                                    max="24"
+                                                    step="1"
+                                                    style="width: 90px;"
+                                                >
+                                                <span style="color: #666;">px</span>
+                                            </p>
+                                            <p style="margin: 0;">
+                                                <label for="cwp-chat-bubbles-modal-radius" style="display: block; font-weight: 600; margin-bottom: 6px;">
+                                                    <?php esc_html_e('Modal radius', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                                </label>
+                                                <input
+                                                    id="cwp-chat-bubbles-modal-radius"
+                                                    type="number"
+                                                    name="cwp_chat_bubbles_options[appearance][modal_radius]"
+                                                    value="<?php echo esc_attr($options['appearance']['modal_radius']); ?>"
+                                                    min="0"
+                                                    max="24"
+                                                    step="1"
+                                                    style="width: 90px;"
+                                                >
+                                                <span style="color: #666;">px</span>
+                                            </p>
+                                            <p style="margin: 0;">
+                                                <label for="cwp-chat-bubbles-item-padding-y" style="display: block; font-weight: 600; margin-bottom: 6px;">
+                                                    <?php esc_html_e('Item padding Y', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                                </label>
+                                                <input
+                                                    id="cwp-chat-bubbles-item-padding-y"
+                                                    type="number"
+                                                    name="cwp_chat_bubbles_options[appearance][item_padding_y]"
+                                                    value="<?php echo esc_attr($options['appearance']['item_padding_y']); ?>"
+                                                    min="0"
+                                                    max="20"
+                                                    step="1"
+                                                    style="width: 90px;"
+                                                >
+                                                <span style="color: #666;">px</span>
+                                            </p>
+                                            <p style="margin: 0;">
+                                                <label for="cwp-chat-bubbles-item-padding-x" style="display: block; font-weight: 600; margin-bottom: 6px;">
+                                                    <?php esc_html_e('Item padding X', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                                </label>
+                                                <input
+                                                    id="cwp-chat-bubbles-item-padding-x"
+                                                    type="number"
+                                                    name="cwp_chat_bubbles_options[appearance][item_padding_x]"
+                                                    value="<?php echo esc_attr($options['appearance']['item_padding_x']); ?>"
+                                                    min="0"
+                                                    max="24"
+                                                    step="1"
+                                                    style="width: 90px;"
+                                                >
+                                                <span style="color: #666;">px</span>
+                                            </p>
+                                        </div>
+                                        <p style="margin: 0;">
+                                            <label for="cwp-chat-bubbles-label-text-color" style="display: block; font-weight: 600; margin-bottom: 6px;">
+                                                <?php esc_html_e('Label text color', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                            </label>
+                                            <input
+                                                id="cwp-chat-bubbles-label-text-color"
+                                                type="color"
+                                                name="cwp_chat_bubbles_options[appearance][label_text_color]"
+                                                value="<?php echo esc_attr($options['appearance']['label_text_color']); ?>"
+                                            >
+                                        </p>
+                                    </fieldset>
+                                    <p class="description">
+                                        <?php esc_html_e('These values feed centralized CSS variables for the button, list panel, and QR modal. Defaults preserve the current look if you leave them unchanged.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
                                 <th scope="row">
                                     <label for="cwp-chat-bubbles-custom-css"><?php esc_html_e('Custom CSS', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
                                 </th>

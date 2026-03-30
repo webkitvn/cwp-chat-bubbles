@@ -100,6 +100,7 @@ class CWP_Chat_Bubbles_Settings {
             'device_visibility' => $this->get_default_device_visibility(),
             'behavior' => $this->get_default_behavior_settings(),
             'schedule' => $this->get_default_schedule_settings(),
+            'appearance' => $this->get_default_appearance_settings(),
             'exclude_pages' => array()
         );
     }
@@ -191,6 +192,7 @@ class CWP_Chat_Bubbles_Settings {
         $sanitized['load_on_mobile'] = $sanitized['device_visibility']['mobile'];
         $sanitized['behavior'] = $this->sanitize_behavior_settings($options);
         $sanitized['schedule'] = $this->sanitize_schedule_settings($options);
+        $sanitized['appearance'] = $this->sanitize_appearance_settings($options);
 
         // Sanitize exclude pages
         $sanitized['exclude_pages'] = array();
@@ -409,6 +411,32 @@ class CWP_Chat_Bubbles_Settings {
     }
 
     /**
+     * Get normalized appearance settings.
+     *
+     * @return array<string, mixed> Appearance settings map.
+     * @since 1.0.3
+     */
+    public function get_appearance_settings() {
+        return $this->get_option('appearance', $this->get_default_appearance_settings());
+    }
+
+    /**
+     * Get a single appearance setting.
+     *
+     * @param string $key Appearance key.
+     * @param mixed  $default Fallback value.
+     * @return mixed Appearance setting value.
+     * @since 1.0.3
+     */
+    public function get_appearance_setting($key, $default = null) {
+        $appearance = $this->get_appearance_settings();
+
+        return array_key_exists($key, $appearance)
+            ? $appearance[$key]
+            : $default;
+    }
+
+    /**
      * Get main icon URL
      *
      * @return string Main icon URL (custom or default)
@@ -482,6 +510,26 @@ class CWP_Chat_Bubbles_Settings {
     }
 
     /**
+     * Get the default advanced appearance settings.
+     *
+     * @return array<string, mixed> Default appearance settings.
+     * @since 1.0.3
+     */
+    private function get_default_appearance_settings() {
+        return array(
+            'bubble_size' => 60,
+            'panel_width' => 200,
+            'panel_radius' => 10,
+            'modal_width' => 300,
+            'modal_radius' => 10,
+            'item_padding_y' => 5,
+            'item_padding_x' => 10,
+            'label_text_color' => '#333333',
+            'z_index' => 1000,
+        );
+    }
+
+    /**
      * Normalize stored options so older installs expose the latest schema.
      *
      * @param array $options Raw stored options.
@@ -494,6 +542,7 @@ class CWP_Chat_Bubbles_Settings {
         $normalized['load_on_mobile'] = $normalized['device_visibility']['mobile'];
         $normalized['behavior'] = $this->normalize_behavior_settings($options);
         $normalized['schedule'] = $this->normalize_schedule_settings($options);
+        $normalized['appearance'] = $this->normalize_appearance_settings($options);
 
         return $normalized;
     }
@@ -753,6 +802,63 @@ class CWP_Chat_Bubbles_Settings {
             'fri' => 'Friday',
             'sat' => 'Saturday',
             'sun' => 'Sunday',
+        );
+    }
+
+    /**
+     * Normalize appearance settings from stored options.
+     *
+     * @param array $options Raw stored options.
+     * @return array<string, mixed> Normalized appearance settings.
+     * @since 1.0.3
+     */
+    private function normalize_appearance_settings($options) {
+        $defaults = $this->get_default_appearance_settings();
+
+        if (!is_array($options) || !isset($options['appearance']) || !is_array($options['appearance'])) {
+            return $defaults;
+        }
+
+        return $this->sanitize_appearance_settings(
+            array(
+                'appearance' => $options['appearance'],
+            )
+        );
+    }
+
+    /**
+     * Sanitize appearance settings from submitted options.
+     *
+     * @param array $options Raw submitted options.
+     * @return array<string, mixed> Sanitized appearance settings.
+     * @since 1.0.3
+     */
+    private function sanitize_appearance_settings($options) {
+        $defaults = $this->get_default_appearance_settings();
+
+        if (!is_array($options) || !isset($options['appearance']) || !is_array($options['appearance'])) {
+            return $defaults;
+        }
+
+        $appearance = $options['appearance'];
+        $label_text_color = isset($appearance['label_text_color'])
+            ? sanitize_hex_color($appearance['label_text_color'])
+            : $defaults['label_text_color'];
+
+        if (empty($label_text_color)) {
+            $label_text_color = $defaults['label_text_color'];
+        }
+
+        return array(
+            'bubble_size' => max(48, min(96, (int) ($appearance['bubble_size'] ?? $defaults['bubble_size']))),
+            'panel_width' => max(160, min(320, (int) ($appearance['panel_width'] ?? $defaults['panel_width']))),
+            'panel_radius' => max(0, min(24, (int) ($appearance['panel_radius'] ?? $defaults['panel_radius']))),
+            'modal_width' => max(240, min(420, (int) ($appearance['modal_width'] ?? $defaults['modal_width']))),
+            'modal_radius' => max(0, min(24, (int) ($appearance['modal_radius'] ?? $defaults['modal_radius']))),
+            'item_padding_y' => max(0, min(20, (int) ($appearance['item_padding_y'] ?? $defaults['item_padding_y']))),
+            'item_padding_x' => max(0, min(24, (int) ($appearance['item_padding_x'] ?? $defaults['item_padding_x']))),
+            'label_text_color' => $label_text_color,
+            'z_index' => max(100, min(99999, (int) ($appearance['z_index'] ?? $defaults['z_index']))),
         );
     }
 }

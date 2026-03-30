@@ -104,6 +104,7 @@ class CWP_Chat_Bubbles_Data_Service {
                 'device_visibility' => $this->settings->get_device_visibility(),
                 'behavior' => $this->settings->get_behavior_settings(),
                 'schedule' => $this->settings->get_schedule_settings(),
+                'appearance' => $this->settings->get_appearance_settings(),
             ),
             'support_icon' => $this->settings->get_main_icon_url(),
             'cancel_icon' => CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/cancel.svg'
@@ -243,6 +244,7 @@ class CWP_Chat_Bubbles_Data_Service {
             'device_visibility' => $this->settings->get_device_visibility(),
             'behavior' => $this->settings->get_behavior_settings(),
             'schedule' => $this->settings->get_schedule_settings(),
+            'appearance' => $this->settings->get_appearance_settings(),
         );
         
         return substr(md5(serialize($relevant_settings)), 0, 8);

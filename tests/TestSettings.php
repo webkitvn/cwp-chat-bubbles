@@ -42,6 +42,7 @@ class TestSettings extends TestCase {
         $this->assertArrayHasKey('device_visibility', $defaults);
         $this->assertArrayHasKey('behavior', $defaults);
         $this->assertArrayHasKey('schedule', $defaults);
+        $this->assertArrayHasKey('appearance', $defaults);
         $this->assertArrayHasKey('exclude_pages', $defaults);
         $this->assertArrayHasKey('offset_x', $defaults);
         $this->assertArrayHasKey('offset_y', $defaults);
@@ -85,6 +86,15 @@ class TestSettings extends TestCase {
         $this->assertFalse($defaults['schedule']['weekly_hours']['sun']['enabled']);
         $this->assertSame('09:00', $defaults['schedule']['weekly_hours']['mon']['open']);
         $this->assertSame('17:00', $defaults['schedule']['weekly_hours']['mon']['close']);
+        $this->assertSame(60, $defaults['appearance']['bubble_size']);
+        $this->assertSame(200, $defaults['appearance']['panel_width']);
+        $this->assertSame(10, $defaults['appearance']['panel_radius']);
+        $this->assertSame(300, $defaults['appearance']['modal_width']);
+        $this->assertSame(10, $defaults['appearance']['modal_radius']);
+        $this->assertSame(5, $defaults['appearance']['item_padding_y']);
+        $this->assertSame(10, $defaults['appearance']['item_padding_x']);
+        $this->assertSame('#333333', $defaults['appearance']['label_text_color']);
+        $this->assertSame(1000, $defaults['appearance']['z_index']);
         $this->assertEquals('', $defaults['custom_css']);
         $this->assertEquals(array(), $defaults['exclude_pages']);
         $this->assertEquals(0, $defaults['offset_x']);
@@ -132,6 +142,17 @@ class TestSettings extends TestCase {
                     ),
                 ),
             ),
+            'appearance' => array(
+                'bubble_size' => 72,
+                'panel_width' => 240,
+                'panel_radius' => 12,
+                'modal_width' => 320,
+                'modal_radius' => 14,
+                'item_padding_y' => 8,
+                'item_padding_x' => 14,
+                'label_text_color' => '#112233',
+                'z_index' => 2000,
+            ),
             'custom_css' => '.test { color: red; }',
             'exclude_pages' => array(1, 2, 3),
             'offset_x' => 20,
@@ -171,6 +192,15 @@ class TestSettings extends TestCase {
         $this->assertSame('08:30', $sanitized['schedule']['weekly_hours']['mon']['open']);
         $this->assertSame('18:00', $sanitized['schedule']['weekly_hours']['mon']['close']);
         $this->assertFalse($sanitized['schedule']['weekly_hours']['sun']['enabled']);
+        $this->assertSame(72, $sanitized['appearance']['bubble_size']);
+        $this->assertSame(240, $sanitized['appearance']['panel_width']);
+        $this->assertSame(12, $sanitized['appearance']['panel_radius']);
+        $this->assertSame(320, $sanitized['appearance']['modal_width']);
+        $this->assertSame(14, $sanitized['appearance']['modal_radius']);
+        $this->assertSame(8, $sanitized['appearance']['item_padding_y']);
+        $this->assertSame(14, $sanitized['appearance']['item_padding_x']);
+        $this->assertSame('#112233', $sanitized['appearance']['label_text_color']);
+        $this->assertSame(2000, $sanitized['appearance']['z_index']);
         $this->assertEquals('.test { color: red; }', $sanitized['custom_css']);
         $this->assertEquals(array(1, 2, 3), $sanitized['exclude_pages']);
         $this->assertEquals(20, $sanitized['offset_x']);
@@ -302,6 +332,8 @@ class TestSettings extends TestCase {
         $this->assertFalse($sanitized['schedule']['enabled']);
         $this->assertSame('', $sanitized['schedule']['timezone']);
         $this->assertSame('hide', $sanitized['schedule']['closed_behavior']);
+        $this->assertSame(60, $sanitized['appearance']['bubble_size']);
+        $this->assertSame('#333333', $sanitized['appearance']['label_text_color']);
     }
 
     /**
@@ -625,5 +657,65 @@ class TestSettings extends TestCase {
         $this->assertSame('hide', $this->settings->get_schedule_setting('closed_behavior'));
         $this->assertSame('07:00', $schedule['weekly_hours']['mon']['open']);
         $this->assertNull($this->settings->get_schedule_setting('missing_key'));
+    }
+
+    /**
+     * Test sanitize_options clamps and validates appearance settings.
+     */
+    public function test_sanitize_options_appearance_settings() {
+        $input = array(
+            'appearance' => array(
+                'bubble_size' => 10,
+                'panel_width' => 999,
+                'panel_radius' => -5,
+                'modal_width' => 999,
+                'modal_radius' => 999,
+                'item_padding_y' => -1,
+                'item_padding_x' => 99,
+                'label_text_color' => 'invalid-color',
+                'z_index' => 1000000,
+            ),
+        );
+
+        $sanitized = $this->settings->sanitize_options($input);
+
+        $this->assertSame(48, $sanitized['appearance']['bubble_size']);
+        $this->assertSame(320, $sanitized['appearance']['panel_width']);
+        $this->assertSame(0, $sanitized['appearance']['panel_radius']);
+        $this->assertSame(420, $sanitized['appearance']['modal_width']);
+        $this->assertSame(24, $sanitized['appearance']['modal_radius']);
+        $this->assertSame(0, $sanitized['appearance']['item_padding_y']);
+        $this->assertSame(24, $sanitized['appearance']['item_padding_x']);
+        $this->assertSame('#333333', $sanitized['appearance']['label_text_color']);
+        $this->assertSame(99999, $sanitized['appearance']['z_index']);
+    }
+
+    /**
+     * Test appearance helpers expose normalized values for runtime consumers.
+     */
+    public function test_appearance_helpers() {
+        global $mock_options;
+
+        $mock_options['cwp_chat_bubbles_options'] = array(
+            'appearance' => array(
+                'bubble_size' => 68,
+                'panel_width' => 220,
+                'panel_radius' => 16,
+                'modal_width' => 310,
+                'modal_radius' => 12,
+                'item_padding_y' => 7,
+                'item_padding_x' => 11,
+                'label_text_color' => '#445566',
+                'z_index' => 1500,
+            ),
+        );
+
+        $appearance = $this->settings->get_appearance_settings();
+
+        $this->assertSame(68, $appearance['bubble_size']);
+        $this->assertSame(220, $appearance['panel_width']);
+        $this->assertSame('#445566', $this->settings->get_appearance_setting('label_text_color'));
+        $this->assertSame(1500, $this->settings->get_appearance_setting('z_index'));
+        $this->assertNull($this->settings->get_appearance_setting('missing_key'));
     }
 }
