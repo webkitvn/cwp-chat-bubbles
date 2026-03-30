@@ -151,6 +151,7 @@ class CWP_Chat_Bubbles_Options_Page {
         $items = $this->items_manager->get_all_items();
         $supported_platforms = $this->items_manager->get_supported_platforms();
         $available_pages = $this->get_available_pages();
+        $available_post_types = $this->get_available_post_types();
         ?>
         <div class="wrap">
             <h1><?php esc_html_e('CWP Chat Bubbles Settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h1>
@@ -500,6 +501,159 @@ class CWP_Chat_Bubbles_Options_Page {
                                     <p class="description">
                                         <?php esc_html_e('Selected pages will not auto-load the bubble. Hold Command on macOS or Ctrl on Windows to select multiple pages.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                         <?php esc_html_e('These quick-win display rules remain migration-safe inputs for the future contextual targeting builder, so later rule work should map them instead of replacing the stored values.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Contextual Targeting', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <fieldset>
+                                        <legend class="screen-reader-text"><?php esc_html_e('Contextual targeting settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></legend>
+                                        <p style="margin-top: 0; margin-bottom: 16px;">
+                                            <label for="cwp-chat-bubbles-targeting-operator" style="display: block; font-weight: 600; margin-bottom: 6px;">
+                                                <?php esc_html_e('Rule matching mode', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                            </label>
+                                            <select id="cwp-chat-bubbles-targeting-operator" name="cwp_chat_bubbles_options[targeting][operator]">
+                                                <option value="all" <?php selected($options['targeting']['operator'], 'all'); ?>><?php esc_html_e('Match all populated rule buckets', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                                <option value="any" <?php selected($options['targeting']['operator'], 'any'); ?>><?php esc_html_e('Match any populated include bucket', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                            </select>
+                                        </p>
+                                        <table class="widefat striped" style="max-width: 900px; margin-bottom: 12px;">
+                                            <thead>
+                                                <tr>
+                                                    <th><?php esc_html_e('Rule type', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                                    <th><?php esc_html_e('Include', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                                    <th><?php esc_html_e('Exclude', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td style="vertical-align: top;">
+                                                        <strong><?php esc_html_e('Specific pages', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></strong>
+                                                        <p class="description" style="margin: 6px 0 0;">
+                                                            <?php esc_html_e('Use page IDs behind the scenes while giving editors readable page titles here.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                                        </p>
+                                                    </td>
+                                                    <td style="vertical-align: top;">
+                                                        <?php if (!empty($available_pages)) : ?>
+                                                            <select
+                                                                name="cwp_chat_bubbles_options[targeting][rules][pages][include][]"
+                                                                multiple
+                                                                size="<?php echo esc_attr(min(8, max(4, count($available_pages)))); ?>"
+                                                                style="min-width: 220px;"
+                                                            >
+                                                                <?php foreach ($available_pages as $page) : ?>
+                                                                    <option
+                                                                        value="<?php echo esc_attr($page->ID); ?>"
+                                                                        <?php selected(in_array((int) $page->ID, $options['targeting']['rules']['pages']['include'], true)); ?>
+                                                                    >
+                                                                        <?php echo esc_html($page->post_title ? $page->post_title : sprintf(__('Page #%d', CWP_CHAT_BUBBLES_TEXT_DOMAIN), (int) $page->ID)); ?>
+                                                                    </option>
+                                                                <?php endforeach; ?>
+                                                            </select>
+                                                        <?php else : ?>
+                                                            <p><?php esc_html_e('No pages are available yet.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td style="vertical-align: top;">
+                                                        <?php if (!empty($available_pages)) : ?>
+                                                            <select
+                                                                name="cwp_chat_bubbles_options[targeting][rules][pages][exclude][]"
+                                                                multiple
+                                                                size="<?php echo esc_attr(min(8, max(4, count($available_pages)))); ?>"
+                                                                style="min-width: 220px;"
+                                                            >
+                                                                <?php foreach ($available_pages as $page) : ?>
+                                                                    <option
+                                                                        value="<?php echo esc_attr($page->ID); ?>"
+                                                                        <?php selected(in_array((int) $page->ID, $options['targeting']['rules']['pages']['exclude'], true)); ?>
+                                                                    >
+                                                                        <?php echo esc_html($page->post_title ? $page->post_title : sprintf(__('Page #%d', CWP_CHAT_BUBBLES_TEXT_DOMAIN), (int) $page->ID)); ?>
+                                                                    </option>
+                                                                <?php endforeach; ?>
+                                                            </select>
+                                                        <?php else : ?>
+                                                            <p><?php esc_html_e('No pages are available yet.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="vertical-align: top;">
+                                                        <strong><?php esc_html_e('Post types', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></strong>
+                                                        <p class="description" style="margin: 6px 0 0;">
+                                                            <?php esc_html_e('Target broad content families such as pages, posts, or custom post types.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                                        </p>
+                                                    </td>
+                                                    <td style="vertical-align: top;">
+                                                        <?php if (!empty($available_post_types)) : ?>
+                                                            <select
+                                                                name="cwp_chat_bubbles_options[targeting][rules][post_types][include][]"
+                                                                multiple
+                                                                size="<?php echo esc_attr(min(8, max(4, count($available_post_types)))); ?>"
+                                                                style="min-width: 220px;"
+                                                            >
+                                                                <?php foreach ($available_post_types as $post_type) : ?>
+                                                                    <option
+                                                                        value="<?php echo esc_attr($post_type->name); ?>"
+                                                                        <?php selected(in_array($post_type->name, $options['targeting']['rules']['post_types']['include'], true)); ?>
+                                                                    >
+                                                                        <?php echo esc_html($post_type->labels->singular_name ?: $post_type->label ?: $post_type->name); ?>
+                                                                    </option>
+                                                                <?php endforeach; ?>
+                                                            </select>
+                                                        <?php else : ?>
+                                                            <p><?php esc_html_e('No public post types are available yet.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td style="vertical-align: top;">
+                                                        <?php if (!empty($available_post_types)) : ?>
+                                                            <select
+                                                                name="cwp_chat_bubbles_options[targeting][rules][post_types][exclude][]"
+                                                                multiple
+                                                                size="<?php echo esc_attr(min(8, max(4, count($available_post_types)))); ?>"
+                                                                style="min-width: 220px;"
+                                                            >
+                                                                <?php foreach ($available_post_types as $post_type) : ?>
+                                                                    <option
+                                                                        value="<?php echo esc_attr($post_type->name); ?>"
+                                                                        <?php selected(in_array($post_type->name, $options['targeting']['rules']['post_types']['exclude'], true)); ?>
+                                                                    >
+                                                                        <?php echo esc_html($post_type->labels->singular_name ?: $post_type->label ?: $post_type->name); ?>
+                                                                    </option>
+                                                                <?php endforeach; ?>
+                                                            </select>
+                                                        <?php else : ?>
+                                                            <p><?php esc_html_e('No public post types are available yet.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <table class="widefat striped" style="max-width: 900px;">
+                                            <thead>
+                                                <tr>
+                                                    <th><?php esc_html_e('Special page', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                                    <th><?php esc_html_e('Behavior', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($this->get_targeting_special_page_labels() as $special_key => $special_label) : ?>
+                                                    <tr>
+                                                        <td><strong><?php echo esc_html($special_label); ?></strong></td>
+                                                        <td>
+                                                            <select name="cwp_chat_bubbles_options[targeting][rules][special_pages][<?php echo esc_attr($special_key); ?>]">
+                                                                <option value="ignore" <?php selected($options['targeting']['rules']['special_pages'][ $special_key ], 'ignore'); ?>><?php esc_html_e('Ignore', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                                                <option value="include" <?php selected($options['targeting']['rules']['special_pages'][ $special_key ], 'include'); ?>><?php esc_html_e('Always include', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                                                <option value="exclude" <?php selected($options['targeting']['rules']['special_pages'][ $special_key ], 'exclude'); ?>><?php esc_html_e('Always exclude', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    </fieldset>
+                                    <p class="description">
+                                        <?php esc_html_e('This future-ready rule set is stored separately from the legacy quick-win page exclusion controls above. Use Command on macOS or Ctrl on Windows to select multiple items.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                     </p>
                                 </td>
                             </tr>
@@ -889,6 +1043,39 @@ class CWP_Chat_Bubbles_Options_Page {
     }
 
     /**
+     * Get a stable list of public post types for contextual targeting controls.
+     *
+     * @return array Available public post type objects.
+     * @since 1.0.3
+     */
+    private function get_available_post_types() {
+        $post_types = get_post_types(
+            array(
+                'public' => true,
+            ),
+            'objects'
+        );
+
+        if (!is_array($post_types)) {
+            return array();
+        }
+
+        unset($post_types['attachment']);
+
+        uasort(
+            $post_types,
+            function ($left, $right) {
+                $left_label = $left->labels->singular_name ?: $left->label ?: $left->name;
+                $right_label = $right->labels->singular_name ?: $right->label ?: $right->name;
+
+                return strcasecmp($left_label, $right_label);
+            }
+        );
+
+        return $post_types;
+    }
+
+    /**
      * Get weekday labels for the schedule table.
      *
      * @return array<string, string> Day labels keyed by day slug.
@@ -903,6 +1090,22 @@ class CWP_Chat_Bubbles_Options_Page {
             'fri' => __('Friday', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
             'sat' => __('Saturday', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
             'sun' => __('Sunday', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+        );
+    }
+
+    /**
+     * Get display labels for special-page contextual targeting controls.
+     *
+     * @return array<string, string> Special-page labels keyed by slug.
+     * @since 1.0.3
+     */
+    private function get_targeting_special_page_labels() {
+        return array(
+            'front_page' => __('Front page', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+            'blog_index' => __('Blog index', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+            'search' => __('Search results', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+            '404' => __('404 pages', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+            'archive' => __('Archive views', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
         );
     }
 

@@ -46,6 +46,11 @@ The plugin settings screen is organized into four tabs:
 - The long-term migration contract for contextual targeting is documented in [`docs/display-rules-migration.md`](docs/display-rules-migration.md).
 - The normalized contextual targeting option schema itself is documented in [`docs/contextual-targeting-schema.md`](docs/contextual-targeting-schema.md).
 
+### Contextual Targeting
+- Admin users can now define future-ready include and exclude rules for specific pages and public post types.
+- Named special-page contexts such as the front page, blog index, search results, archives, and 404 views use explicit `ignore/include/exclude` values instead of loose booleans.
+- This UI saves into the normalized `targeting` schema and remains separate from the legacy quick-win page exclusion controls until runtime precedence is implemented.
+
 ### Appearance
 These controls feed the plugin CSS-variable layer:
 
