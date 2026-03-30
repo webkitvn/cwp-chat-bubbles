@@ -145,6 +145,7 @@ class CWP_Chat_Bubbles_Assets {
 
         // WordPress media library for QR code uploads
         wp_enqueue_media();
+        add_thickbox();
 
         // WordPress color picker
         wp_enqueue_style('wp-color-picker');
@@ -170,7 +171,7 @@ class CWP_Chat_Bubbles_Assets {
             wp_enqueue_script(
                 'cwp-chat-bubbles-admin',
                 $admin_js,
-                array('jquery', 'wp-color-picker', 'jquery-ui-sortable', 'media-upload'),
+                array('jquery', 'wp-color-picker', 'jquery-ui-sortable', 'media-upload', 'thickbox'),
                 $this->get_file_version('admin/js/admin.js'),
                 true
             );

@@ -2,7 +2,9 @@
 
 // CSS Variables
 :root {
-  --cwp-drag-primary: #2271b1;
+  --cwp-drag-primary: var(--wp-admin-theme-color);
+  --cwp-drag-primary-darker: var(--wp-admin-theme-color-darker-10);
+  --cwp-drag-primary-darkest: var(--wp-admin-theme-color-darker-20);
   --cwp-drag-success: #46b450;
   --cwp-drag-warning: #ffb900;
   --cwp-drag-danger: #d63638;
@@ -86,7 +88,7 @@
 
   &:hover {
     color: var(--cwp-drag-primary);
-    background: rgba(34, 113, 177, 0.1);
+    background: color-mix(in srgb, var(--cwp-drag-primary) 12%, transparent);
   }
 
   &:active {
@@ -244,126 +246,104 @@
       border-color: var(--cwp-drag-primary);
 
       &:hover {
-        background: #1e5f8f;
-        border-color: #1e5f8f;
+        background: var(--cwp-drag-primary-darker);
+        border-color: var(--cwp-drag-primary-darker);
       }
     }
   }
 }
 
-// Modal Styles
-.cwp-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 999999;
-  display: none;
-
-  &.active {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .cwp-modal-content {
-    background: #fff;
-    border-radius: 8px;
+#TB_window.cwp-item-modal {
+  #TB_ajaxContent {
+    box-sizing: border-box;
+    width: 100% !important;
+    height: auto !important;
+    max-height: calc(100vh - 140px);
     padding: 0;
-    width: 90%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
-    position: relative;
-    padding: 2rem;
-    .cwp-modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0;
-      border-bottom: 1px solid #e2e4e7;
-      padding-bottom: var(--cwp-space-md);
+  }
+}
 
-      h2, h3 {
-        margin: 0;
-        font-size: 20px;
-      }
+.cwp-item-thickbox {
+  padding: var(--cwp-space-lg);
 
-      .cwp-modal-close {
-        background: none;
-        border: none;
-        font-size: 24px;
-        cursor: pointer;
-        color: var(--cwp-drag-neutral);
-        padding: 0;
-        width: 30px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 4px;
+  h2 {
+    margin: 0 0 var(--cwp-space-lg);
+    padding-bottom: var(--cwp-space-md);
+    border-bottom: 1px solid #e2e4e7;
+  }
 
-        &:hover {
-          background: #f0f0f0;
-          color: var(--cwp-drag-danger);
-        }
-      }
+  .form-table {
+    margin-top: 0;
+  }
+
+  input,
+  select,
+  textarea {
+    &:focus {
+      border-color: var(--cwp-drag-primary);
+      box-shadow: 0 0 0 1px var(--cwp-drag-primary);
     }
 
-    .cwp-modal-body {
-      .form-field {
-        margin-bottom: var(--cwp-space-lg);
-
-        label {
-          display: block;
-          margin-bottom: var(--cwp-space-xs);
-          font-weight: 600;
-        }
-
-        input,
-        select,
-        textarea {
-          width: 100%;
-          padding: 8px 12px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-
-          &:focus {
-            border-color: var(--cwp-drag-primary);
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.1);
-          }
-
-          &.error {
-            border-color: var(--cwp-drag-danger);
-          }
-        }
-
-        .field-description {
-          font-size: 12px;
-          color: var(--cwp-drag-neutral);
-          margin-top: var(--cwp-space-xs);
-        }
-
-        .field-error {
-          color: var(--cwp-drag-danger);
-          font-size: 12px;
-          margin-top: var(--cwp-space-xs);
-        }
-      }
-    }
-
-    .cwp-modal-footer {
-      display: flex;
-      gap: var(--cwp-space-sm);
-      justify-content: flex-end;
-      margin-top: 0;
-      padding-top: var(--cwp-space-md);
-      border-top: 1px solid #e2e4e7;
+    &.error {
+      border-color: var(--cwp-drag-danger);
     }
   }
+}
+
+.cwp-modal-footer {
+  display: flex;
+  gap: var(--cwp-space-sm);
+  justify-content: flex-end;
+  margin-top: var(--cwp-space-lg);
+  padding-top: var(--cwp-space-md);
+  border-top: 1px solid #e2e4e7;
+}
+
+.cwp-settings-submit {
+  margin-top: var(--cwp-space-lg);
+}
+
+.cwp-main-icon-preview {
+  --cwp-preview-color: #52ba00;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 64px;
+  height: 64px;
+  margin-top: 10px;
+  border-radius: 50%;
+  background-color: var(--cwp-preview-color);
+
+  img {
+    width: 80%;
+    height: auto;
+  }
+}
+
+.cwp-qr-preview-image {
+  display: block;
+  max-width: 150px;
+  height: auto;
+  border: 1px solid #ddd;
+}
+
+.cwp-input-suffix {
+  color: #666;
+}
+
+.cwp-item-status-icon {
+  &.is-enabled {
+    color: var(--cwp-drag-success);
+  }
+
+  &.is-disabled {
+    color: var(--cwp-drag-danger);
+  }
+}
+
+.error-message {
+  margin-top: 4px;
+  color: var(--cwp-drag-danger);
 }
 
 // Screen Reader Text
@@ -453,14 +433,9 @@
     gap: var(--cwp-space-sm);
   }
 
-  .cwp-modal .cwp-modal-content {
-    width: 95%;
-    padding: var(--cwp-space-lg);
-
-    .cwp-modal-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: var(--cwp-space-sm);
-    }
+  #TB_window.cwp-item-modal {
+    margin-left: 0 !important;
+    left: 2.5% !important;
+    width: 95% !important;
   }
-} 
+}

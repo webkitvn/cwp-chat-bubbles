@@ -15,6 +15,7 @@
 (function($) {
     'use strict';
 
+    const ACTIVE_TAB_KEY = 'cwpChatBubblesActiveTab';
     let mediaUploader = null;
 
     function init() {
@@ -31,37 +32,72 @@
     function initTabs() {
         $('.nav-tab').on('click', function(e) {
             e.preventDefault();
-
-            const targetTab = $(this).attr('href');
-
-            $('.nav-tab').removeClass('nav-tab-active');
-            $(this).addClass('nav-tab-active');
-
-            $('.tab-content').hide();
-            $(targetTab).show();
+            activateTab($(this).attr('href'));
         });
+
+        if (window.location.hash && $(window.location.hash).hasClass('tab-content')) {
+            activateTab(window.location.hash);
+            return;
+        }
+
+        const storedTab = window.sessionStorage ? window.sessionStorage.getItem(ACTIVE_TAB_KEY) : '';
+        if (storedTab && $(storedTab).hasClass('tab-content')) {
+            activateTab(storedTab);
+        }
+    }
+
+    function activateTab(targetTab) {
+        if (!targetTab || !$(targetTab).length) {
+            return;
+        }
+
+        $('.nav-tab').removeClass('nav-tab-active');
+        $(`.nav-tab[href="${targetTab}"]`).addClass('nav-tab-active');
+
+        $('.tab-content').hide();
+        $(targetTab).show();
+
+        if (window.sessionStorage) {
+            window.sessionStorage.setItem(ACTIVE_TAB_KEY, targetTab);
+        }
     }
 
     function initModal() {
-        $('#add-new-item').on('click', function() {
+        $('#add-new-item, #cwp-header-add-item').on('click', function(e) {
+            e.preventDefault();
+            activateTab('#chat-items');
             resetModalForm();
             $('#modal-title').text('Add New Item');
-            $('#cwp-item-modal').addClass('active');
+            openItemModal('Add New Item');
         });
 
-        $('.cwp-modal-close, #cancel-item').on('click', function() {
-            $('#cwp-item-modal').removeClass('active');
+        $('#cancel-item').on('click', function(e) {
+            e.preventDefault();
+            resetModalForm();
+            closeItemModal();
         });
 
-        $('#cwp-item-modal').on('click', function(e) {
-            if (e.target === this) {
-                $(this).removeClass('active');
-            }
+        $(document).on('click', '#TB_closeWindowButton', function() {
+            resetModalForm();
         });
 
         $('#platform').on('change', function() {
             updateContactFieldForPlatform($(this).val());
         });
+    }
+
+    function openItemModal(title) {
+        if (typeof window.tb_show === 'function') {
+            window.tb_show(title, '#TB_inline?width=720&height=640&inlineId=cwp-item-modal-inline');
+            $('#TB_window').addClass('cwp-item-modal');
+        }
+    }
+
+    function closeItemModal() {
+        if (typeof window.tb_remove === 'function') {
+            $('#TB_window').removeClass('cwp-item-modal');
+            window.tb_remove();
+        }
     }
 
     function initSortable() {
@@ -82,6 +118,13 @@
     }
 
     function initFormHandling() {
+        $('form[action="options.php"]').on('submit', function() {
+            const activeTab = $('.nav-tab.nav-tab-active').attr('href');
+            if (activeTab && window.sessionStorage) {
+                window.sessionStorage.setItem(ACTIVE_TAB_KEY, activeTab);
+            }
+        });
+
         $('#save-item').on('click', function() {
             saveItem();
         });
@@ -222,7 +265,7 @@
             if (qrCodeId && qrCodeId > 0) {
                 const $info = $item.find('.cwp-item-info');
                 if (!$info.find('.dashicons-format-image').length) {
-                    $info.append('<br><span class="dashicons dashicons-format-image" title="Has QR Code" style="color: #0073aa;"></span>');
+                    $info.append('<br><span class="dashicons dashicons-format-image" title="Has QR Code"></span>');
                 }
             }
         });
@@ -358,10 +401,7 @@
         const $field = $('#' + fieldId);
         removeFieldError(fieldId);
 
-        const $error = $('<div class="error-message"></div>').text(message).css({
-            color: '#d63638',
-            'margin-top': '4px'
-        });
+        const $error = $('<div class="error-message"></div>').text(message);
 
         $field.after($error);
         $field.addClass('error');
@@ -406,7 +446,7 @@
             clearQRCodePreview();
         }
 
-        $('#cwp-item-modal').addClass('active');
+        openItemModal('Edit Item');
     }
 
     function deleteItem(itemId) {
@@ -444,8 +484,8 @@
             .then((response) => {
                 if (response.success) {
                     refreshItemsList(response.data.items_html);
-                    $('#cwp-item-modal').removeClass('active');
                     resetModalForm();
+                    closeItemModal();
                 } else {
                     alert(response.data || 'Failed to save item.');
                 }
@@ -503,7 +543,7 @@
 
     function setQRCodePreview(attachmentId, imageUrl) {
         $('#qr-code-id').val(attachmentId);
-        $('#qr-preview').html(`<img src="${imageUrl}" alt="QR code preview" style="max-width: 150px; height: auto; border: 1px solid #ddd;">`);
+        $('#qr-preview').html(`<img src="${imageUrl}" alt="QR code preview" class="cwp-qr-preview-image">`);
         $('#upload-qr-code').text('Change QR Code');
         $('#remove-qr-code').show();
     }
@@ -516,7 +556,7 @@
     }
 
     function updateMainIconPreviewColor(color) {
-        $('#main-icon-preview').css('background-color', color);
+        $('#main-icon-preview').css('--cwp-preview-color', color);
     }
 
     function sendAjaxRequest(action, data = {}) {
