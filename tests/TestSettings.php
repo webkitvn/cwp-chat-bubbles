@@ -39,6 +39,7 @@ class TestSettings extends TestCase {
         $this->assertArrayHasKey('show_labels', $defaults);
         $this->assertArrayHasKey('custom_css', $defaults);
         $this->assertArrayHasKey('load_on_mobile', $defaults);
+        $this->assertArrayHasKey('device_visibility', $defaults);
         $this->assertArrayHasKey('exclude_pages', $defaults);
         $this->assertArrayHasKey('offset_x', $defaults);
         $this->assertArrayHasKey('offset_y', $defaults);
@@ -58,6 +59,14 @@ class TestSettings extends TestCase {
         $this->assertTrue($defaults['animation_enabled']);
         $this->assertTrue($defaults['show_labels']);
         $this->assertTrue($defaults['load_on_mobile']);
+        $this->assertEquals(
+            array(
+                'desktop' => true,
+                'tablet' => true,
+                'mobile' => true,
+            ),
+            $defaults['device_visibility']
+        );
         $this->assertEquals('', $defaults['custom_css']);
         $this->assertEquals(array(), $defaults['exclude_pages']);
         $this->assertEquals(0, $defaults['offset_x']);
@@ -77,6 +86,11 @@ class TestSettings extends TestCase {
             'animation_enabled' => true,
             'show_labels' => true,
             'load_on_mobile' => true,
+            'device_visibility' => array(
+                'desktop' => true,
+                'tablet' => false,
+                'mobile' => true,
+            ),
             'custom_css' => '.test { color: red; }',
             'exclude_pages' => array(1, 2, 3),
             'offset_x' => 20,
@@ -93,6 +107,14 @@ class TestSettings extends TestCase {
         $this->assertTrue($sanitized['animation_enabled']);
         $this->assertTrue($sanitized['show_labels']);
         $this->assertTrue($sanitized['load_on_mobile']);
+        $this->assertEquals(
+            array(
+                'desktop' => true,
+                'tablet' => false,
+                'mobile' => true,
+            ),
+            $sanitized['device_visibility']
+        );
         $this->assertEquals('.test { color: red; }', $sanitized['custom_css']);
         $this->assertEquals(array(1, 2, 3), $sanitized['exclude_pages']);
         $this->assertEquals(20, $sanitized['offset_x']);
@@ -204,6 +226,14 @@ class TestSettings extends TestCase {
         $this->assertFalse($sanitized['animation_enabled']);
         $this->assertFalse($sanitized['show_labels']);
         $this->assertFalse($sanitized['load_on_mobile']);
+        $this->assertEquals(
+            array(
+                'desktop' => true,
+                'tablet' => true,
+                'mobile' => false,
+            ),
+            $sanitized['device_visibility']
+        );
     }
 
     /**
@@ -336,5 +366,82 @@ class TestSettings extends TestCase {
         $sanitized = $this->settings->sanitize_options($input);
 
         $this->assertEquals(100, $sanitized['custom_main_icon']);
+    }
+
+    /**
+     * Test sanitize_options keeps legacy mobile flag and defaults other devices on old forms
+     */
+    public function test_sanitize_options_migrates_legacy_mobile_visibility() {
+        $input = array(
+            'load_on_mobile' => false,
+        );
+
+        $sanitized = $this->settings->sanitize_options($input);
+
+        $this->assertFalse($sanitized['load_on_mobile']);
+        $this->assertEquals(
+            array(
+                'desktop' => true,
+                'tablet' => true,
+                'mobile' => false,
+            ),
+            $sanitized['device_visibility']
+        );
+    }
+
+    /**
+     * Test get_options normalizes legacy stored options with the new device schema
+     */
+    public function test_get_options_normalizes_legacy_device_visibility() {
+        global $mock_options;
+
+        $mock_options['cwp_chat_bubbles_options'] = array(
+            'enabled' => true,
+            'load_on_mobile' => false,
+            'custom_css' => '.legacy { color: blue; }',
+            'exclude_pages' => array(12, 34),
+        );
+
+        $options = $this->settings->get_options();
+
+        $this->assertFalse($options['load_on_mobile']);
+        $this->assertEquals(
+            array(
+                'desktop' => true,
+                'tablet' => true,
+                'mobile' => false,
+            ),
+            $options['device_visibility']
+        );
+        $this->assertEquals('.legacy { color: blue; }', $options['custom_css']);
+        $this->assertEquals(array(12, 34), $options['exclude_pages']);
+    }
+
+    /**
+     * Test helper methods expose stable device visibility accessors
+     */
+    public function test_device_visibility_helpers() {
+        global $mock_options;
+
+        $mock_options['cwp_chat_bubbles_options'] = array(
+            'device_visibility' => array(
+                'desktop' => true,
+                'tablet' => false,
+                'mobile' => false,
+            ),
+        );
+
+        $this->assertEquals(
+            array(
+                'desktop' => true,
+                'tablet' => false,
+                'mobile' => false,
+            ),
+            $this->settings->get_device_visibility()
+        );
+        $this->assertFalse($this->settings->should_load_on_mobile());
+        $this->assertFalse($this->settings->is_device_enabled('tablet'));
+        $this->assertTrue($this->settings->is_device_enabled('desktop'));
+        $this->assertFalse($this->settings->get_option('device_visibility.mobile', true));
     }
 }

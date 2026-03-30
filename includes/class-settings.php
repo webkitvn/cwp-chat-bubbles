@@ -97,6 +97,7 @@ class CWP_Chat_Bubbles_Settings {
             // Advanced settings
             'custom_css' => '',
             'load_on_mobile' => true,
+            'device_visibility' => $this->get_default_device_visibility(),
             'exclude_pages' => array()
         );
     }
@@ -184,9 +185,8 @@ class CWP_Chat_Bubbles_Settings {
             $sanitized['custom_css'] = $css;
         }
             
-        $sanitized['load_on_mobile'] = isset($options['load_on_mobile'])
-            ? (bool) $options['load_on_mobile']
-            : false;
+        $sanitized['device_visibility'] = $this->sanitize_device_visibility($options);
+        $sanitized['load_on_mobile'] = $sanitized['device_visibility']['mobile'];
 
         // Sanitize exclude pages
         $sanitized['exclude_pages'] = array();
@@ -206,7 +206,13 @@ class CWP_Chat_Bubbles_Settings {
      * @since 1.0.0
      */
     public function get_options() {
-        return get_option($this->option_name, $this->get_default_options());
+        $options = get_option($this->option_name, $this->get_default_options());
+
+        if (!is_array($options)) {
+            return $this->get_default_options();
+        }
+
+        return $this->normalize_options($options);
     }
 
     /**
@@ -312,6 +318,41 @@ class CWP_Chat_Bubbles_Settings {
     }
 
     /**
+     * Get normalized device visibility settings.
+     *
+     * @return array<string, bool> Device visibility map
+     * @since 1.0.3
+     */
+    public function get_device_visibility() {
+        return $this->get_option('device_visibility', $this->get_default_device_visibility());
+    }
+
+    /**
+     * Check whether chat bubbles should be shown for a device type.
+     *
+     * @param string $device Device key.
+     * @return bool Whether the device is enabled.
+     * @since 1.0.3
+     */
+    public function is_device_enabled($device) {
+        $visibility = $this->get_device_visibility();
+
+        return array_key_exists($device, $visibility)
+            ? (bool) $visibility[$device]
+            : true;
+    }
+
+    /**
+     * Check whether chat bubbles should load on mobile devices.
+     *
+     * @return bool Whether mobile visibility is enabled.
+     * @since 1.0.3
+     */
+    public function should_load_on_mobile() {
+        return $this->is_device_enabled('mobile');
+    }
+
+    /**
      * Get main icon URL
      *
      * @return string Main icon URL (custom or default)
@@ -329,4 +370,101 @@ class CWP_Chat_Bubbles_Settings {
         
         return CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/support.svg';
     }
-} 
+
+    /**
+     * Get the default device visibility settings.
+     *
+     * @return array<string, bool> Default device visibility map.
+     * @since 1.0.3
+     */
+    private function get_default_device_visibility() {
+        return array(
+            'desktop' => true,
+            'tablet' => true,
+            'mobile' => true,
+        );
+    }
+
+    /**
+     * Normalize stored options so older installs expose the latest schema.
+     *
+     * @param array $options Raw stored options.
+     * @return array Normalized options.
+     * @since 1.0.3
+     */
+    private function normalize_options($options) {
+        $normalized = array_replace_recursive($this->get_default_options(), $options);
+        $normalized['device_visibility'] = $this->normalize_device_visibility($options);
+        $normalized['load_on_mobile'] = $normalized['device_visibility']['mobile'];
+
+        return $normalized;
+    }
+
+    /**
+     * Normalize device visibility from stored options while preserving legacy mobile behavior.
+     *
+     * @param array $options Raw stored options.
+     * @return array<string, bool> Normalized device visibility map.
+     * @since 1.0.3
+     */
+    private function normalize_device_visibility($options) {
+        $default_visibility = $this->get_default_device_visibility();
+
+        if (!is_array($options)) {
+            return $default_visibility;
+        }
+
+        $stored_visibility = isset($options['device_visibility']) && is_array($options['device_visibility'])
+            ? $options['device_visibility']
+            : array();
+
+        $normalized = array();
+        foreach ($default_visibility as $device => $default) {
+            if (array_key_exists($device, $stored_visibility)) {
+                $normalized[$device] = (bool) $stored_visibility[$device];
+                continue;
+            }
+
+            if ('mobile' === $device && array_key_exists('load_on_mobile', $options)) {
+                $normalized[$device] = (bool) $options['load_on_mobile'];
+                continue;
+            }
+
+            $normalized[$device] = $default;
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * Sanitize device visibility settings from submitted options.
+     *
+     * @param array $options Raw submitted options.
+     * @return array<string, bool> Sanitized device visibility map.
+     * @since 1.0.3
+     */
+    private function sanitize_device_visibility($options) {
+        $default_visibility = $this->get_default_device_visibility();
+
+        if (!is_array($options)) {
+            return $default_visibility;
+        }
+
+        if (!isset($options['device_visibility']) || !is_array($options['device_visibility'])) {
+            return array(
+                'desktop' => true,
+                'tablet' => true,
+                'mobile' => isset($options['load_on_mobile']) ? (bool) $options['load_on_mobile'] : false,
+            );
+        }
+
+        $sanitized = array();
+        foreach ($default_visibility as $device => $default) {
+            $sanitized[$device] = isset($options['device_visibility'][ $device ])
+                ? (bool) $options['device_visibility'][ $device ]
+                : false;
+        }
+
+        return $sanitized;
+    }
+}
