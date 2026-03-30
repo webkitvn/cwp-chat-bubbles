@@ -43,6 +43,7 @@ The plugin settings screen is organized into four tabs:
 - Desktop, tablet, and mobile visibility can be toggled independently.
 - Existing installs retain the legacy mobile behavior through the compatibility alias until the new settings are saved.
 - Selected excluded pages prevent auto-loading without affecting manual integration paths.
+- The long-term migration contract for contextual targeting is documented in [`docs/display-rules-migration.md`](docs/display-rules-migration.md).
 
 ### Appearance
 These controls feed the plugin CSS-variable layer:
@@ -118,6 +119,7 @@ Current automated coverage includes:
 
 - Settings normalization and sanitization for behavior, schedule, analytics, and appearance
 - Data-service exposure of runtime settings such as schedule and analytics
+- Display-rule migration contract helpers for future contextual targeting work
 - Frontend template markup contracts for accessibility and analytics-related data attributes
 
 ## Release Checklist

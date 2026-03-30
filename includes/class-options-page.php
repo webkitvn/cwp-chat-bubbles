@@ -499,6 +499,7 @@ class CWP_Chat_Bubbles_Options_Page {
                                     <?php endif; ?>
                                     <p class="description">
                                         <?php esc_html_e('Selected pages will not auto-load the bubble. Hold Command on macOS or Ctrl on Windows to select multiple pages.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        <?php esc_html_e('These quick-win display rules remain migration-safe inputs for the future contextual targeting builder, so later rule work should map them instead of replacing the stored values.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                     </p>
                                 </td>
                             </tr>

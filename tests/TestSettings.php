@@ -713,6 +713,44 @@ class TestSettings extends TestCase {
     }
 
     /**
+     * Test display-rules migration contract keeps quick-win fields and aliases explicit.
+     */
+    public function test_display_rules_migration_contract() {
+        global $mock_options;
+
+        $mock_options['cwp_chat_bubbles_options'] = array(
+            'load_on_mobile' => false,
+            'device_visibility' => array(
+                'desktop' => true,
+                'tablet' => false,
+                'mobile' => false,
+            ),
+            'exclude_pages' => array(12, 18),
+            'behavior' => array(
+                'default_state' => 'open',
+                'display_delay' => 4,
+                'scroll_trigger_percent' => 25,
+                'dismiss_for_session' => true,
+            ),
+            'schedule' => array(
+                'enabled' => true,
+                'timezone' => 'UTC',
+                'closed_behavior' => 'hide',
+            ),
+        );
+
+        $contract = $this->settings->get_display_rules_migration_contract();
+
+        $this->assertSame(1, $contract['schema_version']);
+        $this->assertSame('conditions.device_visibility.mobile', $contract['legacy_aliases']['load_on_mobile']);
+        $this->assertSame(array(12, 18), $contract['quick_win_fields']['exclude_pages']);
+        $this->assertFalse($contract['quick_win_fields']['device_visibility']['mobile']);
+        $this->assertSame('behavior', $contract['unified_targeting']['engagement']['source']);
+        $this->assertContains('analytics', $contract['unified_targeting']['non_targeting_fields']);
+        $this->assertSame('device_visibility', $contract['unified_targeting']['rule_groups'][0]['source']);
+    }
+
+    /**
      * Test sanitize_options clamps and validates appearance settings.
      */
     public function test_sanitize_options_appearance_settings() {

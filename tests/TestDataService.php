@@ -152,6 +152,45 @@ class TestDataService extends TestCase {
     }
 
     /**
+     * Test display-rules context exposes migration contract and runtime state.
+     */
+    public function test_display_rules_context_summarizes_runtime_state() {
+        global $mock_options;
+
+        $mock_options['cwp_chat_bubbles_options'] = array(
+            'auto_load' => true,
+            'device_visibility' => array(
+                'desktop' => true,
+                'tablet' => false,
+                'mobile' => true,
+            ),
+            'exclude_pages' => array(14, 21),
+            'schedule' => array(
+                'enabled' => true,
+                'timezone' => 'UTC',
+                'closed_behavior' => 'hide',
+                'weekly_hours' => array(
+                    'mon' => array(
+                        'enabled' => true,
+                        'open' => '09:00',
+                        'close' => '17:00',
+                    ),
+                ),
+            ),
+        );
+
+        $context = $this->data_service->get_display_rules_context(
+            new DateTimeImmutable('2026-03-30 10:00:00', new DateTimeZone('UTC'))
+        );
+
+        $this->assertSame('conditions.device_visibility.mobile', $context['contract']['legacy_aliases']['load_on_mobile']);
+        $this->assertTrue($context['runtime']['auto_load_enabled']);
+        $this->assertTrue($context['runtime']['has_visible_devices']);
+        $this->assertTrue($context['runtime']['schedule_allows_display']);
+        $this->assertSame(array(14, 21), $context['runtime']['excluded_pages']);
+    }
+
+    /**
      * Test schedule availability returns true when schedule logic is disabled.
      */
     public function test_schedule_allows_loading_when_disabled() {

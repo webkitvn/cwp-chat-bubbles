@@ -168,6 +168,28 @@ class CWP_Chat_Bubbles_Data_Service {
     }
 
     /**
+     * Get a migration-oriented view of the current display-rule state.
+     *
+     * This keeps the quick-win settings authoritative while giving future contextual targeting work a
+     * deterministic mapping and runtime snapshot to build from.
+     *
+     * @param DateTimeImmutable|null $current_time Optional override time for deterministic schedule checks.
+     * @return array<string, mixed> Display-rule contract plus runtime state.
+     * @since 1.0.3
+     */
+    public function get_display_rules_context($current_time = null) {
+        return array(
+            'contract' => $this->settings->get_display_rules_migration_contract(),
+            'runtime' => array(
+                'auto_load_enabled' => $this->settings->is_auto_load_enabled(),
+                'has_visible_devices' => $this->has_visible_devices(),
+                'schedule_allows_display' => $this->is_available_for_schedule($current_time),
+                'excluded_pages' => array_values(array_map('absint', (array) $this->settings->get_option('exclude_pages', array()))),
+            ),
+        );
+    }
+
+    /**
      * Check if should load on current page (unified logic)
      *
      * @return bool Whether to load on current page

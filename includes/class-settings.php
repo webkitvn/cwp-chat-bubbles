@@ -439,6 +439,68 @@ class CWP_Chat_Bubbles_Settings {
     }
 
     /**
+     * Get the migration contract from the current quick-win display settings to the future unified targeting model.
+     *
+     * This contract exists so follow-on display-rule work can map existing stored options into richer rule groups
+     * without renaming or replacing the current advanced-settings layer on the fly.
+     *
+     * @return array<string, mixed> Structured migration contract.
+     * @since 1.0.3
+     */
+    public function get_display_rules_migration_contract() {
+        return array(
+            'schema_version' => 1,
+            'legacy_aliases' => array(
+                'load_on_mobile' => 'conditions.device_visibility.mobile',
+            ),
+            'quick_win_fields' => array(
+                'device_visibility' => $this->get_device_visibility(),
+                'exclude_pages' => array_values(array_map('absint', (array) $this->get_option('exclude_pages', array()))),
+                'behavior' => $this->get_behavior_settings(),
+                'schedule' => $this->get_schedule_settings(),
+            ),
+            'unified_targeting' => array(
+                'rule_groups' => array(
+                    array(
+                        'type' => 'device_visibility',
+                        'mode' => 'allow',
+                        'source' => 'device_visibility',
+                    ),
+                    array(
+                        'type' => 'page',
+                        'mode' => 'exclude',
+                        'source' => 'exclude_pages',
+                    ),
+                    array(
+                        'type' => 'schedule',
+                        'mode' => 'allow_when_open',
+                        'source' => 'schedule',
+                    ),
+                ),
+                'engagement' => array(
+                    'source' => 'behavior',
+                    'keys' => array(
+                        'default_state',
+                        'display_delay',
+                        'scroll_trigger_percent',
+                        'dismiss_for_session',
+                    ),
+                ),
+                'non_targeting_fields' => array(
+                    'appearance',
+                    'analytics',
+                    'custom_css',
+                    'main_button_color',
+                    'show_labels',
+                    'offset_x',
+                    'offset_y',
+                    'custom_main_icon',
+                ),
+            ),
+        );
+    }
+
+    /**
      * Get normalized appearance settings.
      *
      * @return array<string, mixed> Appearance settings map.
