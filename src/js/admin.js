@@ -67,8 +67,8 @@
             e.preventDefault();
             activateTab('#chat-items');
             resetModalForm();
-            $('#modal-title').text('Add Chat Option');
-            openItemModal('Add Chat Option');
+            $('#modal-title').text('Add Contact Method');
+            openItemModal('Add Contact Method');
         });
 
         $('#cancel-item').on('click', function(e) {
@@ -279,7 +279,7 @@
 
         $(document).on('click', '.delete-item', function() {
             const itemId = $(this).data('item-id');
-            if (confirm('Delete this chat option? People will no longer see it in the chat bubble.')) {
+            if (confirm('Delete this contact method? People will no longer see it in the chat bubble.')) {
                 deleteItem(itemId);
             }
         });
@@ -310,7 +310,7 @@
         switch (config.contact_field) {
             case 'number':
                 fieldLabel = 'Phone Number';
-                description = 'Add the phone number people should use to contact you here.';
+                description = 'Add the phone number people should use to reach you here.';
                 break;
             case 'username':
                 fieldLabel = 'Username';
@@ -425,7 +425,7 @@
             return;
         }
 
-        $('#modal-title').text('Edit Chat Option');
+        $('#modal-title').text('Edit Contact Method');
         $('#item-id').val(itemId);
         $('#platform').val($item.data('platform'));
         $('#label').val($item.data('label'));
@@ -451,7 +451,7 @@
             clearQRCodePreview();
         }
 
-        openItemModal('Edit Chat Option');
+        openItemModal('Edit Contact Method');
     }
 
     function deleteItem(itemId) {
@@ -461,7 +461,7 @@
             if (response.success) {
                 refreshItemsList(response.data.items_html);
             } else {
-                alert(response.data || 'We could not delete this chat option. Try again.');
+                alert(response.data || 'We could not delete this contact method. Try again.');
             }
         });
     }
@@ -492,11 +492,11 @@
                     resetModalForm();
                     closeItemModal();
                 } else {
-                    alert(response.data || 'We could not save this chat option. Check your details and try again.');
+                    alert(response.data || 'We could not save this contact method. Check your details and try again.');
                 }
             })
             .finally(() => {
-                $saveButton.prop('disabled', false).text('Save Chat Option');
+                $saveButton.prop('disabled', false).text('Save Contact Method');
             });
     }
 
