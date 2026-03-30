@@ -50,13 +50,25 @@ async function buildJavaScript() {
   const startTime = Date.now();
   
   try {
-    const result = await build({
-      entryPoints: [resolve(__dirname, 'src/js/chat-bubble.js')],
+    const buildTargets = [
+      {
+        entryPoints: [resolve(__dirname, 'src/js/chat-bubble.js')],
+        outfile: resolve(__dirname, 'assets/js/chat-bubbles.min.js'),
+        globalName: 'CWPChatBubbles'
+      },
+      {
+        entryPoints: [resolve(__dirname, 'src/js/admin.js')],
+        outfile: resolve(__dirname, 'admin/js/admin.js')
+      }
+    ];
+
+    const results = await Promise.all(buildTargets.map((target) => build({
+      entryPoints: target.entryPoints,
       bundle: true,
-      outfile: resolve(__dirname, 'assets/js/chat-bubbles.min.js'),
+      outfile: target.outfile,
       format: 'iife', // WordPress compatible format
-      globalName: 'CWPChatBubbles',
-      target: ['es2018'], // Support IE11+ with transpilation
+      globalName: target.globalName,
+      target: ['es2018'],
       minify: config.minify,
       sourcemap: config.sourceMap ? 'linked' : false,
       define: {
@@ -67,25 +79,25 @@ async function buildJavaScript() {
           ? '/*! CWP Chat Bubbles - WordPress Plugin - https://github.com/cwp/cwp-chat-bubbles */'
           : '/* CWP Chat Bubbles - Development Build */'
       },
-      // WordPress compatibility settings
       platform: 'browser',
       charset: 'utf8',
       legalComments: config.minify ? 'none' : 'inline',
-      // Handle external dependencies if any are added later
       external: [],
-    });
+    })));
 
     const buildTime = Date.now() - startTime;
-    
-    if (result.errors.length > 0) {
+
+    const errors = results.flatMap((result) => result.errors);
+    if (errors.length > 0) {
       console.error('❌ JavaScript build errors:');
-      result.errors.forEach(error => console.error(error));
+      errors.forEach(error => console.error(error));
       return false;
     }
 
-    if (result.warnings.length > 0) {
+    const warnings = results.flatMap((result) => result.warnings);
+    if (warnings.length > 0) {
       console.warn('⚠️  JavaScript build warnings:');
-      result.warnings.forEach(warning => console.warn(warning));
+      warnings.forEach(warning => console.warn(warning));
     }
 
     console.log(`✅ JavaScript built in ${buildTime}ms`);

@@ -1,663 +1,538 @@
 /**
  * CWP Chat Bubbles Admin JavaScript
- * Modern ES6 implementation with vanilla JavaScript (no jQuery)
- * 
+ *
+ * Handles dynamic admin interface functionality including:
+ * - Tab switching
+ * - Add/Edit/Delete items
+ * - Drag and drop sorting
+ * - QR code uploads
+ * - Form validation
+ *
  * @package CWP_Chat_Bubbles
  * @since 1.0.0
  */
 
-// Admin module using ES6 class and arrow functions
-class CWPChatBubblesAdmin {
-    constructor() {
-        this.init();
+(function($) {
+    'use strict';
+
+    let mediaUploader = null;
+
+    function init() {
+        initTabs();
+        initModal();
+        initSortable();
+        initFormHandling();
+        initQRCodeUpload();
+        initMainIconUpload();
+        initQRCodePreviews();
+        bindEvents();
     }
 
-    // Initialize admin functionality
-    init = () => {
-        document.addEventListener('DOMContentLoaded', () => {
-            this.initTabs();
-            this.initModal();
-            this.initSortable();
-            this.initFormHandlers();
-            this.initMediaUploaders();
-            this.initColorPicker();
-            this.initItemActions();
+    function initTabs() {
+        $('.nav-tab').on('click', function(e) {
+            e.preventDefault();
+
+            const targetTab = $(this).attr('href');
+
+            $('.nav-tab').removeClass('nav-tab-active');
+            $(this).addClass('nav-tab-active');
+
+            $('.tab-content').hide();
+            $(targetTab).show();
         });
     }
 
-    // Tab navigation handler
-    initTabs = () => {
-        const tabLinks = document.querySelectorAll('.nav-tab');
-        const tabContents = document.querySelectorAll('.tab-content');
-
-        tabLinks.forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                e.preventDefault();
-                const targetTab = tab.getAttribute('href');
-
-                // Remove active class from all tabs
-                tabLinks.forEach(t => t.classList.remove('nav-tab-active'));
-                tab.classList.add('nav-tab-active');
-
-                // Hide all tab contents
-                tabContents.forEach(content => content.style.display = 'none');
-                
-                // Show target tab
-                const targetContent = document.querySelector(targetTab);
-                if (targetContent) {
-                    targetContent.style.display = 'block';
-                }
-            });
-        });
-    }
-
-    // Modal handlers
-    initModal = () => {
-        const addNewBtn = document.getElementById('add-new-item');
-        const modal = document.getElementById('cwp-item-modal');
-        const closeButtons = document.querySelectorAll('.cwp-modal-close, #cancel-item');
-
-        // Open modal
-        if (addNewBtn) {
-            addNewBtn.addEventListener('click', () => {
-                this.resetForm();
-                document.getElementById('modal-title').textContent = 'Add New Item';
-                modal.style.display = 'block';
-            });
-        }
-
-        // Close modal
-        closeButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                modal.style.display = 'none';
-            });
+    function initModal() {
+        $('#add-new-item').on('click', function() {
+            resetModalForm();
+            $('#modal-title').text('Add New Item');
+            $('#cwp-item-modal').addClass('active');
         });
 
-        // Close on background click
-        if (modal) {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.style.display = 'none';
-                }
-            });
-        }
-    }
-
-    // Sortable functionality (vanilla JS implementation)
-    initSortable = () => {
-        const sortableContainer = document.getElementById('sortable-items');
-        if (!sortableContainer) return;
-
-        let draggedElement = null;
-        let placeholder = null;
-
-        // Add drag attributes to all items
-        const items = sortableContainer.querySelectorAll('.cwp-item');
-        items.forEach(item => {
-            item.setAttribute('draggable', true);
-            this.addDragListeners(item);
+        $('.cwp-modal-close, #cancel-item').on('click', function() {
+            $('#cwp-item-modal').removeClass('active');
         });
 
-        // Add drag listeners to an item
-        this.addDragListeners = (item) => {
-            item.addEventListener('dragstart', (e) => {
-                draggedElement = item;
-                item.classList.add('cwp-dragging');
-                
-                // Create placeholder
-                placeholder = document.createElement('div');
-                placeholder.className = 'cwp-item-placeholder';
-                placeholder.style.height = item.offsetHeight + 'px';
-            });
-
-            item.addEventListener('dragend', () => {
-                item.classList.remove('cwp-dragging');
-                if (placeholder && placeholder.parentNode) {
-                    placeholder.parentNode.removeChild(placeholder);
-                }
-                draggedElement = null;
-                placeholder = null;
-
-                // Update order
-                this.updateItemsOrder();
-            });
-
-            item.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                if (draggedElement === item) return;
-
-                const container = item.parentNode;
-                const afterElement = this.getDragAfterElement(container, e.clientY);
-                
-                if (afterElement == null) {
-                    container.appendChild(placeholder);
-                } else {
-                    container.insertBefore(placeholder, afterElement);
-                }
-            });
-        };
-
-        // Get element after drag position
-        this.getDragAfterElement = (container, y) => {
-            const draggableElements = [...container.querySelectorAll('.cwp-item:not(.cwp-dragging)')];
-            
-            return draggableElements.reduce((closest, child) => {
-                const box = child.getBoundingClientRect();
-                const offset = y - box.top - box.height / 2;
-                
-                if (offset < 0 && offset > closest.offset) {
-                    return { offset: offset, element: child };
-                } else {
-                    return closest;
-                }
-            }, { offset: Number.NEGATIVE_INFINITY }).element;
-        };
-    }
-
-    // Update items order after drag
-    updateItemsOrder = () => {
-        const items = document.querySelectorAll('#sortable-items .cwp-item');
-        const orderedIds = Array.from(items).map(item => 
-            parseInt(item.getAttribute('data-item-id'))
-        );
-
-        if (orderedIds.length === 0) return;
-
-        // Send AJAX request to update order
-        this.sendAjaxRequest('reorder_items', {
-            ordered_ids: orderedIds
-        }).then(response => {
-            if (!response.success) {
-                console.error('Failed to update item order');
+        $('#cwp-item-modal').on('click', function(e) {
+            if (e.target === this) {
+                $(this).removeClass('active');
             }
         });
+
+        $('#platform').on('change', function() {
+            updateContactFieldForPlatform($(this).val());
+        });
     }
 
-    // Form handlers
-    initFormHandlers = () => {
-        const saveBtn = document.getElementById('save-item');
-        const form = document.getElementById('cwp-item-form');
-        const platformSelect = document.getElementById('platform');
+    function initSortable() {
+        if ($.fn.sortable) {
+            $('#sortable-items').sortable({
+                handle: '.cwp-item-drag',
+                placeholder: 'cwp-item-placeholder',
+                update: function() {
+                    const orderedIds = [];
+                    $('#sortable-items .cwp-item').each(function() {
+                        orderedIds.push($(this).data('item-id'));
+                    });
 
-        // Save item
-        if (saveBtn) {
-            saveBtn.addEventListener('click', () => {
-                this.saveItem();
+                    saveItemOrder(orderedIds);
+                }
             });
-        }
-
-        // Form submission
-        if (form) {
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.saveItem();
-            });
-        }
-
-        // Platform change
-        if (platformSelect) {
-            platformSelect.addEventListener('change', () => {
-                this.updateContactFieldForPlatform(platformSelect.value);
-            });
-        }
-
-        // Real-time validation
-        const labelField = document.getElementById('label');
-        const contactField = document.getElementById('contact-value');
-
-        if (labelField) {
-            labelField.addEventListener('input', () => this.validateField('label'));
-            labelField.addEventListener('blur', () => this.validateField('label'));
-        }
-
-        if (contactField) {
-            contactField.addEventListener('input', () => this.validateField('contact-value'));
-            contactField.addEventListener('blur', () => this.validateField('contact-value'));
         }
     }
 
-    // Media uploaders
-    initMediaUploaders = () => {
-        this.initQRCodeUploader();
-        this.initMainIconUploader();
+    function initFormHandling() {
+        $('#save-item').on('click', function() {
+            saveItem();
+        });
+
+        $('#cwp-item-form').on('submit', function(e) {
+            e.preventDefault();
+            saveItem();
+        });
+
+        $(document).on('change', '#platform', function() {
+            updateContactFieldForPlatform($(this).val());
+            validateContactValue();
+        });
+
+        $(document).on('input', '#label', function() {
+            validateLabel();
+        });
+
+        $(document).on('input', '#contact-value', function() {
+            validateContactValue();
+        });
     }
 
-    // QR Code uploader
-    initQRCodeUploader = () => {
-        const uploadBtn = document.getElementById('upload-qr-code');
-        const removeBtn = document.getElementById('remove-qr-code');
+    function initQRCodeUpload() {
+        $('#upload-qr-code').on('click', function(e) {
+            e.preventDefault();
 
-        if (uploadBtn) {
-            uploadBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                
-                const mediaUploader = wp.media({
-                    title: 'Select QR Code Image',
-                    button: { text: 'Use this image' },
-                    multiple: false,
-                    library: { type: 'image' }
-                });
-
-                mediaUploader.on('select', () => {
-                    const attachment = mediaUploader.state().get('selection').first().toJSON();
-                    this.setQRCodePreview(attachment.id, attachment.url);
-                });
-
+            if (mediaUploader) {
                 mediaUploader.open();
-            });
-        }
-
-        if (removeBtn) {
-            removeBtn.addEventListener('click', () => {
-                this.clearQRCodePreview();
-            });
-        }
-    }
-
-    // Main icon uploader
-    initMainIconUploader = () => {
-        const uploadBtn = document.getElementById('upload-main-icon');
-        const removeBtn = document.getElementById('remove-main-icon');
-
-        if (uploadBtn) {
-            uploadBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                
-                const mediaUploader = wp.media({
-                    title: 'Select Custom Main Icon',
-                    button: { text: 'Use this icon' },
-                    multiple: false,
-                    library: { type: 'image' }
-                });
-
-                mediaUploader.on('select', () => {
-                    const attachment = mediaUploader.state().get('selection').first().toJSON();
-                    this.setMainIconPreview(attachment.id, attachment.url);
-                });
-
-                mediaUploader.open();
-            });
-        }
-
-        if (removeBtn) {
-            removeBtn.addEventListener('click', () => {
-                this.clearMainIconPreview();
-            });
-        }
-    }
-
-    // Color picker handler
-    initColorPicker = () => {
-        const colorInput = document.querySelector('input[name="cwp_chat_bubbles_options[main_button_color]"]');
-        
-        if (colorInput) {
-            colorInput.addEventListener('input', (e) => {
-                this.updateMainIconPreviewColor(e.target.value);
-            });
-            
-            colorInput.addEventListener('change', (e) => {
-                this.updateMainIconPreviewColor(e.target.value);
-            });
-        }
-    }
-
-    // Item actions (edit/delete)
-    initItemActions = () => {
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('edit-item')) {
-                const itemId = parseInt(e.target.getAttribute('data-item-id'));
-                this.editItem(itemId);
+                return;
             }
-            
-            if (e.target.classList.contains('delete-item')) {
-                const itemId = parseInt(e.target.getAttribute('data-item-id'));
-                this.deleteItem(itemId);
+
+            mediaUploader = wp.media({
+                title: 'Select QR Code Image',
+                button: {
+                    text: 'Use this image'
+                },
+                multiple: false,
+                library: {
+                    type: 'image'
+                }
+            });
+
+            mediaUploader.on('select', function() {
+                const attachment = mediaUploader.state().get('selection').first().toJSON();
+                setQRCodePreview(attachment.id, attachment.url);
+            });
+
+            mediaUploader.open();
+        });
+
+        $('#remove-qr-code').on('click', function(e) {
+            e.preventDefault();
+            clearQRCodePreview();
+        });
+    }
+
+    function initMainIconUpload() {
+        $('#upload-main-icon').on('click', function(e) {
+            e.preventDefault();
+
+            const mainIconUploader = wp.media({
+                title: 'Select Custom Main Icon',
+                button: {
+                    text: 'Use this icon'
+                },
+                multiple: false,
+                library: {
+                    type: 'image'
+                }
+            });
+
+            mainIconUploader.on('select', function() {
+                const attachment = mainIconUploader.state().get('selection').first().toJSON();
+                setMainIconPreview(attachment.id, attachment.url);
+            });
+
+            mainIconUploader.open();
+        });
+
+        $('#remove-main-icon').on('click', function(e) {
+            e.preventDefault();
+            removeMainIconPreview();
+        });
+
+        $(document).on('change', 'input[name="cwp_chat_bubbles_options[main_button_color]"]', function() {
+            updateMainIconPreviewColor($(this).val());
+        });
+    }
+
+    function setMainIconPreview(attachmentId, imageUrl) {
+        $('#custom-main-icon').val(attachmentId);
+
+        const mainButtonColor = $('input[name="cwp_chat_bubbles_options[main_button_color]"]').val() || '#52BA00';
+
+        const $preview = $('#main-icon-preview');
+        $preview.css({
+            display: 'flex',
+            'justify-content': 'center',
+            'align-items': 'center',
+            'border-radius': '50%',
+            width: '64px',
+            height: '64px',
+            'background-color': mainButtonColor,
+            'margin-top': '10px'
+        });
+        $preview.html(`<img src="${imageUrl}" alt="Custom main icon preview" style="width: 80%; height: auto;">`);
+
+        $('#upload-main-icon').text('Change Custom Icon');
+        $('#remove-main-icon').show();
+    }
+
+    function removeMainIconPreview() {
+        $('#custom-main-icon').val(0);
+
+        const $preview = $('#main-icon-preview');
+        $preview.empty();
+        $preview.css({
+            display: '',
+            'justify-content': '',
+            'align-items': '',
+            'border-radius': '',
+            width: '',
+            height: '',
+            'background-color': '',
+            'margin-top': '10px'
+        });
+
+        $('#upload-main-icon').text('Upload Custom Icon');
+        $('#remove-main-icon').hide();
+    }
+
+    function initQRCodePreviews() {
+        $('.cwp-item[data-qr-code-id]').each(function() {
+            const $item = $(this);
+            const qrCodeId = $item.data('qr-code-id');
+
+            if (qrCodeId && qrCodeId > 0) {
+                const $info = $item.find('.cwp-item-info');
+                if (!$info.find('.dashicons-format-image').length) {
+                    $info.append('<br><span class="dashicons dashicons-format-image" title="Has QR Code" style="color: #0073aa;"></span>');
+                }
             }
         });
     }
 
-    // Platform contact field updater
-    updateContactFieldForPlatform = (platform) => {
-        const contactField = document.getElementById('contact-value');
-        const contactLabel = document.getElementById('contact-label');
-        const contactDescription = document.getElementById('contact-description');
+    function bindEvents() {
+        $(document).on('click', '.edit-item', function() {
+            const itemId = $(this).data('item-id');
+            editItem(itemId);
+        });
 
-        if (!contactField || !window.platformConfigs) return;
+        $(document).on('click', '.delete-item', function() {
+            const itemId = $(this).data('item-id');
+            if (confirm('Are you sure you want to delete this item?')) {
+                deleteItem(itemId);
+            }
+        });
+    }
 
-        const config = window.platformConfigs[platform];
-        if (!config) {
-            // Reset to default
-            contactLabel.textContent = 'Contact Info';
-            contactField.placeholder = '';
-            contactDescription.textContent = '';
+    function updateContactFieldForPlatform(platform) {
+        if (!platform || !window.platformConfigs || !window.platformConfigs[platform]) {
+            const $contactField = $('#contact-value');
+            const $contactLabel = $('#contact-label');
+            const $contactDescription = $('#contact-description');
+
+            $contactLabel.text('Contact Value');
+            $contactField.attr('placeholder', 'Enter contact information');
+            $contactDescription.text('Select a platform to see specific instructions.');
+            $contactField.attr('pattern', '');
             return;
         }
 
-        contactLabel.textContent = config.contact_label;
-        contactField.placeholder = config.placeholder;
-        contactDescription.textContent = config.description;
+        const config = window.platformConfigs[platform];
+        const $contactField = $('#contact-value');
+        const $contactLabel = $('#contact-label');
+        const $contactDescription = $('#contact-description');
+
+        $contactLabel.text(config.label + ' ' + config.contact_field.charAt(0).toUpperCase() + config.contact_field.slice(1));
+        $contactField.attr('placeholder', config.placeholder);
+
+        let description = '';
+        switch (config.contact_field) {
+            case 'number':
+                description = 'Enter the phone number or ID for this platform.';
+                break;
+            case 'username':
+                description = 'Enter the username (without @ symbol).';
+                break;
+            case 'id':
+                description = 'Enter the unique ID for this platform.';
+                break;
+        }
+        $contactDescription.text(description);
+
+        $contactField.attr('pattern', config.pattern ? config.pattern.slice(1, -1) : '');
     }
 
-    // Field validation
-    validateField = (fieldId) => {
-        const field = document.getElementById(fieldId);
-        if (!field) return true;
+    function validateContactValue() {
+        const platform = $('#platform').val();
+        const contactValue = $('#contact-value').val().trim();
 
-        this.removeFieldError(fieldId);
-
-        if (fieldId === 'label') {
-            return this.validateLabel();
-        }
-        
-        if (fieldId === 'contact-value') {
-            return this.validateContactValue();
+        if (!platform || !contactValue) {
+            return true;
         }
 
+        const config = window.platformConfigs[platform];
+        if (!config || !config.pattern) {
+            return true;
+        }
+
+        const regex = new RegExp(config.pattern.slice(1, -1));
+        const isValid = regex.test(contactValue);
+
+        if (!isValid) {
+            let errorMessage = 'Invalid format for this platform.';
+
+            switch (platform) {
+                case 'phone':
+                    errorMessage = 'Please enter a valid phone number (e.g., +1234567890 or 0123456789)';
+                    break;
+                case 'zalo':
+                    errorMessage = 'Please enter a valid Zalo phone number (9-11 digits, e.g., 0123456789)';
+                    break;
+                case 'zalo_oa':
+                    errorMessage = 'Please enter a valid Zalo OA ID or full OA URL.';
+                    break;
+                case 'whatsapp':
+                    errorMessage = 'Please enter a valid WhatsApp number with country code (e.g., 1234567890)';
+                    break;
+                case 'viber':
+                    errorMessage = 'Please enter a valid Viber phone number.';
+                    break;
+                case 'telegram':
+                    errorMessage = 'Please enter a valid Telegram username starting with a letter.';
+                    break;
+                case 'messenger':
+                    errorMessage = 'Please enter a valid Facebook Messenger username.';
+                    break;
+                case 'line':
+                    errorMessage = 'Please enter a valid Line ID.';
+                    break;
+                case 'kakaotalk':
+                    errorMessage = 'Please enter a valid KakaoTalk channel ID.';
+                    break;
+            }
+
+            showFieldError('contact-value', errorMessage);
+            return false;
+        }
+
+        removeFieldError('contact-value');
         return true;
     }
 
-    // Validate label field
-    validateLabel = () => {
-        const labelField = document.getElementById('label');
-        const label = labelField.value.trim();
+    function validateLabel() {
+        const label = $('#label').val().trim();
 
         if (label.length < 2) {
-            this.showFieldError('label', 'Label must be at least 2 characters long');
+            showFieldError('label', 'Label must be at least 2 characters long');
             return false;
         }
 
         if (label.length > 50) {
-            this.showFieldError('label', 'Label must be less than 50 characters');
+            showFieldError('label', 'Label must be 50 characters or fewer');
             return false;
         }
 
+        removeFieldError('label');
         return true;
     }
 
-    // Validate contact value
-    validateContactValue = () => {
-        const platform = document.getElementById('platform').value;
-        const contactValue = document.getElementById('contact-value').value.trim();
+    function showFieldError(fieldId, message) {
+        const $field = $('#' + fieldId);
+        removeFieldError(fieldId);
 
-        if (!platform || !contactValue) return false;
+        const $error = $('<div class="error-message"></div>').text(message).css({
+            color: '#d63638',
+            'margin-top': '4px'
+        });
 
-        const config = window.platformConfigs[platform];
-        if (!config) return false;
+        $field.after($error);
+        $field.addClass('error');
+    }
 
-        // Platform-specific validation
-        if (platform === 'phone' && !/^[+]?[0-9\-()\\s]+$/.test(contactValue)) {
-            this.showFieldError('contact-value', 'Please enter a valid phone number');
-            return false;
+    function removeFieldError(fieldId) {
+        const $field = $('#' + fieldId);
+        $field.removeClass('error');
+        $field.siblings('.error-message').remove();
+    }
+
+    function editItem(itemId) {
+        const $item = $(`.cwp-item[data-item-id="${itemId}"]`);
+
+        if (!$item.length) {
+            return;
         }
 
-        if (platform === 'whatsapp' && !/^[+]?[0-9]+$/.test(contactValue.replace(/\s/g, ''))) {
-            this.showFieldError('contact-value', 'WhatsApp number should contain only digits and +');
-            return false;
-        }
+        $('#modal-title').text('Edit Item');
+        $('#item-id').val(itemId);
+        $('#platform').val($item.data('platform'));
+        $('#label').val($item.data('label'));
+        $('#contact-value').val($item.data('contact-value'));
+        $('#enabled').prop('checked', Number($item.data('enabled')) === 1);
 
-        if ((platform === 'zalo' || platform === 'telegram') && !/^[0-9]+$/.test(contactValue)) {
-            this.showFieldError('contact-value', 'Please enter only numbers');
-            return false;
-        }
+        updateContactFieldForPlatform($item.data('platform'));
 
-        if (platform === 'zalo_oa') {
-            const zaloOAPattern = /^(?:https?:\/\/oa\.zalo\.me\/)?[0-9]{10,25}$/;
-            if (!zaloOAPattern.test(contactValue)) {
-                this.showFieldError('contact-value', 'Please enter a valid Zalo OA ID or URL (https://oa.zalo.me/...)');
-                return false;
-            }
-            return true;
-        }
-
-        return true;
-    }
-
-    // Show field error
-    showFieldError = (fieldId, message) => {
-        const field = document.getElementById(fieldId);
-        if (!field) return;
-
-        this.removeFieldError(fieldId);
-
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message';
-        errorDiv.style.color = '#dc3232';
-        errorDiv.style.fontSize = '12px';
-        errorDiv.style.marginTop = '4px';
-        errorDiv.textContent = message;
-
-        field.parentNode.appendChild(errorDiv);
-        field.style.borderColor = '#dc3232';
-    }
-
-    // Remove field error
-    removeFieldError = (fieldId) => {
-        const field = document.getElementById(fieldId);
-        if (!field) return;
-
-        const errorMsg = field.parentNode.querySelector('.error-message');
-        if (errorMsg) {
-            errorMsg.remove();
-        }
-        field.style.borderColor = '';
-    }
-
-    // QR Code preview handlers
-    setQRCodePreview = (attachmentId, imageUrl) => {
-        document.getElementById('qr-code-id').value = attachmentId;
-        document.getElementById('qr-preview').innerHTML = 
-            `<img src="${imageUrl}" style="max-width: 150px; height: auto; border: 1px solid #ddd;">`;
-        document.getElementById('upload-qr-code').textContent = 'Change QR Code';
-        document.getElementById('remove-qr-code').style.display = 'inline-block';
-    }
-
-    clearQRCodePreview = () => {
-        document.getElementById('qr-code-id').value = '0';
-        document.getElementById('qr-preview').innerHTML = '';
-        document.getElementById('upload-qr-code').textContent = 'Upload QR Code';
-        document.getElementById('remove-qr-code').style.display = 'none';
-    }
-
-    // Main icon preview handlers
-    setMainIconPreview = (attachmentId, imageUrl) => {
-        document.getElementById('custom-main-icon').value = attachmentId;
-        
-        const colorInput = document.querySelector('input[name="cwp_chat_bubbles_options[main_button_color]"]');
-        const mainButtonColor = colorInput ? colorInput.value : '#52BA00';
-        
-        const preview = document.getElementById('main-icon-preview');
-        preview.innerHTML = `<img src="${imageUrl}" alt="Custom main icon preview" style="width:80%; height:auto;">`;
-        preview.style.backgroundColor = mainButtonColor;
-        preview.style.display = 'block';
-
-        document.getElementById('upload-main-icon').textContent = 'Change Custom Icon';
-        document.getElementById('remove-main-icon').style.display = 'inline-block';
-    }
-
-    clearMainIconPreview = () => {
-        document.getElementById('custom-main-icon').value = '0';
-        
-        const preview = document.getElementById('main-icon-preview');
-        preview.innerHTML = '';
-        preview.style.display = 'none';
-
-        document.getElementById('upload-main-icon').textContent = 'Upload Custom Icon';
-        document.getElementById('remove-main-icon').style.display = 'none';
-    }
-
-    updateMainIconPreviewColor = (newColor) => {
-        const preview = document.getElementById('main-icon-preview');
-        if (preview) {
-            preview.style.backgroundColor = newColor;
-        }
-    }
-
-    // Edit item
-    editItem = (itemId) => {
-        const item = document.querySelector(`.cwp-item[data-item-id="${itemId}"]`);
-        if (!item) return;
-
-        const itemData = {
-            id: item.getAttribute('data-item-id'),
-            platform: item.getAttribute('data-platform'),
-            label: item.getAttribute('data-label'),
-            contact_value: item.getAttribute('data-contact-value'),
-            enabled: item.getAttribute('data-enabled') === '1',
-            qr_code_id: item.getAttribute('data-qr-code-id') || '0'
-        };
-
-        // Populate form
-        document.getElementById('modal-title').textContent = 'Edit Item';
-        document.getElementById('item-id').value = itemData.id;
-        document.getElementById('platform').value = itemData.platform;
-        document.getElementById('label').value = itemData.label;
-        document.getElementById('contact-value').value = itemData.contact_value;
-        document.getElementById('enabled').checked = itemData.enabled;
-
-        // Update contact field for platform
-        this.updateContactFieldForPlatform(itemData.platform);
-
-        // Handle QR code preview
-        if (itemData.qr_code_id && itemData.qr_code_id !== '0') {
-            this.sendAjaxRequest('chat_bubbles_get_attachment_url', {
-                attachment_id: itemData.qr_code_id
-            }).then(response => {
+        const qrCodeId = Number($item.data('qr-code-id'));
+        if (qrCodeId > 0) {
+            sendAjaxRequest('cwp_chat_bubbles_get_attachment_url', {
+                attachment_id: qrCodeId
+            }).then((response) => {
                 if (response.success && response.data.url) {
-                    this.setQRCodePreview(itemData.qr_code_id, response.data.url);
+                    setQRCodePreview(qrCodeId, response.data.url);
                 } else {
-                    this.clearQRCodePreview();
+                    clearQRCodePreview();
                 }
             });
         } else {
-            this.clearQRCodePreview();
+            clearQRCodePreview();
         }
 
-        // Show modal
-        document.getElementById('cwp-item-modal').style.display = 'block';
+        $('#cwp-item-modal').addClass('active');
     }
 
-    // Delete item
-    deleteItem = (itemId) => {
-        if (!confirm('Are you sure you want to delete this item?')) return;
-
-        this.sendAjaxRequest('delete_item', {
+    function deleteItem(itemId) {
+        sendAjaxRequest('cwp_chat_bubbles_delete_item', {
             item_id: itemId
-        }).then(response => {
+        }).then((response) => {
             if (response.success) {
-                this.refreshItemsList(response.data.items_html);
+                refreshItemsList(response.data.items_html);
             } else {
-                alert('Failed to delete item: ' + (response.data || 'Unknown error'));
+                alert(response.data || 'Failed to delete item.');
             }
         });
     }
 
-    // Save item
-    saveItem = () => {
-        if (!this.validateForm()) return;
+    function saveItem() {
+        if (!validateForm()) {
+            return;
+        }
 
-        const formData = new FormData();
-        formData.append('action', 'cwp_save_item');
-        formData.append('nonce', cwpChatBubblesAjax.nonce);
-        formData.append('item_id', document.getElementById('item-id').value);
-        formData.append('platform', document.getElementById('platform').value);
-        formData.append('label', document.getElementById('label').value);
-        formData.append('contact_value', document.getElementById('contact-value').value);
-        formData.append('qr_code_id', document.getElementById('qr-code-id').value);
-        formData.append('enabled', document.getElementById('enabled').checked ? 1 : 0);
+        const payload = {
+            item_id: $('#item-id').val(),
+            platform: $('#platform').val(),
+            label: $('#label').val(),
+            contact_value: $('#contact-value').val(),
+            qr_code_id: $('#qr-code-id').val(),
+            enabled: $('#enabled').is(':checked') ? 1 : 0
+        };
 
-        const saveBtn = document.getElementById('save-item');
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'Saving...';
+        const $saveButton = $('#save-item');
+        $saveButton.prop('disabled', true).text('Saving...');
 
-        fetch(cwpChatBubblesAjax.ajax_url, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                this.refreshItemsList(data.data.items_html);
-                document.getElementById('cwp-item-modal').style.display = 'none';
-            } else {
-                alert('Failed to save item: ' + (data.data || 'Unknown error'));
-            }
-        })
-        .catch(error => {
-            console.error('Save error:', error);
-            alert('Failed to save item');
-        })
-        .finally(() => {
-            saveBtn.disabled = false;
-            saveBtn.textContent = 'Save Item';
-        });
+        sendAjaxRequest('cwp_chat_bubbles_save_item', payload)
+            .then((response) => {
+                if (response.success) {
+                    refreshItemsList(response.data.items_html);
+                    $('#cwp-item-modal').removeClass('active');
+                    resetModalForm();
+                } else {
+                    alert(response.data || 'Failed to save item.');
+                }
+            })
+            .finally(() => {
+                $saveButton.prop('disabled', false).text('Save Item');
+            });
     }
 
-    // Validate entire form
-    validateForm = () => {
+    function validateForm() {
         let isValid = true;
 
-        // Clear all errors first
-        document.querySelectorAll('.error-message').forEach(error => error.remove());
+        if (!$('#platform').val()) {
+            showFieldError('platform', 'Please select a platform');
+            isValid = false;
+        } else {
+            removeFieldError('platform');
+        }
 
-        const platform = document.getElementById('platform').value;
-        if (!platform) {
-            this.showFieldError('platform', 'Please select a platform');
+        if (!validateLabel()) {
             isValid = false;
         }
 
-        if (!this.validateLabel()) isValid = false;
-        if (!this.validateContactValue()) isValid = false;
+        if (!validateContactValue()) {
+            isValid = false;
+        }
 
         return isValid;
     }
 
-    // Reset form
-    resetForm = () => {
-        document.getElementById('cwp-item-form').reset();
-        document.getElementById('item-id').value = '';
-        document.getElementById('platform').value = '';
-        this.clearQRCodePreview();
-        this.updateContactFieldForPlatform('');
-        
-        // Clear all errors
-        document.querySelectorAll('.error-message').forEach(error => error.remove());
+    function resetModalForm() {
+        $('#cwp-item-form')[0].reset();
+        $('#item-id').val('');
+        clearQRCodePreview();
+        updateContactFieldForPlatform('');
+        $('.error-message').remove();
+        $('#cwp-item-form .error').removeClass('error');
     }
 
-    // Refresh items list
-    refreshItemsList = (itemsHtml) => {
-        const container = document.getElementById('cwp-items-container');
-        if (container && itemsHtml) {
-            container.innerHTML = itemsHtml;
-            // Re-init sortable for new items
-            this.initSortable();
-        }
+    function refreshItemsList(itemsHtml) {
+        $('#cwp-items-container').html(itemsHtml);
+        initSortable();
+        initQRCodePreviews();
     }
 
-    // Generic AJAX helper using modern fetch API
-    sendAjaxRequest = async (action, data = {}) => {
-        const formData = new FormData();
-        formData.append('action', `cwp_${action}`);
-        formData.append('nonce', cwpChatBubblesAjax.nonce);
-        
-        Object.keys(data).forEach(key => {
-            formData.append(key, data[key]);
+    function saveItemOrder(orderedIds) {
+        sendAjaxRequest('cwp_chat_bubbles_reorder_items', {
+            ordered_ids: orderedIds
+        }).then((response) => {
+            if (!response.success) {
+                alert(response.data || 'Failed to save item order.');
+            }
         });
-
-        try {
-            const response = await fetch(cwpChatBubblesAjax.ajax_url, {
-                method: 'POST',
-                body: formData
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('AJAX request failed:', error);
-            return { success: false, data: 'Network error' };
-        }
     }
-}
 
-// Initialize admin when DOM is ready
-const cwpAdmin = new CWPChatBubblesAdmin();
+    function setQRCodePreview(attachmentId, imageUrl) {
+        $('#qr-code-id').val(attachmentId);
+        $('#qr-preview').html(`<img src="${imageUrl}" alt="QR code preview" style="max-width: 150px; height: auto; border: 1px solid #ddd;">`);
+        $('#upload-qr-code').text('Change QR Code');
+        $('#remove-qr-code').show();
+    }
 
-// Export for potential external usage
-export default CWPChatBubblesAdmin; 
+    function clearQRCodePreview() {
+        $('#qr-code-id').val(0);
+        $('#qr-preview').empty();
+        $('#upload-qr-code').text('Upload QR Code');
+        $('#remove-qr-code').hide();
+    }
+
+    function updateMainIconPreviewColor(color) {
+        $('#main-icon-preview').css('background-color', color);
+    }
+
+    function sendAjaxRequest(action, data = {}) {
+        return $.ajax({
+            url: wpAjax.ajaxurl,
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                action,
+                nonce: wpAjax.nonce,
+                ...data
+            }
+        }).catch((xhr) => {
+            const message = xhr?.responseJSON?.data || xhr?.responseText || 'Request failed.';
+            return {
+                success: false,
+                data: message
+            };
+        });
+    }
+
+    $(init);
+})(jQuery);

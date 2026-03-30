@@ -310,6 +310,16 @@ class TestItemsManager extends TestCase {
                 'item' => array('contact_value' => 'lineid'),
                 'expected' => 'https://line.me/ti/p/lineid'
             ),
+            array(
+                'platform' => 'kakaotalk',
+                'item' => array('contact_value' => 'channelid'),
+                'expected' => 'https://pf.kakao.com/_channelid/chat'
+            ),
+            array(
+                'platform' => 'kakaotalk',
+                'item' => array('contact_value' => '_existingchannel'),
+                'expected' => 'https://pf.kakao.com/_existingchannel/chat'
+            ),
         );
 
         foreach ($test_cases as $case) {

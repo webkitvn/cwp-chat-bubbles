@@ -466,12 +466,6 @@ class CWP_Chat_Bubbles_Items_Manager {
     public function delete_item($id) {
         global $wpdb;
 
-        // Get item before deletion to clean up QR code
-        $item = $this->get_item($id);
-        if ($item && !empty($item['qr_code_id'])) {
-            wp_delete_attachment($item['qr_code_id'], true);
-        }
-
         $result = $wpdb->delete(
             $this->table_name,
             array('id' => $id),
@@ -639,7 +633,8 @@ class CWP_Chat_Bubbles_Items_Manager {
                 return 'https://line.me/ti/p/' . $contact_value;
                 
             case 'kakaotalk':
-                return '#kakaotalk-' . $contact_value;
+                $channel_id = ltrim($contact_value, '_');
+                return 'https://pf.kakao.com/_' . $channel_id . '/chat';
                 
             default:
                 return '#';

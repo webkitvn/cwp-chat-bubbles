@@ -9,7 +9,9 @@ export default [
       sourceType: 'module',
       globals: {
         ...globals.browser,
+        jQuery: 'readonly',
         wp: 'readonly',
+        wpAjax: 'readonly',
         cwpChatBubblesAjax: 'readonly',
       },
     },
