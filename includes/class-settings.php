@@ -100,6 +100,7 @@ class CWP_Chat_Bubbles_Settings {
             'device_visibility' => $this->get_default_device_visibility(),
             'behavior' => $this->get_default_behavior_settings(),
             'schedule' => $this->get_default_schedule_settings(),
+            'analytics' => $this->get_default_analytics_settings(),
             'appearance' => $this->get_default_appearance_settings(),
             'exclude_pages' => array()
         );
@@ -192,6 +193,7 @@ class CWP_Chat_Bubbles_Settings {
         $sanitized['load_on_mobile'] = $sanitized['device_visibility']['mobile'];
         $sanitized['behavior'] = $this->sanitize_behavior_settings($options);
         $sanitized['schedule'] = $this->sanitize_schedule_settings($options);
+        $sanitized['analytics'] = $this->sanitize_analytics_settings($options);
         $sanitized['appearance'] = $this->sanitize_appearance_settings($options);
 
         // Sanitize exclude pages
@@ -411,6 +413,32 @@ class CWP_Chat_Bubbles_Settings {
     }
 
     /**
+     * Get normalized analytics settings.
+     *
+     * @return array<string, mixed> Analytics settings map.
+     * @since 1.0.3
+     */
+    public function get_analytics_settings() {
+        return $this->get_option('analytics', $this->get_default_analytics_settings());
+    }
+
+    /**
+     * Get a single analytics setting.
+     *
+     * @param string $key Analytics key.
+     * @param mixed  $default Fallback value.
+     * @return mixed Analytics setting value.
+     * @since 1.0.3
+     */
+    public function get_analytics_setting($key, $default = null) {
+        $analytics = $this->get_analytics_settings();
+
+        return array_key_exists($key, $analytics)
+            ? $analytics[$key]
+            : $default;
+    }
+
+    /**
      * Get normalized appearance settings.
      *
      * @return array<string, mixed> Appearance settings map.
@@ -510,6 +538,20 @@ class CWP_Chat_Bubbles_Settings {
     }
 
     /**
+     * Get the default analytics settings.
+     *
+     * @return array<string, mixed> Default analytics settings.
+     * @since 1.0.3
+     */
+    private function get_default_analytics_settings() {
+        return array(
+            'enabled' => false,
+            'provider' => 'none',
+            'event_prefix' => 'cwp_chat_bubbles',
+        );
+    }
+
+    /**
      * Get the default advanced appearance settings.
      *
      * @return array<string, mixed> Default appearance settings.
@@ -542,6 +584,7 @@ class CWP_Chat_Bubbles_Settings {
         $normalized['load_on_mobile'] = $normalized['device_visibility']['mobile'];
         $normalized['behavior'] = $this->normalize_behavior_settings($options);
         $normalized['schedule'] = $this->normalize_schedule_settings($options);
+        $normalized['analytics'] = $this->normalize_analytics_settings($options);
         $normalized['appearance'] = $this->normalize_appearance_settings($options);
 
         return $normalized;
@@ -745,6 +788,67 @@ class CWP_Chat_Bubbles_Settings {
         }
 
         return $sanitized;
+    }
+
+    /**
+     * Normalize analytics settings from stored options.
+     *
+     * @param array $options Raw stored options.
+     * @return array<string, mixed> Normalized analytics settings.
+     * @since 1.0.3
+     */
+    private function normalize_analytics_settings($options) {
+        $defaults = $this->get_default_analytics_settings();
+
+        if (!is_array($options) || !isset($options['analytics']) || !is_array($options['analytics'])) {
+            return $defaults;
+        }
+
+        return $this->sanitize_analytics_settings(
+            array(
+                'analytics' => $options['analytics'],
+            )
+        );
+    }
+
+    /**
+     * Sanitize analytics settings from submitted options.
+     *
+     * @param array $options Raw submitted options.
+     * @return array<string, mixed> Sanitized analytics settings.
+     * @since 1.0.3
+     */
+    private function sanitize_analytics_settings($options) {
+        $defaults = $this->get_default_analytics_settings();
+
+        if (!is_array($options) || !isset($options['analytics']) || !is_array($options['analytics'])) {
+            return $defaults;
+        }
+
+        $analytics = $options['analytics'];
+        $provider = isset($analytics['provider'])
+            ? sanitize_text_field($analytics['provider'])
+            : $defaults['provider'];
+
+        if (!in_array($provider, array('none', 'ga4', 'gtm'), true)) {
+            $provider = $defaults['provider'];
+        }
+
+        $event_prefix = isset($analytics['event_prefix'])
+            ? strtolower(sanitize_text_field($analytics['event_prefix']))
+            : $defaults['event_prefix'];
+        $event_prefix = preg_replace('/[^a-z0-9_]+/', '_', $event_prefix);
+        $event_prefix = trim((string) $event_prefix, '_');
+
+        if ('' === $event_prefix) {
+            $event_prefix = $defaults['event_prefix'];
+        }
+
+        return array(
+            'enabled' => isset($analytics['enabled']) ? (bool) $analytics['enabled'] : false,
+            'provider' => $provider,
+            'event_prefix' => substr($event_prefix, 0, 64),
+        );
     }
 
     /**

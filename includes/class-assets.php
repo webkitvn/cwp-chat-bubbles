@@ -124,6 +124,7 @@ class CWP_Chat_Bubbles_Assets {
                     'deviceVisibility' => $this->settings->get_device_visibility(),
                     'behavior' => $this->settings->get_behavior_settings(),
                     'schedule' => $this->settings->get_schedule_settings(),
+                    'analytics' => $this->settings->get_analytics_settings(),
                     'appearance' => $this->settings->get_appearance_settings(),
                 )
             ));

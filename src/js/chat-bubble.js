@@ -11,6 +11,13 @@
 const initChatBubbles = () => {
     // Check if chat bubble element exists
     const chatBubbles = document.getElementById('chat-bubbles');
+    const runtimeConfig = typeof cwpChatBubbles !== 'undefined' ? cwpChatBubbles : {};
+    const platformRegistry = runtimeConfig.platforms || {};
+    const analyticsSettings = (runtimeConfig.settings && runtimeConfig.settings.analytics) || {
+        enabled: false,
+        provider: 'none',
+        event_prefix: 'cwp_chat_bubbles'
+    };
 
     if (chatBubbles) {
         const chatToggle = chatBubbles.querySelector('.chat-btn-toggle');
@@ -22,6 +29,87 @@ const initChatBubbles = () => {
         if (!chatToggle || !chatPanel) {
             return;
         }
+
+        const emitCustomAnalyticsEvent = (name, payload) => {
+            if (typeof window.CustomEvent !== 'function') {
+                return;
+            }
+
+            window.dispatchEvent(
+                new CustomEvent('cwp-chat-bubbles:event', {
+                    detail: {
+                        name,
+                        payload
+                    }
+                })
+            );
+            window.dispatchEvent(
+                new CustomEvent(`cwp-chat-bubbles:${name}`, {
+                    detail: payload
+                })
+            );
+        };
+
+        const emitExternalAnalyticsEvent = (name, payload) => {
+            if (!analyticsSettings.enabled) {
+                return;
+            }
+
+            const provider = analyticsSettings.provider || 'none';
+            if (!['ga4', 'gtm'].includes(provider)) {
+                return;
+            }
+
+            const eventPrefix = analyticsSettings.event_prefix || 'cwp_chat_bubbles';
+            const eventName = `${eventPrefix}_${name}`;
+            const eventPayload = {
+                event_category: 'chat_bubbles',
+                component: 'cwp_chat_bubbles',
+                trigger: payload.trigger || '',
+                position: payload.position || '',
+                item_id: payload.itemId || null,
+                item_platform: payload.itemPlatform || '',
+                item_label: payload.itemLabel || '',
+                target_type: payload.targetType || '',
+                has_qr: payload.hasQr || false
+            };
+
+            if ('ga4' === provider && typeof window.gtag === 'function') {
+                window.gtag('event', eventName, eventPayload);
+            }
+
+            if ('gtm' === provider && window.dataLayer && typeof window.dataLayer.push === 'function') {
+                window.dataLayer.push({
+                    event: eventName,
+                    ...eventPayload
+                });
+            }
+        };
+
+        const emitAnalyticsEvent = (name, payload = {}) => {
+            const eventPayload = {
+                name,
+                component: 'cwp_chat_bubbles',
+                position: chatBubbles.dataset.position || '',
+                ...payload
+            };
+
+            emitCustomAnalyticsEvent(name, eventPayload);
+            emitExternalAnalyticsEvent(name, eventPayload);
+        };
+
+        const getChatItemPayload = (chatItem) => {
+            const itemId = chatItem.dataset.bubbleItemId || '';
+            const platformData = itemId ? platformRegistry[itemId] || {} : {};
+
+            return {
+                itemId: itemId ? Number(itemId) : null,
+                itemPlatform: platformData.platform || '',
+                itemLabel: platformData.label || '',
+                targetType: chatItem.dataset.bubbleTargetType || (chatItem.hasAttribute('data-bubble-modal') ? 'modal' : 'link'),
+                hasQr: Boolean(platformData.has_qr)
+            };
+        };
 
         const setBubbleState = (isOpen) => {
             chatBubbles.classList.toggle('active', isOpen);
@@ -115,14 +203,22 @@ const initChatBubbles = () => {
             const isOpen = chatBubbles.classList.contains('active');
             if (isOpen) {
                 closeChatModal();
+                toggleChatBubble();
+                return;
             }
+
             toggleChatBubble();
+            emitAnalyticsEvent('open', {
+                trigger: 'toggle'
+            });
         });
 
         // Open Chat Modal when clicking on chat items with QR codes
         chatItems.forEach((chatItem) => {
             chatItem.addEventListener('click', (e) => {
                 const target = chatItem.getAttribute('data-bubble-modal');
+                emitAnalyticsEvent('item_click', getChatItemPayload(chatItem));
+
                 if (target) {
                     e.preventDefault();
                     openChatModal(target, chatItem);

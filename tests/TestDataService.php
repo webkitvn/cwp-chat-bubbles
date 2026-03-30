@@ -38,6 +38,13 @@ class TestDataService extends TestCase {
         return $reflection->newInstanceWithoutConstructor();
     }
 
+    private function setDataServiceProperty($property, $value) {
+        $reflection = new ReflectionClass('CWP_Chat_Bubbles_Data_Service');
+        $reflection_property = $reflection->getProperty($property);
+        $reflection_property->setAccessible(true);
+        $reflection_property->setValue($this->data_service, $value);
+    }
+
     /**
      * Test should_load_on_current_page returns false when every device visibility flag is disabled.
      */
@@ -94,6 +101,54 @@ class TestDataService extends TestCase {
         $mock_current_page_id = 42;
 
         $this->assertTrue($this->data_service->should_load_on_current_page());
+    }
+
+    /**
+     * Test frontend data includes normalized analytics settings for runtime consumers.
+     */
+    public function test_frontend_data_exposes_analytics_settings() {
+        global $mock_options;
+
+        $mock_options['cwp_chat_bubbles_options'] = array(
+            'position' => 'bottom-left',
+            'main_button_color' => '#123456',
+            'analytics' => array(
+                'enabled' => true,
+                'provider' => 'ga4',
+                'event_prefix' => 'support_chat',
+            ),
+        );
+
+        $items_manager = $this->getMockBuilder(CWP_Chat_Bubbles_Items_Manager::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(array('get_all_items', 'generate_platform_url', 'get_platform_icon_url', 'get_platform_color'))
+            ->getMock();
+
+        $items_manager->method('get_all_items')->willReturn(
+            array(
+                array(
+                    'id' => 7,
+                    'platform' => 'zalo',
+                    'label' => 'Sales',
+                    'contact_value' => '0123456789',
+                    'enabled' => 1,
+                    'qr_code_id' => 0,
+                    'sort_order' => 0,
+                ),
+            )
+        );
+        $items_manager->method('generate_platform_url')->willReturn('https://example.com/zalo');
+        $items_manager->method('get_platform_icon_url')->willReturn('https://example.com/icon.svg');
+        $items_manager->method('get_platform_color')->willReturn('#008BE6');
+
+        $this->setDataServiceProperty('items_manager', $items_manager);
+
+        $frontend_data = $this->data_service->get_frontend_data();
+
+        $this->assertTrue($frontend_data['settings']['analytics']['enabled']);
+        $this->assertSame('ga4', $frontend_data['settings']['analytics']['provider']);
+        $this->assertSame('support_chat', $frontend_data['settings']['analytics']['event_prefix']);
+        $this->assertSame('zalo', $frontend_data['items'][0]['platform']);
     }
 
     /**

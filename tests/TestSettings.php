@@ -42,6 +42,7 @@ class TestSettings extends TestCase {
         $this->assertArrayHasKey('device_visibility', $defaults);
         $this->assertArrayHasKey('behavior', $defaults);
         $this->assertArrayHasKey('schedule', $defaults);
+        $this->assertArrayHasKey('analytics', $defaults);
         $this->assertArrayHasKey('appearance', $defaults);
         $this->assertArrayHasKey('exclude_pages', $defaults);
         $this->assertArrayHasKey('offset_x', $defaults);
@@ -86,6 +87,9 @@ class TestSettings extends TestCase {
         $this->assertFalse($defaults['schedule']['weekly_hours']['sun']['enabled']);
         $this->assertSame('09:00', $defaults['schedule']['weekly_hours']['mon']['open']);
         $this->assertSame('17:00', $defaults['schedule']['weekly_hours']['mon']['close']);
+        $this->assertFalse($defaults['analytics']['enabled']);
+        $this->assertSame('none', $defaults['analytics']['provider']);
+        $this->assertSame('cwp_chat_bubbles', $defaults['analytics']['event_prefix']);
         $this->assertSame(60, $defaults['appearance']['bubble_size']);
         $this->assertSame(200, $defaults['appearance']['panel_width']);
         $this->assertSame(10, $defaults['appearance']['panel_radius']);
@@ -142,6 +146,11 @@ class TestSettings extends TestCase {
                     ),
                 ),
             ),
+            'analytics' => array(
+                'enabled' => true,
+                'provider' => 'ga4',
+                'event_prefix' => 'support_chat',
+            ),
             'appearance' => array(
                 'bubble_size' => 72,
                 'panel_width' => 240,
@@ -192,6 +201,9 @@ class TestSettings extends TestCase {
         $this->assertSame('08:30', $sanitized['schedule']['weekly_hours']['mon']['open']);
         $this->assertSame('18:00', $sanitized['schedule']['weekly_hours']['mon']['close']);
         $this->assertFalse($sanitized['schedule']['weekly_hours']['sun']['enabled']);
+        $this->assertTrue($sanitized['analytics']['enabled']);
+        $this->assertSame('ga4', $sanitized['analytics']['provider']);
+        $this->assertSame('support_chat', $sanitized['analytics']['event_prefix']);
         $this->assertSame(72, $sanitized['appearance']['bubble_size']);
         $this->assertSame(240, $sanitized['appearance']['panel_width']);
         $this->assertSame(12, $sanitized['appearance']['panel_radius']);
@@ -657,6 +669,47 @@ class TestSettings extends TestCase {
         $this->assertSame('hide', $this->settings->get_schedule_setting('closed_behavior'));
         $this->assertSame('07:00', $schedule['weekly_hours']['mon']['open']);
         $this->assertNull($this->settings->get_schedule_setting('missing_key'));
+    }
+
+    /**
+     * Test sanitize_options validates analytics settings and falls back safely.
+     */
+    public function test_sanitize_options_analytics_settings() {
+        $input = array(
+            'analytics' => array(
+                'enabled' => true,
+                'provider' => 'invalid-provider',
+                'event_prefix' => ' Support Chat!! ',
+            ),
+        );
+
+        $sanitized = $this->settings->sanitize_options($input);
+
+        $this->assertTrue($sanitized['analytics']['enabled']);
+        $this->assertSame('none', $sanitized['analytics']['provider']);
+        $this->assertSame('support_chat', $sanitized['analytics']['event_prefix']);
+    }
+
+    /**
+     * Test analytics helpers expose normalized values for runtime consumers.
+     */
+    public function test_analytics_helpers() {
+        global $mock_options;
+
+        $mock_options['cwp_chat_bubbles_options'] = array(
+            'analytics' => array(
+                'enabled' => true,
+                'provider' => 'gtm',
+                'event_prefix' => 'bubble_metrics',
+            ),
+        );
+
+        $analytics = $this->settings->get_analytics_settings();
+
+        $this->assertTrue($analytics['enabled']);
+        $this->assertSame('gtm', $analytics['provider']);
+        $this->assertSame('bubble_metrics', $this->settings->get_analytics_setting('event_prefix'));
+        $this->assertNull($this->settings->get_analytics_setting('missing_key'));
     }
 
     /**

@@ -656,6 +656,46 @@ class CWP_Chat_Bubbles_Options_Page {
                                 </td>
                             </tr>
                             <tr>
+                                <th scope="row"><?php esc_html_e('Analytics', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <fieldset>
+                                        <legend class="screen-reader-text"><?php esc_html_e('Analytics settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></legend>
+                                        <label style="display: block; margin-bottom: 12px;">
+                                            <input type="checkbox" name="cwp_chat_bubbles_options[analytics][enabled]" value="1" <?php checked(!empty($options['analytics']['enabled'])); ?>>
+                                            <?php esc_html_e('Enable external analytics emission for bubble interactions', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </label>
+                                        <div style="display: flex; gap: 24px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 8px;">
+                                            <p style="margin: 0;">
+                                                <label for="cwp-chat-bubbles-analytics-provider" style="display: block; font-weight: 600; margin-bottom: 6px;">
+                                                    <?php esc_html_e('External provider', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                                </label>
+                                                <select id="cwp-chat-bubbles-analytics-provider" name="cwp_chat_bubbles_options[analytics][provider]">
+                                                    <option value="none" <?php selected($options['analytics']['provider'], 'none'); ?>><?php esc_html_e('Internal custom events only', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                                    <option value="ga4" <?php selected($options['analytics']['provider'], 'ga4'); ?>><?php esc_html_e('GA4 via gtag', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                                    <option value="gtm" <?php selected($options['analytics']['provider'], 'gtm'); ?>><?php esc_html_e('Google Tag Manager via dataLayer', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                                </select>
+                                            </p>
+                                            <p style="margin: 0;">
+                                                <label for="cwp-chat-bubbles-event-prefix" style="display: block; font-weight: 600; margin-bottom: 6px;">
+                                                    <?php esc_html_e('Event prefix', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                                </label>
+                                                <input
+                                                    id="cwp-chat-bubbles-event-prefix"
+                                                    type="text"
+                                                    name="cwp_chat_bubbles_options[analytics][event_prefix]"
+                                                    value="<?php echo esc_attr($options['analytics']['event_prefix']); ?>"
+                                                    class="regular-text"
+                                                    placeholder="cwp_chat_bubbles"
+                                                >
+                                            </p>
+                                        </div>
+                                    </fieldset>
+                                    <p class="description">
+                                        <?php esc_html_e('The frontend always dispatches internal CustomEvent hooks. Turn this on only if your site already loads GA4 or GTM and you want matching events forwarded there.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
                                 <th scope="row">
                                     <label for="cwp-chat-bubbles-custom-css"><?php esc_html_e('Custom CSS', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
                                 </th>

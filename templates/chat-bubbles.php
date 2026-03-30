@@ -65,7 +65,9 @@ if (empty($items)) {
                 <button
                     type="button"
                     class="chat-item chat-item-<?php echo esc_attr($item['platform']); ?>"
+                    data-bubble-item-id="<?php echo esc_attr($item['id']); ?>"
                     data-bubble-modal="<?php echo esc_attr($modal_id); ?>"
+                    data-bubble-target-type="modal"
                     aria-haspopup="dialog"
                     aria-controls="<?php echo esc_attr($modal_id); ?>"
                     aria-label="<?php echo esc_attr(sprintf(__('Open %s QR dialog', 'cwp-chat-bubbles'), $item_label)); ?>"
@@ -84,6 +86,8 @@ if (empty($items)) {
             <?php else: ?>
                 <a href="<?php echo esc_url($item['platform_url']); ?>"
                     class="chat-item chat-item-<?php echo esc_attr($item['platform']); ?>"
+                    data-bubble-item-id="<?php echo esc_attr($item['id']); ?>"
+                    data-bubble-target-type="link"
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="<?php echo esc_attr(sprintf(__('Open %s', 'cwp-chat-bubbles'), $item_label)); ?>"

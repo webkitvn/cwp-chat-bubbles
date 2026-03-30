@@ -104,6 +104,7 @@ class CWP_Chat_Bubbles_Data_Service {
                 'device_visibility' => $this->settings->get_device_visibility(),
                 'behavior' => $this->settings->get_behavior_settings(),
                 'schedule' => $this->settings->get_schedule_settings(),
+                'analytics' => $this->settings->get_analytics_settings(),
                 'appearance' => $this->settings->get_appearance_settings(),
             ),
             'support_icon' => $this->settings->get_main_icon_url(),
@@ -244,6 +245,7 @@ class CWP_Chat_Bubbles_Data_Service {
             'device_visibility' => $this->settings->get_device_visibility(),
             'behavior' => $this->settings->get_behavior_settings(),
             'schedule' => $this->settings->get_schedule_settings(),
+            'analytics' => $this->settings->get_analytics_settings(),
             'appearance' => $this->settings->get_appearance_settings(),
         );
         
