@@ -408,7 +408,7 @@ class CWP_Chat_Bubbles_Options_Page {
                                             <tbody>
                                                 <?php foreach ($this->get_schedule_day_labels() as $day_key => $day_label) : ?>
                                                     <tr>
-                                                        <th scope="row"><strong><?php echo esc_html($day_label); ?></strong></th>
+                                                        <td><strong><?php echo esc_html($day_label); ?></strong></td>
                                                         <td>
                                                             <input
                                                                 type="checkbox"

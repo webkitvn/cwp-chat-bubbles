@@ -399,6 +399,22 @@
   border-top: none;
 }
 
+.cwp-admin-wrapper .widefat {
+  th,
+  td {
+    padding: 14px 16px;
+  }
+
+  thead th {
+    padding: 14px 16px;
+  }
+
+  tbody td,
+  tbody th {
+    vertical-align: middle;
+  }
+}
+
 // Form Error State
 .form-error {
   background: #fbeaea;
