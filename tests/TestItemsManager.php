@@ -282,8 +282,14 @@ class TestItemsManager extends TestCase {
             ),
             array(
                 'platform' => 'whatsapp',
-                'item' => array('contact_value' => '1234567890'),
-                'expected' => 'https://wa.me/1234567890'
+                'item' => array(
+                    'contact_value' => '1234567890',
+                    'behavior_settings' => array(
+                        'interaction_mode' => 'direct_link',
+                        'prefill_message' => 'Hello support',
+                    ),
+                ),
+                'expected' => 'https://wa.me/1234567890?text=Hello%20support'
             ),
             array(
                 'platform' => 'zalo',
@@ -292,8 +298,14 @@ class TestItemsManager extends TestCase {
             ),
             array(
                 'platform' => 'telegram',
-                'item' => array('contact_value' => 'username'),
-                'expected' => 'https://t.me/username'
+                'item' => array(
+                    'contact_value' => 'username',
+                    'behavior_settings' => array(
+                        'interaction_mode' => 'direct_link',
+                        'prefill_message' => 'Hi there',
+                    ),
+                ),
+                'expected' => 'https://t.me/username?text=Hi%20there'
             ),
             array(
                 'platform' => 'messenger',

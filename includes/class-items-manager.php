@@ -602,6 +602,8 @@ class CWP_Chat_Bubbles_Items_Manager {
      */
     public function generate_platform_url($platform, $item) {
         $contact_value = !empty($item['contact_value']) ? $item['contact_value'] : '';
+        $behavior = $this->get_item_behavior_settings($item);
+        $prefill_message = isset($behavior['prefill_message']) ? $behavior['prefill_message'] : '';
         
         if (empty($contact_value)) {
             return '#';
@@ -623,13 +625,21 @@ class CWP_Chat_Bubbles_Items_Manager {
                 return 'https://oa.zalo.me/' . $oa_id;
 
             case 'whatsapp':
-                return 'https://wa.me/' . $contact_value;
+                return $this->append_prefill_message_to_url(
+                    'https://wa.me/' . $contact_value,
+                    'text',
+                    $prefill_message
+                );
                 
             case 'viber':
                 return 'viber://contact?number=' . $contact_value;
                 
             case 'telegram':
-                return 'https://t.me/' . $contact_value;
+                return $this->append_prefill_message_to_url(
+                    'https://t.me/' . $contact_value,
+                    'text',
+                    $prefill_message
+                );
                 
             case 'messenger':
                 return 'https://m.me/' . $contact_value;
@@ -644,6 +654,27 @@ class CWP_Chat_Bubbles_Items_Manager {
             default:
                 return '#';
         }
+    }
+
+    /**
+     * Append a prefilled message query parameter to a platform URL when supported.
+     *
+     * @param string $url Base platform URL.
+     * @param string $parameter Query parameter name.
+     * @param string $message Optional prefilled message.
+     * @return string Platform URL with optional message query.
+     * @since 1.0.3
+     */
+    private function append_prefill_message_to_url($url, $parameter, $message) {
+        $message = trim((string) $message);
+
+        if ('' === $message) {
+            return $url;
+        }
+
+        $separator = false === strpos($url, '?') ? '?' : '&';
+
+        return $url . $separator . rawurlencode($parameter) . '=' . rawurlencode($message);
     }
 
     /**

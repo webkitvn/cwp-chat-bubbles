@@ -23,9 +23,29 @@ defined('ABSPATH') or exit;
 if (empty($items)) {
     return;
 }
+
+$behavior_settings = isset($settings['behavior']) && is_array($settings['behavior'])
+    ? $settings['behavior']
+    : array(
+        'default_state' => 'closed',
+        'display_delay' => 0,
+        'scroll_trigger_percent' => 0,
+        'dismiss_for_session' => false,
+    );
+
+$should_defer_widget = !empty($behavior_settings['display_delay']) || !empty($behavior_settings['scroll_trigger_percent']);
 ?>
 
-<div id="chat-bubbles" class="cwp-chat-bubbles" data-position="<?php echo esc_attr($settings['position']); ?>">
+<div
+    id="chat-bubbles"
+    class="cwp-chat-bubbles"
+    data-position="<?php echo esc_attr($settings['position']); ?>"
+    data-default-state="<?php echo esc_attr($behavior_settings['default_state']); ?>"
+    data-display-delay="<?php echo esc_attr((int) $behavior_settings['display_delay']); ?>"
+    data-scroll-trigger="<?php echo esc_attr((int) $behavior_settings['scroll_trigger_percent']); ?>"
+    data-dismiss-for-session="<?php echo !empty($behavior_settings['dismiss_for_session']) ? 'true' : 'false'; ?>"
+    <?php echo $should_defer_widget ? 'hidden' : ''; ?>
+>
     <!-- Main Chat Button -->
     <button
         type="button"
@@ -59,15 +79,23 @@ if (empty($items)) {
             $has_qr = !empty($item['qr_code_id']) && $item['qr_code_id'] > 0;
             $modal_id = 'modal-' . $item['id'];
             $item_label = $item['label'];
+            $item_behavior = isset($item['behavior']) && is_array($item['behavior'])
+                ? $item['behavior']
+                : array(
+                    'interaction_mode' => 'auto',
+                    'prefill_message' => '',
+                );
+            $opens_modal = $has_qr && 'direct_link' !== $item_behavior['interaction_mode'];
             ?>
 
-            <?php if ($has_qr): ?>
+            <?php if ($opens_modal): ?>
                 <button
                     type="button"
                     class="chat-item chat-item-<?php echo esc_attr($item['platform']); ?>"
                     data-bubble-item-id="<?php echo esc_attr($item['id']); ?>"
                     data-bubble-modal="<?php echo esc_attr($modal_id); ?>"
                     data-bubble-target-type="modal"
+                    data-bubble-interaction-mode="<?php echo esc_attr($item_behavior['interaction_mode']); ?>"
                     aria-haspopup="dialog"
                     aria-controls="<?php echo esc_attr($modal_id); ?>"
                     aria-label="<?php echo esc_attr(sprintf(__('Open %s QR dialog', 'cwp-chat-bubbles'), $item_label)); ?>"
@@ -88,6 +116,7 @@ if (empty($items)) {
                     class="chat-item chat-item-<?php echo esc_attr($item['platform']); ?>"
                     data-bubble-item-id="<?php echo esc_attr($item['id']); ?>"
                     data-bubble-target-type="link"
+                    data-bubble-interaction-mode="<?php echo esc_attr($item_behavior['interaction_mode']); ?>"
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="<?php echo esc_attr(sprintf(__('Open %s', 'cwp-chat-bubbles'), $item_label)); ?>"
@@ -109,7 +138,16 @@ if (empty($items)) {
 
     <!-- QR Code Modals -->
     <?php foreach ($items as $item): ?>
-        <?php if (!empty($item['qr_code_id']) && $item['qr_code_id'] > 0): ?>
+        <?php
+        $item_behavior = isset($item['behavior']) && is_array($item['behavior'])
+            ? $item['behavior']
+            : array(
+                'interaction_mode' => 'auto',
+                'prefill_message' => '',
+            );
+        $should_render_modal = !empty($item['qr_code_id']) && $item['qr_code_id'] > 0 && 'direct_link' !== $item_behavior['interaction_mode'];
+        ?>
+        <?php if ($should_render_modal): ?>
             <?php
             $modal_id = 'modal-' . $item['id'];
             $qr_image_url = wp_get_attachment_url($item['qr_code_id']);
@@ -142,6 +180,8 @@ if (empty($items)) {
                         <?php if ($item['platform_url'] !== '#'): ?>
                             <a class="btn"
                                 href="<?php echo esc_url($item['platform_url']); ?>"
+                                data-bubble-item-id="<?php echo esc_attr($item['id']); ?>"
+                                data-bubble-target-type="link"
                                 target="_blank"
                                 rel="noopener noreferrer" style="background-color: <?php echo esc_attr($item['platform_color']); ?>;">
                                 <div class="icon">
