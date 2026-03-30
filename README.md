@@ -44,6 +44,7 @@ The plugin settings screen is organized into four tabs:
 - Existing installs retain the legacy mobile behavior through the compatibility alias until the new settings are saved.
 - Selected excluded pages prevent auto-loading without affecting manual integration paths.
 - The long-term migration contract for contextual targeting is documented in [`docs/display-rules-migration.md`](docs/display-rules-migration.md).
+- The normalized contextual targeting option schema itself is documented in [`docs/contextual-targeting-schema.md`](docs/contextual-targeting-schema.md).
 
 ### Appearance
 These controls feed the plugin CSS-variable layer:

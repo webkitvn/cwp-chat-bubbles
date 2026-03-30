@@ -100,6 +100,7 @@ class CWP_Chat_Bubbles_Settings {
             'device_visibility' => $this->get_default_device_visibility(),
             'behavior' => $this->get_default_behavior_settings(),
             'schedule' => $this->get_default_schedule_settings(),
+            'targeting' => $this->get_default_targeting_settings(),
             'analytics' => $this->get_default_analytics_settings(),
             'appearance' => $this->get_default_appearance_settings(),
             'exclude_pages' => array()
@@ -193,6 +194,7 @@ class CWP_Chat_Bubbles_Settings {
         $sanitized['load_on_mobile'] = $sanitized['device_visibility']['mobile'];
         $sanitized['behavior'] = $this->sanitize_behavior_settings($options);
         $sanitized['schedule'] = $this->sanitize_schedule_settings($options);
+        $sanitized['targeting'] = $this->sanitize_targeting_settings($options);
         $sanitized['analytics'] = $this->sanitize_analytics_settings($options);
         $sanitized['appearance'] = $this->sanitize_appearance_settings($options);
 
@@ -413,6 +415,32 @@ class CWP_Chat_Bubbles_Settings {
     }
 
     /**
+     * Get normalized contextual targeting settings.
+     *
+     * @return array<string, mixed> Targeting settings map.
+     * @since 1.0.3
+     */
+    public function get_targeting_settings() {
+        return $this->get_option('targeting', $this->get_default_targeting_settings());
+    }
+
+    /**
+     * Get a single targeting setting.
+     *
+     * @param string $key Targeting key.
+     * @param mixed  $default Fallback value.
+     * @return mixed Targeting setting value.
+     * @since 1.0.3
+     */
+    public function get_targeting_setting($key, $default = null) {
+        $targeting = $this->get_targeting_settings();
+
+        return array_key_exists($key, $targeting)
+            ? $targeting[$key]
+            : $default;
+    }
+
+    /**
      * Get normalized analytics settings.
      *
      * @return array<string, mixed> Analytics settings map.
@@ -460,6 +488,14 @@ class CWP_Chat_Bubbles_Settings {
                 'schedule' => $this->get_schedule_settings(),
             ),
             'unified_targeting' => array(
+                'settings_key' => 'targeting',
+                'schema' => $this->get_targeting_settings(),
+                'legacy_field_mappings' => array(
+                    'exclude_pages' => 'targeting.rules.pages.exclude',
+                    'contextual_pages_include' => 'targeting.rules.pages.include',
+                    'contextual_post_types' => 'targeting.rules.post_types',
+                    'special_pages' => 'targeting.rules.special_pages',
+                ),
                 'rule_groups' => array(
                     array(
                         'type' => 'device_visibility',
@@ -600,6 +636,30 @@ class CWP_Chat_Bubbles_Settings {
     }
 
     /**
+     * Get the default contextual targeting settings.
+     *
+     * @return array<string, mixed> Default targeting settings.
+     * @since 1.0.3
+     */
+    private function get_default_targeting_settings() {
+        return array(
+            'schema_version' => 1,
+            'operator' => 'all',
+            'rules' => array(
+                'pages' => array(
+                    'include' => array(),
+                    'exclude' => array(),
+                ),
+                'post_types' => array(
+                    'include' => array(),
+                    'exclude' => array(),
+                ),
+                'special_pages' => $this->get_default_special_page_targets(),
+            ),
+        );
+    }
+
+    /**
      * Get the default analytics settings.
      *
      * @return array<string, mixed> Default analytics settings.
@@ -646,6 +706,7 @@ class CWP_Chat_Bubbles_Settings {
         $normalized['load_on_mobile'] = $normalized['device_visibility']['mobile'];
         $normalized['behavior'] = $this->normalize_behavior_settings($options);
         $normalized['schedule'] = $this->normalize_schedule_settings($options);
+        $normalized['targeting'] = $this->normalize_targeting_settings($options);
         $normalized['analytics'] = $this->normalize_analytics_settings($options);
         $normalized['appearance'] = $this->normalize_appearance_settings($options);
 
@@ -853,6 +914,79 @@ class CWP_Chat_Bubbles_Settings {
     }
 
     /**
+     * Normalize targeting settings from stored options.
+     *
+     * @param array $options Raw stored options.
+     * @return array<string, mixed> Normalized targeting settings.
+     * @since 1.0.3
+     */
+    private function normalize_targeting_settings($options) {
+        $defaults = $this->get_default_targeting_settings();
+
+        if (!is_array($options) || !isset($options['targeting']) || !is_array($options['targeting'])) {
+            return $defaults;
+        }
+
+        return $this->sanitize_targeting_settings(
+            array(
+                'targeting' => $options['targeting'],
+            )
+        );
+    }
+
+    /**
+     * Sanitize targeting settings from submitted options.
+     *
+     * @param array $options Raw submitted options.
+     * @return array<string, mixed> Sanitized targeting settings.
+     * @since 1.0.3
+     */
+    private function sanitize_targeting_settings($options) {
+        $defaults = $this->get_default_targeting_settings();
+
+        if (!is_array($options) || !isset($options['targeting']) || !is_array($options['targeting'])) {
+            return $defaults;
+        }
+
+        $targeting = $options['targeting'];
+        $rules = isset($targeting['rules']) && is_array($targeting['rules'])
+            ? $targeting['rules']
+            : array();
+        $pages = isset($rules['pages']) && is_array($rules['pages'])
+            ? $rules['pages']
+            : array();
+        $post_types = isset($rules['post_types']) && is_array($rules['post_types'])
+            ? $rules['post_types']
+            : array();
+        $special_pages = isset($rules['special_pages']) && is_array($rules['special_pages'])
+            ? $rules['special_pages']
+            : array();
+        $operator = isset($targeting['operator'])
+            ? sanitize_text_field($targeting['operator'])
+            : $defaults['operator'];
+
+        if (!in_array($operator, array('all', 'any'), true)) {
+            $operator = $defaults['operator'];
+        }
+
+        return array(
+            'schema_version' => (int) $defaults['schema_version'],
+            'operator' => $operator,
+            'rules' => array(
+                'pages' => array(
+                    'include' => $this->sanitize_rule_ids($pages['include'] ?? array()),
+                    'exclude' => $this->sanitize_rule_ids($pages['exclude'] ?? array()),
+                ),
+                'post_types' => array(
+                    'include' => $this->sanitize_rule_strings($post_types['include'] ?? array()),
+                    'exclude' => $this->sanitize_rule_strings($post_types['exclude'] ?? array()),
+                ),
+                'special_pages' => $this->sanitize_special_page_targets($special_pages),
+            ),
+        );
+    }
+
+    /**
      * Normalize analytics settings from stored options.
      *
      * @param array $options Raw stored options.
@@ -1026,5 +1160,99 @@ class CWP_Chat_Bubbles_Settings {
             'label_text_color' => $label_text_color,
             'z_index' => max(100, min(99999, (int) ($appearance['z_index'] ?? $defaults['z_index']))),
         );
+    }
+
+    /**
+     * Get the default special-page targeting values.
+     *
+     * @return array<string, string> Special-page targeting map.
+     * @since 1.0.3
+     */
+    private function get_default_special_page_targets() {
+        return array(
+            'front_page' => 'ignore',
+            'blog_index' => 'ignore',
+            'search' => 'ignore',
+            '404' => 'ignore',
+            'archive' => 'ignore',
+        );
+    }
+
+    /**
+     * Sanitize a list of numeric IDs used by contextual targeting.
+     *
+     * @param mixed $values Raw values.
+     * @return array<int, int> Sanitized ID list.
+     * @since 1.0.3
+     */
+    private function sanitize_rule_ids($values) {
+        if (!is_array($values)) {
+            return array();
+        }
+
+        $sanitized = array();
+        foreach ($values as $value) {
+            $id = absint($value);
+            if ($id > 0 && !in_array($id, $sanitized, true)) {
+                $sanitized[] = $id;
+            }
+        }
+
+        return $sanitized;
+    }
+
+    /**
+     * Sanitize a list of string identifiers used by contextual targeting.
+     *
+     * @param mixed $values Raw values.
+     * @return array<int, string> Sanitized identifier list.
+     * @since 1.0.3
+     */
+    private function sanitize_rule_strings($values) {
+        if (!is_array($values)) {
+            return array();
+        }
+
+        $sanitized = array();
+        foreach ($values as $value) {
+            $value = strtolower(sanitize_text_field($value));
+            $value = preg_replace('/[^a-z0-9_\-]+/', '', $value);
+
+            if (!empty($value) && !in_array($value, $sanitized, true)) {
+                $sanitized[] = $value;
+            }
+        }
+
+        return $sanitized;
+    }
+
+    /**
+     * Sanitize the special-page targeting tri-state map.
+     *
+     * @param mixed $values Raw values.
+     * @return array<string, string> Sanitized special-page map.
+     * @since 1.0.3
+     */
+    private function sanitize_special_page_targets($values) {
+        $defaults = $this->get_default_special_page_targets();
+
+        if (!is_array($values)) {
+            return $defaults;
+        }
+
+        $sanitized = array();
+        foreach ($defaults as $key => $default) {
+            $value = isset($values[$key])
+                ? sanitize_text_field($values[$key])
+                : $default;
+
+            if (!in_array($value, array('ignore', 'include', 'exclude'), true)) {
+                $value = $default;
+            }
+
+            $sanitized[$key] = $value;
+        }
+
+        return $sanitized;
     }
 }

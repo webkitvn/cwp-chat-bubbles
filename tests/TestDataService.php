@@ -184,6 +184,8 @@ class TestDataService extends TestCase {
         );
 
         $this->assertSame('conditions.device_visibility.mobile', $context['contract']['legacy_aliases']['load_on_mobile']);
+        $this->assertSame('targeting', $context['contract']['unified_targeting']['settings_key']);
+        $this->assertArrayHasKey('post_types', $context['contract']['unified_targeting']['schema']['rules']);
         $this->assertTrue($context['runtime']['auto_load_enabled']);
         $this->assertTrue($context['runtime']['has_visible_devices']);
         $this->assertTrue($context['runtime']['schedule_allows_display']);

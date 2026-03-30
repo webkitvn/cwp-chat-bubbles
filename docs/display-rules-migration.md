@@ -43,6 +43,8 @@ The planned rule builder should treat current quick-win settings as seed data fo
 | `schedule` | `schedule` | `allow_when_open` | Reuse the existing schedule payload as the first availability rule. |
 | `behavior` | `engagement` | n/a | Keep engagement settings adjacent to targeting, but not inside rule matching. |
 
+The concrete normalized payload for future contextual rules is defined in [`contextual-targeting-schema.md`](contextual-targeting-schema.md).
+
 ## Runtime Boundary
 
 Before the future rule builder ships:

@@ -42,6 +42,7 @@ class TestSettings extends TestCase {
         $this->assertArrayHasKey('device_visibility', $defaults);
         $this->assertArrayHasKey('behavior', $defaults);
         $this->assertArrayHasKey('schedule', $defaults);
+        $this->assertArrayHasKey('targeting', $defaults);
         $this->assertArrayHasKey('analytics', $defaults);
         $this->assertArrayHasKey('appearance', $defaults);
         $this->assertArrayHasKey('exclude_pages', $defaults);
@@ -87,6 +88,10 @@ class TestSettings extends TestCase {
         $this->assertFalse($defaults['schedule']['weekly_hours']['sun']['enabled']);
         $this->assertSame('09:00', $defaults['schedule']['weekly_hours']['mon']['open']);
         $this->assertSame('17:00', $defaults['schedule']['weekly_hours']['mon']['close']);
+        $this->assertSame(1, $defaults['targeting']['schema_version']);
+        $this->assertSame('all', $defaults['targeting']['operator']);
+        $this->assertSame(array(), $defaults['targeting']['rules']['pages']['include']);
+        $this->assertSame('ignore', $defaults['targeting']['rules']['special_pages']['front_page']);
         $this->assertFalse($defaults['analytics']['enabled']);
         $this->assertSame('none', $defaults['analytics']['provider']);
         $this->assertSame('cwp_chat_bubbles', $defaults['analytics']['event_prefix']);
@@ -146,6 +151,24 @@ class TestSettings extends TestCase {
                     ),
                 ),
             ),
+            'targeting' => array(
+                'schema_version' => 999,
+                'operator' => 'any',
+                'rules' => array(
+                    'pages' => array(
+                        'include' => array(12, '99'),
+                        'exclude' => array(4),
+                    ),
+                    'post_types' => array(
+                        'include' => array('page', 'product'),
+                        'exclude' => array('attachment'),
+                    ),
+                    'special_pages' => array(
+                        'front_page' => 'include',
+                        'search' => 'exclude',
+                    ),
+                ),
+            ),
             'analytics' => array(
                 'enabled' => true,
                 'provider' => 'ga4',
@@ -201,6 +224,12 @@ class TestSettings extends TestCase {
         $this->assertSame('08:30', $sanitized['schedule']['weekly_hours']['mon']['open']);
         $this->assertSame('18:00', $sanitized['schedule']['weekly_hours']['mon']['close']);
         $this->assertFalse($sanitized['schedule']['weekly_hours']['sun']['enabled']);
+        $this->assertSame(1, $sanitized['targeting']['schema_version']);
+        $this->assertSame('any', $sanitized['targeting']['operator']);
+        $this->assertSame(array(12, 99), $sanitized['targeting']['rules']['pages']['include']);
+        $this->assertSame(array('page', 'product'), $sanitized['targeting']['rules']['post_types']['include']);
+        $this->assertSame('include', $sanitized['targeting']['rules']['special_pages']['front_page']);
+        $this->assertSame('exclude', $sanitized['targeting']['rules']['special_pages']['search']);
         $this->assertTrue($sanitized['analytics']['enabled']);
         $this->assertSame('ga4', $sanitized['analytics']['provider']);
         $this->assertSame('support_chat', $sanitized['analytics']['event_prefix']);
@@ -669,6 +698,82 @@ class TestSettings extends TestCase {
         $this->assertSame('hide', $this->settings->get_schedule_setting('closed_behavior'));
         $this->assertSame('07:00', $schedule['weekly_hours']['mon']['open']);
         $this->assertNull($this->settings->get_schedule_setting('missing_key'));
+    }
+
+    /**
+     * Test sanitize_options validates contextual targeting settings.
+     */
+    public function test_sanitize_options_targeting_settings() {
+        $input = array(
+            'targeting' => array(
+                'schema_version' => 22,
+                'operator' => 'invalid',
+                'rules' => array(
+                    'pages' => array(
+                        'include' => array(5, '5', 0, '14'),
+                        'exclude' => array('nope', 8),
+                    ),
+                    'post_types' => array(
+                        'include' => array('Page', 'product<script>', 'page'),
+                        'exclude' => array(' attachment ', 'bad slug!'),
+                    ),
+                    'special_pages' => array(
+                        'front_page' => 'include',
+                        'blog_index' => 'bad-value',
+                        'search' => 'exclude',
+                    ),
+                ),
+            ),
+        );
+
+        $sanitized = $this->settings->sanitize_options($input);
+
+        $this->assertSame(1, $sanitized['targeting']['schema_version']);
+        $this->assertSame('all', $sanitized['targeting']['operator']);
+        $this->assertSame(array(5, 14), $sanitized['targeting']['rules']['pages']['include']);
+        $this->assertSame(array(8), $sanitized['targeting']['rules']['pages']['exclude']);
+        $this->assertSame(array('page', 'product'), $sanitized['targeting']['rules']['post_types']['include']);
+        $this->assertSame(array('attachment', 'badslug'), $sanitized['targeting']['rules']['post_types']['exclude']);
+        $this->assertSame('include', $sanitized['targeting']['rules']['special_pages']['front_page']);
+        $this->assertSame('ignore', $sanitized['targeting']['rules']['special_pages']['blog_index']);
+        $this->assertSame('exclude', $sanitized['targeting']['rules']['special_pages']['search']);
+    }
+
+    /**
+     * Test targeting helpers expose normalized values for future contextual rule work.
+     */
+    public function test_targeting_helpers() {
+        global $mock_options;
+
+        $mock_options['cwp_chat_bubbles_options'] = array(
+            'targeting' => array(
+                'schema_version' => 99,
+                'operator' => 'any',
+                'rules' => array(
+                    'pages' => array(
+                        'include' => array(22),
+                        'exclude' => array(9),
+                    ),
+                    'post_types' => array(
+                        'include' => array('page'),
+                        'exclude' => array('attachment'),
+                    ),
+                    'special_pages' => array(
+                        'front_page' => 'include',
+                        '404' => 'exclude',
+                    ),
+                ),
+            ),
+        );
+
+        $targeting = $this->settings->get_targeting_settings();
+
+        $this->assertSame(1, $targeting['schema_version']);
+        $this->assertSame('any', $targeting['operator']);
+        $this->assertSame(array(22), $targeting['rules']['pages']['include']);
+        $this->assertSame('include', $targeting['rules']['special_pages']['front_page']);
+        $this->assertSame('exclude', $targeting['rules']['special_pages']['404']);
+        $this->assertNull($this->settings->get_targeting_setting('missing_key'));
     }
 
     /**
