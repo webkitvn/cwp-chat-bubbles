@@ -11,6 +11,7 @@ if (!defined('CWP_CHAT_BUBBLES_TESTING')) {
 define('ABSPATH', '/tmp/wordpress/');
 define('CWP_CHAT_BUBBLES_PLUGIN_URL', 'http://example.com/wp-content/plugins/cwp-chat-bubbles/');
 define('CWP_CHAT_BUBBLES_PLUGIN_DIR', dirname(__DIR__) . '/');
+define('CWP_CHAT_BUBBLES_TEXT_DOMAIN', 'cwp-chat-bubbles');
 define('DAY_IN_SECONDS', 86400);
 define('HOUR_IN_SECONDS', 3600);
 
@@ -20,6 +21,48 @@ if (!function_exists('sanitize_text_field')) {
         $filtered = trim($str);
         $filtered = strip_tags($filtered);
         return preg_replace('/[\r\n\t]+/', ' ', $filtered);
+    }
+}
+
+if (!function_exists('__')) {
+    function __($text, $domain = null) {
+        return $text;
+    }
+}
+
+if (!function_exists('esc_attr')) {
+    function esc_attr($text) {
+        return htmlspecialchars((string) $text, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('esc_html')) {
+    function esc_html($text) {
+        return htmlspecialchars((string) $text, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('esc_textarea')) {
+    function esc_textarea($text) {
+        return htmlspecialchars((string) $text, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('esc_url')) {
+    function esc_url($url) {
+        return (string) $url;
+    }
+}
+
+if (!function_exists('esc_attr_e')) {
+    function esc_attr_e($text, $domain = null) {
+        echo esc_attr(__($text, $domain));
+    }
+}
+
+if (!function_exists('esc_html_e')) {
+    function esc_html_e($text, $domain = null) {
+        echo esc_html(__($text, $domain));
     }
 }
 
