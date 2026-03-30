@@ -722,6 +722,179 @@ class CWP_Chat_Bubbles_Items_Manager {
     }
 
     /**
+     * Get the normalized default per-item behavior payload for future CRUD and runtime consumers.
+     *
+     * Existing installs should resolve to this payload implicitly until the dedicated storage column ships.
+     *
+     * @return array<string, mixed> Default item behavior settings.
+     * @since 1.0.3
+     */
+    public function get_default_item_behavior_settings() {
+        return array(
+            'schema_version' => 1,
+            'interaction_mode' => 'auto',
+            'prefill_message' => '',
+        );
+    }
+
+    /**
+     * Normalize a raw per-item behavior payload from array or stored string form.
+     *
+     * The future storage column will use a serialized longtext payload so old plugin versions can safely ignore it,
+     * while new code can still hydrate defaults when the field is empty, missing, or malformed.
+     *
+     * @param mixed $behavior_settings Raw behavior payload.
+     * @return array<string, mixed> Normalized item behavior settings.
+     * @since 1.0.3
+     */
+    public function normalize_item_behavior_settings($behavior_settings) {
+        $defaults = $this->get_default_item_behavior_settings();
+        $decoded = $this->decode_item_behavior_settings($behavior_settings);
+
+        if (!is_array($decoded)) {
+            return $defaults;
+        }
+
+        $normalized = $defaults;
+        $allowed_modes = array('auto', 'direct_link', 'qr_modal');
+
+        if (isset($decoded['interaction_mode']) && in_array($decoded['interaction_mode'], $allowed_modes, true)) {
+            $normalized['interaction_mode'] = $decoded['interaction_mode'];
+        }
+
+        if (isset($decoded['prefill_message'])) {
+            $normalized['prefill_message'] = substr(
+                sanitize_textarea_field((string) $decoded['prefill_message']),
+                0,
+                500
+            );
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * Get normalized per-item behavior settings from an item record.
+     *
+     * @param array<string, mixed> $item Item row or partial item payload.
+     * @return array<string, mixed> Normalized item behavior settings.
+     * @since 1.0.3
+     */
+    public function get_item_behavior_settings($item) {
+        if (!is_array($item) || !array_key_exists('behavior_settings', $item)) {
+            return $this->get_default_item_behavior_settings();
+        }
+
+        return $this->normalize_item_behavior_settings($item['behavior_settings']);
+    }
+
+    /**
+     * Get the selected migration contract for per-item behavior storage.
+     *
+     * This keeps the existing custom table authoritative for item identity while documenting exactly how the
+     * future behavior payload should be added, read, and rolled back.
+     *
+     * @return array<string, mixed> Structured storage and migration contract.
+     * @since 1.0.3
+     */
+    public function get_item_behavior_storage_contract() {
+        return array(
+            'schema_version' => 1,
+            'current_storage' => array(
+                'type' => 'custom_table',
+                'table_suffix' => 'cwp_chat_bubbles_items',
+                'columns' => array(
+                    'id',
+                    'platform',
+                    'enabled',
+                    'label',
+                    'contact_value',
+                    'qr_code_id',
+                    'sort_order',
+                ),
+            ),
+            'selected_strategy' => array(
+                'type' => 'custom_table_column',
+                'table_suffix' => 'cwp_chat_bubbles_items',
+                'column' => 'behavior_settings',
+                'column_type' => 'longtext',
+                'encoding' => 'php_serialized_array',
+                'default_storage' => null,
+            ),
+            'default_behavior' => $this->get_default_item_behavior_settings(),
+            'field_contract' => array(
+                'interaction_mode' => array(
+                    'default' => 'auto',
+                    'allowed_values' => array('auto', 'direct_link', 'qr_modal'),
+                    'notes' => array(
+                        'auto preserves the current behavior: QR modal when a QR code exists, otherwise direct link',
+                        'direct_link bypasses the QR modal even when a QR code exists',
+                        'qr_modal forces the QR modal first when a QR code exists and falls back to direct link when it does not',
+                    ),
+                ),
+                'prefill_message' => array(
+                    'default' => '',
+                    'max_length' => 500,
+                    'notes' => array(
+                        'Store the raw operator-authored message at the item level',
+                        'Frontend platform integrations decide whether and how the message is appended to outbound links',
+                    ),
+                ),
+            ),
+            'migration' => array(
+                'forward' => array(
+                    'Add the nullable behavior_settings longtext column with dbDelta and bump the item-table db version',
+                    'Do not backfill every row; treat NULL or empty payloads as the normalized default behavior',
+                    'Update CRUD and admin UI to write only the normalized payload for items that opt into non-default behavior',
+                ),
+                'fallback_behavior' => array(
+                    'Missing, empty, or malformed behavior_settings payloads resolve to the default behavior contract',
+                    'Existing installs keep the current QR-versus-link flow until an item is edited and saved with new behavior data',
+                ),
+                'rollback' => array(
+                    'Older plugin versions ignore the extra longtext column and continue reading the legacy item fields',
+                    'Do not delete or rewrite existing core columns during the first rollout',
+                ),
+            ),
+        );
+    }
+
+    /**
+     * Decode raw per-item behavior settings from an array or stored string payload.
+     *
+     * @param mixed $behavior_settings Raw behavior payload.
+     * @return array<string, mixed> Decoded payload or empty array.
+     * @since 1.0.3
+     */
+    private function decode_item_behavior_settings($behavior_settings) {
+        if (is_array($behavior_settings)) {
+            return $behavior_settings;
+        }
+
+        if (!is_string($behavior_settings)) {
+            return array();
+        }
+
+        $behavior_settings = trim($behavior_settings);
+
+        if ('' === $behavior_settings) {
+            return array();
+        }
+
+        $decoded_json = json_decode($behavior_settings, true);
+        if (is_array($decoded_json)) {
+            return $decoded_json;
+        }
+
+        $decoded_serialized = @unserialize($behavior_settings);
+        if (is_array($decoded_serialized)) {
+            return $decoded_serialized;
+        }
+
+        return array();
+    }
+
+    /**
      * Migrate data from old options format to new table
      *
      * @return bool Success

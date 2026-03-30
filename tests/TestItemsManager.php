@@ -384,4 +384,67 @@ class TestItemsManager extends TestCase {
         // Unknown platform returns a URL with 'unknown.svg'
         $this->assertStringContainsString('.svg', $url);
     }
+
+    /**
+     * Test default item behavior settings preserve the legacy interaction flow.
+     */
+    public function test_get_default_item_behavior_settings() {
+        $defaults = $this->manager->get_default_item_behavior_settings();
+
+        $this->assertSame(1, $defaults['schema_version']);
+        $this->assertSame('auto', $defaults['interaction_mode']);
+        $this->assertSame('', $defaults['prefill_message']);
+    }
+
+    /**
+     * Test normalized item behavior accepts serialized payloads and clamps invalid values.
+     */
+    public function test_normalize_item_behavior_settings() {
+        $raw_payload = serialize(
+            array(
+                'interaction_mode' => 'direct_link',
+                'prefill_message' => " Need help \n<script>alert(1)</script>",
+            )
+        );
+
+        $normalized = $this->manager->normalize_item_behavior_settings($raw_payload);
+
+        $this->assertSame(1, $normalized['schema_version']);
+        $this->assertSame('direct_link', $normalized['interaction_mode']);
+        $this->assertSame("Need help \nalert(1)", $normalized['prefill_message']);
+    }
+
+    /**
+     * Test item behavior lookup falls back to defaults when no payload exists.
+     */
+    public function test_get_item_behavior_settings_defaults_without_payload() {
+        $behavior = $this->manager->get_item_behavior_settings(
+            array(
+                'id' => 10,
+                'platform' => 'zalo',
+            )
+        );
+
+        $this->assertSame(
+            $this->manager->get_default_item_behavior_settings(),
+            $behavior
+        );
+    }
+
+    /**
+     * Test item behavior storage contract documents the selected migration strategy.
+     */
+    public function test_get_item_behavior_storage_contract() {
+        $contract = $this->manager->get_item_behavior_storage_contract();
+
+        $this->assertSame(1, $contract['schema_version']);
+        $this->assertSame('custom_table_column', $contract['selected_strategy']['type']);
+        $this->assertSame('behavior_settings', $contract['selected_strategy']['column']);
+        $this->assertSame('php_serialized_array', $contract['selected_strategy']['encoding']);
+        $this->assertSame('auto', $contract['default_behavior']['interaction_mode']);
+        $this->assertContains(
+            'Add the nullable behavior_settings longtext column with dbDelta and bump the item-table db version',
+            $contract['migration']['forward']
+        );
+    }
 }

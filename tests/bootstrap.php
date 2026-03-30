@@ -24,6 +24,14 @@ if (!function_exists('sanitize_text_field')) {
     }
 }
 
+if (!function_exists('sanitize_textarea_field')) {
+    function sanitize_textarea_field($str) {
+        $filtered = trim((string) $str);
+        $filtered = strip_tags($filtered);
+        return preg_replace("/\r\n|\r|\n/", "\n", $filtered);
+    }
+}
+
 if (!function_exists('__')) {
     function __($text, $domain = null) {
         return $text;

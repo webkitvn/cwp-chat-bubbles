@@ -8,6 +8,7 @@ A standalone WordPress plugin that auto-injects floating chat bubbles for popula
 - Lets operators manage chat items with drag-and-drop ordering and optional QR-code dialogs.
 - Exposes advanced controls for device visibility, excluded pages, engagement behavior, business hours, appearance tuning, and analytics hooks.
 - Keeps runtime customization centralized through CSS variables instead of scattered inline style logic.
+- Documents the next-step migration contracts for contextual targeting and future per-item behavior storage.
 
 ## Requirements
 - WordPress 5.0+
@@ -25,6 +26,10 @@ The plugin settings screen is organized into four tabs:
 - `Chat Items`: manage channel entries, contact values, QR codes, and sort order.
 - `Display Settings`: configure bubble position, offsets, button color, and animation toggle.
 - `Advanced Settings`: control behavior, business hours, device visibility, page exclusions, appearance tokens, analytics hooks, and small CSS overrides.
+
+## Data Model Notes
+- Contextual targeting migration is documented in [`docs/display-rules-migration.md`](docs/display-rules-migration.md) and [`docs/contextual-targeting-schema.md`](docs/contextual-targeting-schema.md).
+- Future per-item behavior storage is documented in [`docs/item-behavior-migration.md`](docs/item-behavior-migration.md).
 
 ## Advanced Settings
 
@@ -126,6 +131,7 @@ Current automated coverage includes:
 - Settings normalization and sanitization for behavior, schedule, analytics, and appearance
 - Data-service exposure of runtime settings such as schedule and analytics
 - Display-rule migration contract helpers for future contextual targeting work
+- Items-manager helpers for future per-item behavior storage and fallback semantics
 - Frontend template markup contracts for accessibility and analytics-related data attributes
 
 ## Release Checklist
