@@ -312,6 +312,64 @@ class CWP_Chat_Bubbles_Options_Page {
                     <div id="advanced-settings" class="tab-content" style="display: none;">
                         <table class="form-table">
                             <tr>
+                                <th scope="row"><?php esc_html_e('Behavior', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <fieldset>
+                                        <legend class="screen-reader-text"><?php esc_html_e('Global behavior settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></legend>
+                                        <p style="margin-top: 0;">
+                                            <label for="cwp-chat-bubbles-default-state" style="display: block; font-weight: 600; margin-bottom: 6px;">
+                                                <?php esc_html_e('Initial state', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                            </label>
+                                            <select id="cwp-chat-bubbles-default-state" name="cwp_chat_bubbles_options[behavior][default_state]">
+                                                <option value="closed" <?php selected($options['behavior']['default_state'], 'closed'); ?>><?php esc_html_e('Closed until the visitor clicks', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                                <option value="open" <?php selected($options['behavior']['default_state'], 'open'); ?>><?php esc_html_e('Open by default on first render', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                            </select>
+                                        </p>
+                                        <div style="display: flex; gap: 24px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 8px;">
+                                            <p style="margin: 0;">
+                                                <label for="cwp-chat-bubbles-display-delay" style="display: block; font-weight: 600; margin-bottom: 6px;">
+                                                    <?php esc_html_e('Display delay', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                                </label>
+                                                <input
+                                                    id="cwp-chat-bubbles-display-delay"
+                                                    type="number"
+                                                    name="cwp_chat_bubbles_options[behavior][display_delay]"
+                                                    value="<?php echo esc_attr($options['behavior']['display_delay']); ?>"
+                                                    min="0"
+                                                    max="30"
+                                                    step="1"
+                                                    style="width: 90px;"
+                                                >
+                                                <span style="color: #666;"><?php esc_html_e('seconds', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></span>
+                                            </p>
+                                            <p style="margin: 0;">
+                                                <label for="cwp-chat-bubbles-scroll-trigger" style="display: block; font-weight: 600; margin-bottom: 6px;">
+                                                    <?php esc_html_e('Scroll trigger', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                                </label>
+                                                <input
+                                                    id="cwp-chat-bubbles-scroll-trigger"
+                                                    type="number"
+                                                    name="cwp_chat_bubbles_options[behavior][scroll_trigger_percent]"
+                                                    value="<?php echo esc_attr($options['behavior']['scroll_trigger_percent']); ?>"
+                                                    min="0"
+                                                    max="100"
+                                                    step="5"
+                                                    style="width: 90px;"
+                                                >
+                                                <span style="color: #666;"><?php esc_html_e('% page depth', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></span>
+                                            </p>
+                                        </div>
+                                        <label style="display: block;">
+                                            <input type="checkbox" name="cwp_chat_bubbles_options[behavior][dismiss_for_session]" value="1" <?php checked(!empty($options['behavior']['dismiss_for_session'])); ?>>
+                                            <?php esc_html_e('Keep the bubble dismissed for the rest of the browser session after a visitor closes it', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </label>
+                                    </fieldset>
+                                    <p class="description">
+                                        <?php esc_html_e('Set a small number of engagement rules now so the frontend runtime can adopt them later without inventing new parsing rules. Use 0 seconds or 0% to disable the delay and scroll trigger.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
                                 <th scope="row"><?php esc_html_e('Device Visibility', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
                                     <fieldset>

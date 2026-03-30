@@ -40,6 +40,7 @@ class TestSettings extends TestCase {
         $this->assertArrayHasKey('custom_css', $defaults);
         $this->assertArrayHasKey('load_on_mobile', $defaults);
         $this->assertArrayHasKey('device_visibility', $defaults);
+        $this->assertArrayHasKey('behavior', $defaults);
         $this->assertArrayHasKey('exclude_pages', $defaults);
         $this->assertArrayHasKey('offset_x', $defaults);
         $this->assertArrayHasKey('offset_y', $defaults);
@@ -67,6 +68,15 @@ class TestSettings extends TestCase {
             ),
             $defaults['device_visibility']
         );
+        $this->assertEquals(
+            array(
+                'default_state' => 'closed',
+                'display_delay' => 0,
+                'scroll_trigger_percent' => 0,
+                'dismiss_for_session' => false,
+            ),
+            $defaults['behavior']
+        );
         $this->assertEquals('', $defaults['custom_css']);
         $this->assertEquals(array(), $defaults['exclude_pages']);
         $this->assertEquals(0, $defaults['offset_x']);
@@ -91,6 +101,12 @@ class TestSettings extends TestCase {
                 'tablet' => false,
                 'mobile' => true,
             ),
+            'behavior' => array(
+                'default_state' => 'open',
+                'display_delay' => 5,
+                'scroll_trigger_percent' => 25,
+                'dismiss_for_session' => true,
+            ),
             'custom_css' => '.test { color: red; }',
             'exclude_pages' => array(1, 2, 3),
             'offset_x' => 20,
@@ -114,6 +130,15 @@ class TestSettings extends TestCase {
                 'mobile' => true,
             ),
             $sanitized['device_visibility']
+        );
+        $this->assertEquals(
+            array(
+                'default_state' => 'open',
+                'display_delay' => 5,
+                'scroll_trigger_percent' => 25,
+                'dismiss_for_session' => true,
+            ),
+            $sanitized['behavior']
         );
         $this->assertEquals('.test { color: red; }', $sanitized['custom_css']);
         $this->assertEquals(array(1, 2, 3), $sanitized['exclude_pages']);
@@ -233,6 +258,15 @@ class TestSettings extends TestCase {
                 'mobile' => false,
             ),
             $sanitized['device_visibility']
+        );
+        $this->assertEquals(
+            array(
+                'default_state' => 'closed',
+                'display_delay' => 0,
+                'scroll_trigger_percent' => 0,
+                'dismiss_for_session' => false,
+            ),
+            $sanitized['behavior']
         );
     }
 
@@ -443,5 +477,61 @@ class TestSettings extends TestCase {
         $this->assertFalse($this->settings->is_device_enabled('tablet'));
         $this->assertTrue($this->settings->is_device_enabled('desktop'));
         $this->assertFalse($this->settings->get_option('device_visibility.mobile', true));
+    }
+
+    /**
+     * Test sanitize_options clamps and validates behavior settings.
+     */
+    public function test_sanitize_options_behavior_settings() {
+        $input = array(
+            'behavior' => array(
+                'default_state' => 'invalid',
+                'display_delay' => 99,
+                'scroll_trigger_percent' => -5,
+                'dismiss_for_session' => true,
+            ),
+        );
+
+        $sanitized = $this->settings->sanitize_options($input);
+
+        $this->assertEquals(
+            array(
+                'default_state' => 'closed',
+                'display_delay' => 30,
+                'scroll_trigger_percent' => 0,
+                'dismiss_for_session' => true,
+            ),
+            $sanitized['behavior']
+        );
+    }
+
+    /**
+     * Test behavior helpers expose normalized values for runtime consumers.
+     */
+    public function test_behavior_helpers() {
+        global $mock_options;
+
+        $mock_options['cwp_chat_bubbles_options'] = array(
+            'behavior' => array(
+                'default_state' => 'open',
+                'display_delay' => 7,
+                'scroll_trigger_percent' => 40,
+                'dismiss_for_session' => true,
+            ),
+        );
+
+        $this->assertEquals(
+            array(
+                'default_state' => 'open',
+                'display_delay' => 7,
+                'scroll_trigger_percent' => 40,
+                'dismiss_for_session' => true,
+            ),
+            $this->settings->get_behavior_settings()
+        );
+        $this->assertSame('open', $this->settings->get_behavior_setting('default_state'));
+        $this->assertSame(7, $this->settings->get_behavior_setting('display_delay'));
+        $this->assertTrue($this->settings->get_behavior_setting('dismiss_for_session'));
+        $this->assertNull($this->settings->get_behavior_setting('missing_key'));
     }
 }

@@ -98,6 +98,7 @@ class CWP_Chat_Bubbles_Settings {
             'custom_css' => '',
             'load_on_mobile' => true,
             'device_visibility' => $this->get_default_device_visibility(),
+            'behavior' => $this->get_default_behavior_settings(),
             'exclude_pages' => array()
         );
     }
@@ -187,6 +188,7 @@ class CWP_Chat_Bubbles_Settings {
             
         $sanitized['device_visibility'] = $this->sanitize_device_visibility($options);
         $sanitized['load_on_mobile'] = $sanitized['device_visibility']['mobile'];
+        $sanitized['behavior'] = $this->sanitize_behavior_settings($options);
 
         // Sanitize exclude pages
         $sanitized['exclude_pages'] = array();
@@ -353,6 +355,32 @@ class CWP_Chat_Bubbles_Settings {
     }
 
     /**
+     * Get normalized global behavior settings.
+     *
+     * @return array<string, mixed> Behavior settings map.
+     * @since 1.0.3
+     */
+    public function get_behavior_settings() {
+        return $this->get_option('behavior', $this->get_default_behavior_settings());
+    }
+
+    /**
+     * Get a single behavior setting.
+     *
+     * @param string $key Behavior key.
+     * @param mixed  $default Fallback value.
+     * @return mixed Behavior setting value.
+     * @since 1.0.3
+     */
+    public function get_behavior_setting($key, $default = null) {
+        $behavior = $this->get_behavior_settings();
+
+        return array_key_exists($key, $behavior)
+            ? $behavior[$key]
+            : $default;
+    }
+
+    /**
      * Get main icon URL
      *
      * @return string Main icon URL (custom or default)
@@ -386,6 +414,21 @@ class CWP_Chat_Bubbles_Settings {
     }
 
     /**
+     * Get the default global behavior settings.
+     *
+     * @return array<string, mixed> Default behavior settings.
+     * @since 1.0.3
+     */
+    private function get_default_behavior_settings() {
+        return array(
+            'default_state' => 'closed',
+            'display_delay' => 0,
+            'scroll_trigger_percent' => 0,
+            'dismiss_for_session' => false,
+        );
+    }
+
+    /**
      * Normalize stored options so older installs expose the latest schema.
      *
      * @param array $options Raw stored options.
@@ -396,6 +439,7 @@ class CWP_Chat_Bubbles_Settings {
         $normalized = array_replace_recursive($this->get_default_options(), $options);
         $normalized['device_visibility'] = $this->normalize_device_visibility($options);
         $normalized['load_on_mobile'] = $normalized['device_visibility']['mobile'];
+        $normalized['behavior'] = $this->normalize_behavior_settings($options);
 
         return $normalized;
     }
@@ -466,5 +510,61 @@ class CWP_Chat_Bubbles_Settings {
         }
 
         return $sanitized;
+    }
+
+    /**
+     * Normalize behavior settings from stored options.
+     *
+     * @param array $options Raw stored options.
+     * @return array<string, mixed> Normalized behavior settings.
+     * @since 1.0.3
+     */
+    private function normalize_behavior_settings($options) {
+        $defaults = $this->get_default_behavior_settings();
+
+        if (!is_array($options) || !isset($options['behavior']) || !is_array($options['behavior'])) {
+            return $defaults;
+        }
+
+        return array(
+            'default_state' => in_array($options['behavior']['default_state'] ?? '', array('closed', 'open'), true)
+                ? $options['behavior']['default_state']
+                : $defaults['default_state'],
+            'display_delay' => max(0, min(30, (int) ($options['behavior']['display_delay'] ?? $defaults['display_delay']))),
+            'scroll_trigger_percent' => max(0, min(100, (int) ($options['behavior']['scroll_trigger_percent'] ?? $defaults['scroll_trigger_percent']))),
+            'dismiss_for_session' => !empty($options['behavior']['dismiss_for_session']),
+        );
+    }
+
+    /**
+     * Sanitize behavior settings from submitted options.
+     *
+     * @param array $options Raw submitted options.
+     * @return array<string, mixed> Sanitized behavior settings.
+     * @since 1.0.3
+     */
+    private function sanitize_behavior_settings($options) {
+        $defaults = $this->get_default_behavior_settings();
+
+        if (!is_array($options) || !isset($options['behavior']) || !is_array($options['behavior'])) {
+            return $defaults;
+        }
+
+        $default_state = isset($options['behavior']['default_state'])
+            ? sanitize_text_field($options['behavior']['default_state'])
+            : $defaults['default_state'];
+
+        if (!in_array($default_state, array('closed', 'open'), true)) {
+            $default_state = $defaults['default_state'];
+        }
+
+        return array(
+            'default_state' => $default_state,
+            'display_delay' => max(0, min(30, (int) ($options['behavior']['display_delay'] ?? $defaults['display_delay']))),
+            'scroll_trigger_percent' => max(0, min(100, (int) ($options['behavior']['scroll_trigger_percent'] ?? $defaults['scroll_trigger_percent']))),
+            'dismiss_for_session' => isset($options['behavior']['dismiss_for_session'])
+                ? (bool) $options['behavior']['dismiss_for_session']
+                : false,
+        );
     }
 }

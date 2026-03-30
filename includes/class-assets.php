@@ -122,6 +122,7 @@ class CWP_Chat_Bubbles_Assets {
                     'animationEnabled' => $this->settings->get_option('animation_enabled', true),
                     'showLabels' => $this->settings->get_option('show_labels', true),
                     'deviceVisibility' => $this->settings->get_device_visibility(),
+                    'behavior' => $this->settings->get_behavior_settings(),
                 )
             ));
         }
