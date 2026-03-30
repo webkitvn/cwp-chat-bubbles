@@ -430,6 +430,12 @@ class TestDataService extends TestCase {
         $mock_options['cwp_chat_bubbles_options'] = array(
             'position' => 'bottom-left',
             'main_button_color' => '#123456',
+            'behavior' => array(
+                'default_state' => 'open',
+                'display_delay' => 5,
+                'scroll_trigger_percent' => 20,
+                'dismiss_for_session' => true,
+            ),
             'analytics' => array(
                 'enabled' => true,
                 'provider' => 'ga4',
@@ -470,6 +476,10 @@ class TestDataService extends TestCase {
 
         $frontend_data = $this->data_service->get_frontend_data();
 
+        $this->assertSame('open', $frontend_data['settings']['behavior']['default_state']);
+        $this->assertSame(5, $frontend_data['settings']['behavior']['display_delay']);
+        $this->assertSame(20, $frontend_data['settings']['behavior']['scroll_trigger_percent']);
+        $this->assertTrue($frontend_data['settings']['behavior']['dismiss_for_session']);
         $this->assertTrue($frontend_data['settings']['analytics']['enabled']);
         $this->assertSame('ga4', $frontend_data['settings']['analytics']['provider']);
         $this->assertSame('support_chat', $frontend_data['settings']['analytics']['event_prefix']);
