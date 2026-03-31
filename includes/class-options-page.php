@@ -658,12 +658,12 @@ class CWP_Chat_Bubbles_Options_Page {
 
                     <div class="cwp-item-modal-section">
                         <h3><?php esc_html_e('Basic details', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
-                        <table class="form-table">
-                            <tr>
-                                <th scope="row">
+                        <div class="cwp-modal-fields">
+                            <div class="cwp-modal-field">
+                                <div class="cwp-modal-field-label">
                                     <label for="platform"><?php esc_html_e('Chat app', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
-                                </th>
-                                <td>
+                                </div>
+                                <div class="cwp-modal-field-control">
                                     <select id="platform" name="platform" required>
                                         <option value=""><?php esc_html_e('Choose a chat app', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
                                         <?php foreach ($supported_platforms as $platform => $config): ?>
@@ -672,31 +672,31 @@ class CWP_Chat_Bubbles_Options_Page {
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row">
+                                </div>
+                            </div>
+                            <div class="cwp-modal-field">
+                                <div class="cwp-modal-field-label">
                                     <label for="label"><?php esc_html_e('Label', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
-                                </th>
-                                <td>
+                                </div>
+                                <div class="cwp-modal-field-control">
                                     <input type="text" id="label" name="label" class="regular-text" placeholder="<?php esc_attr_e('e.g. Sales team', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" required>
                                     <p class="description"><?php esc_html_e('People see this inside the contact list.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row">
+                                </div>
+                            </div>
+                            <div class="cwp-modal-field">
+                                <div class="cwp-modal-field-label">
                                     <label for="contact-value" id="contact-label"><?php esc_html_e('Contact details', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
-                                </th>
-                                <td>
+                                </div>
+                                <div class="cwp-modal-field-control">
                                     <input type="text" id="contact-value" name="contact_value" class="regular-text" placeholder="" required>
                                     <p class="description" id="contact-description"></p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row">
+                                </div>
+                            </div>
+                            <div class="cwp-modal-field">
+                                <div class="cwp-modal-field-label">
                                     <label for="qr-code"><?php esc_html_e('QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
-                                </th>
-                                <td>
+                                </div>
+                                <div class="cwp-modal-field-control">
                                     <input type="hidden" id="qr-code-id" name="qr_code_id" value="0">
                                     <div class="cwp-button-row">
                                         <button type="button" class="button" id="upload-qr-code">
@@ -708,19 +708,19 @@ class CWP_Chat_Bubbles_Options_Page {
                                     </div>
                                     <div id="qr-preview"></div>
                                     <p class="description"><?php esc_html_e('Add one if people should scan before they start the chat.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
-                                </td>
-                            </tr>
-                        </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="cwp-item-modal-section">
                         <h3><?php esc_html_e('Click behavior', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
-                        <table class="form-table">
-                            <tr>
-                                <th scope="row">
+                        <div class="cwp-modal-fields">
+                            <div class="cwp-modal-field">
+                                <div class="cwp-modal-field-label">
                                     <label for="interaction-mode"><?php esc_html_e('Open this option', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
-                                </th>
-                                <td>
+                                </div>
+                                <div class="cwp-modal-field-control">
                                     <select id="interaction-mode" name="interaction_mode">
                                         <?php foreach ($this->get_item_interaction_mode_labels() as $mode => $mode_label) : ?>
                                             <option value="<?php echo esc_attr($mode); ?>" <?php echo 'auto' === $mode ? 'selected' : ''; ?>>
@@ -731,13 +731,13 @@ class CWP_Chat_Bubbles_Options_Page {
                                     <p class="description">
                                         <?php esc_html_e('Choose whether chat opens right away or shows the QR code first.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                     </p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row">
+                                </div>
+                            </div>
+                            <div class="cwp-modal-field">
+                                <div class="cwp-modal-field-label">
                                     <label for="prefill-message"><?php esc_html_e('Starting message', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
-                                </th>
-                                <td>
+                                </div>
+                                <div class="cwp-modal-field-control">
                                     <textarea
                                         id="prefill-message"
                                         name="prefill_message"
@@ -749,26 +749,26 @@ class CWP_Chat_Bubbles_Options_Page {
                                     <p class="description">
                                         <?php esc_html_e('Supported chat apps can open with this message already filled in.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                     </p>
-                                </td>
-                            </tr>
-                        </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="cwp-item-modal-section">
                         <h3><?php esc_html_e('Availability', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
-                        <table class="form-table">
-                            <tr>
-                                <th scope="row">
+                        <div class="cwp-modal-fields">
+                            <div class="cwp-modal-field cwp-modal-field-checkbox">
+                                <div class="cwp-modal-field-label">
                                     <label for="enabled"><?php esc_html_e('Show this option', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
-                                </th>
-                                <td>
+                                </div>
+                                <div class="cwp-modal-field-control">
                                     <label>
                                         <input type="checkbox" id="enabled" name="enabled" value="1" checked>
                                         <?php esc_html_e('Show this contact method.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                     </label>
-                                </td>
-                            </tr>
-                        </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </form>
                 <div class="cwp-modal-footer">

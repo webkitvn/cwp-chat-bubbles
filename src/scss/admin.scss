@@ -311,46 +311,35 @@
     }
   }
 
-  .form-table {
-    margin-top: 0;
-    margin-bottom: 0;
-    table-layout: fixed;
+  .cwp-modal-fields {
     width: 100%;
   }
 
-  .form-table,
-  .form-table tbody,
-  .form-table tr,
-  .form-table th,
-  .form-table td {
-    display: block;
-    width: 100%;
-  }
-
-  .form-table th,
-  .form-table td {
-    padding: 0 10px;
-  }
-
-  .form-table tr {
+  .cwp-modal-field {
     margin: 0 0 var(--cwp-space-md);
     padding-bottom: var(--cwp-space-md);
     border-bottom: 1px solid #f0f0f1;
   }
 
-  .form-table tr:last-child {
+  .cwp-modal-field:last-child {
     margin-bottom: 0;
     padding-bottom: 0;
     border-bottom: 0;
   }
 
-  .form-table th {
+  .cwp-modal-field-label,
+  .cwp-modal-field-control {
+    width: 100%;
+    padding: 0 10px;
+  }
+
+  .cwp-modal-field-label {
     padding-bottom: var(--cwp-space-sm);
   }
 
-  .form-table th label,
-  .form-table th > label,
-  .form-table th > span {
+  .cwp-modal-field-label label,
+  .cwp-modal-field-label > label,
+  .cwp-modal-field-label > span {
     display: inline-block;
     font-size: 13px;
     font-weight: 600;
@@ -358,7 +347,7 @@
     color: #1d2327;
   }
 
-  .form-table .description {
+  .cwp-modal-field-control .description {
     margin: var(--cwp-space-sm) 0 0;
     max-width: none;
     line-height: 1.5;
@@ -374,6 +363,12 @@
   textarea.large-text {
     min-height: 6.5rem;
     resize: vertical;
+  }
+
+  .cwp-modal-field-checkbox .cwp-modal-field-control label {
+    display: inline-flex;
+    gap: var(--cwp-space-sm);
+    align-items: center;
   }
 
   .cwp-button-row {
