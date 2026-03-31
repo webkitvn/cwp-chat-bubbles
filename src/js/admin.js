@@ -88,7 +88,7 @@
 
     function openItemModal(title) {
         if (typeof window.tb_show === 'function') {
-            window.tb_show(title, '#TB_inline?width=760&height=700&inlineId=cwp-item-modal-inline');
+            window.tb_show(title, '#TB_inline?width=720&height=640&inlineId=cwp-item-modal-inline');
             $('#TB_window').addClass('cwp-item-modal');
         }
     }

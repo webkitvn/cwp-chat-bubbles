@@ -263,6 +263,7 @@
 #TB_window.cwp-item-modal {
   display: flex;
   flex-direction: column;
+  min-width: 680px;
 
   #TB_ajaxContent {
     display: flex;
@@ -277,31 +278,29 @@
 }
 
 .cwp-item-thickbox {
-  --cwp-modal-gutter: 18px;
-  --cwp-modal-label-width: 11rem;
-  --cwp-modal-column-gap: 20px;
+  --cwp-modal-label-width: 170px;
+  --cwp-modal-control-width: 420px;
   display: flex;
   flex-direction: column;
-  gap: var(--cwp-space-md);
   height: 100%;
-  padding: var(--cwp-space-lg);
+  padding: 20px 24px 24px;
+  box-sizing: border-box;
 
   #cwp-item-form {
     overflow-y: auto;
-    padding-right: 0;
+    padding-right: 8px;
   }
 
   .cwp-item-modal-intro {
-    margin: 0;
-    padding-inline: var(--cwp-modal-gutter);
+    margin: 0 0 var(--cwp-space-md);
     color: #50575e;
     font-size: 13px;
     line-height: 1.5;
   }
 
   .cwp-item-modal-section {
-    margin-top: var(--cwp-space-md);
-    padding-top: var(--cwp-space-md);
+    margin-top: var(--cwp-space-lg);
+    padding-top: var(--cwp-space-lg);
     border-top: 1px solid #e2e4e7;
 
     &:first-of-type {
@@ -311,87 +310,79 @@
     }
 
     h3 {
-      margin: 0 0 var(--cwp-space-md);
-      padding-inline: var(--cwp-modal-gutter);
+      margin: 0 0 12px;
       font-size: 14px;
       line-height: 1.4;
     }
   }
 
-  .cwp-modal-fields {
+  .cwp-modal-form-table {
+    margin: 0;
     width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
   }
 
-  .cwp-modal-field {
-    display: grid;
-    grid-template-columns: minmax(9.5rem, var(--cwp-modal-label-width)) minmax(0, 1fr);
-    column-gap: var(--cwp-modal-column-gap);
-    align-items: start;
-    margin: 0 0 var(--cwp-space-md);
-    padding-bottom: var(--cwp-space-md);
-    padding-inline: var(--cwp-modal-gutter);
-    border-bottom: 1px solid #f0f0f1;
+  .cwp-modal-form-table tr:first-child th,
+  .cwp-modal-form-table tr:first-child td {
+    padding-top: 0;
   }
 
-  .cwp-modal-field:last-child {
-    margin-bottom: 0;
+  .cwp-modal-form-table tr:last-child th,
+  .cwp-modal-form-table tr:last-child td {
     padding-bottom: 0;
     border-bottom: 0;
   }
 
-  .cwp-modal-field-label,
-  .cwp-modal-field-control {
-    min-width: 0;
-    padding: 0;
+  .cwp-modal-form-table th,
+  .cwp-modal-form-table td {
+    padding: 12px 0;
+    vertical-align: top;
+    border-bottom: 1px solid #f0f0f1;
   }
 
-  .cwp-modal-field-label {
-    padding-top: 7px;
-  }
-
-  .cwp-modal-field-label label,
-  .cwp-modal-field-label > label,
-  .cwp-modal-field-label > span {
-    display: inline-block;
+  .cwp-modal-form-table th {
+    width: var(--cwp-modal-label-width);
+    padding-right: 20px;
     font-size: 13px;
     font-weight: 600;
     line-height: 1.4;
     color: #1d2327;
   }
 
-  .cwp-modal-field-control .description {
-    margin: var(--cwp-space-sm) 0 0;
-    max-width: none;
-    line-height: 1.5;
+  .cwp-modal-form-table th label {
+    display: inline-block;
+    padding-top: 8px;
   }
 
-  .cwp-modal-field-control > input:not([type='checkbox']),
-  .cwp-modal-field-control > select,
-  .cwp-modal-field-control > textarea,
-  .cwp-modal-field-control > .regular-text,
-  .cwp-modal-field-control > .large-text {
+  .cwp-modal-form-table td > input:not([type='checkbox']),
+  .cwp-modal-form-table td > select,
+  .cwp-modal-form-table td > textarea,
+  .cwp-modal-form-table td > .regular-text,
+  .cwp-modal-form-table td > .large-text {
     display: block;
-    width: 100% !important;
-    max-width: none;
+    width: 100%;
+    max-width: var(--cwp-modal-control-width);
   }
 
-  textarea.large-text {
-    min-height: 6.5rem;
+  .cwp-modal-form-table td > textarea,
+  .cwp-modal-form-table td > .large-text {
+    max-width: 100%;
+    min-height: 112px;
     resize: vertical;
   }
 
-  .cwp-modal-field-checkbox {
-    grid-template-columns: minmax(9.5rem, var(--cwp-modal-label-width)) minmax(0, 1fr);
-  }
-
-  .cwp-modal-field-checkbox .cwp-modal-field-label {
-    padding-top: 0;
-  }
-
-  .cwp-modal-field-checkbox .cwp-modal-field-control label {
+  .cwp-modal-form-table td > label {
     display: inline-flex;
-    gap: var(--cwp-space-sm);
-    align-items: center;
+    gap: 8px;
+    align-items: flex-start;
+    margin-top: 6px;
+  }
+
+  .cwp-modal-form-table .description {
+    margin: 8px 0 0;
+    max-width: 32rem;
+    line-height: 1.5;
   }
 
   .cwp-button-row {
@@ -421,7 +412,7 @@
   gap: var(--cwp-space-sm);
   justify-content: flex-end;
   margin-top: auto;
-  padding: var(--cwp-space-md) var(--cwp-modal-gutter) 0;
+  padding: 16px 0 0;
   border-top: 1px solid #e2e4e7;
   background: #fff;
 }
@@ -642,22 +633,53 @@
     margin-left: 0 !important;
     left: 2.5% !important;
     width: 95% !important;
+    min-width: 0;
   }
 
   .cwp-item-thickbox {
+    --cwp-modal-label-width: auto;
     padding: var(--cwp-space-md);
-    --cwp-modal-gutter: 12px;
-    --cwp-modal-column-gap: 12px;
 
-    .cwp-modal-field,
-    .cwp-modal-field-checkbox {
-      grid-template-columns: 1fr;
-      row-gap: var(--cwp-space-xs);
+    #cwp-item-form {
+      padding-right: 0;
     }
 
-    .cwp-modal-field-label {
+    .cwp-modal-form-table,
+    .cwp-modal-form-table tbody,
+    .cwp-modal-form-table tr,
+    .cwp-modal-form-table th,
+    .cwp-modal-form-table td {
+      display: block;
+      width: 100%;
+    }
+
+    .cwp-modal-form-table tr {
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f1;
+    }
+
+    .cwp-modal-form-table tr:first-child {
       padding-top: 0;
+    }
+
+    .cwp-modal-form-table tr:last-child {
       padding-bottom: 0;
+      border-bottom: 0;
+    }
+
+    .cwp-modal-form-table th,
+    .cwp-modal-form-table td {
+      padding: 0;
+      border-bottom: 0;
+    }
+
+    .cwp-modal-form-table th {
+      margin-bottom: 6px;
+      padding-right: 0;
+    }
+
+    .cwp-modal-form-table th label {
+      padding-top: 0;
     }
   }
 }
