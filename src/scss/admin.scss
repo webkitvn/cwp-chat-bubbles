@@ -179,6 +179,7 @@
   display: flex;
   gap: var(--cwp-space-xs);
   margin-left: var(--cwp-space-sm);
+  align-items: center;
 
   .button {
     padding: 6px 12px;
@@ -189,6 +190,12 @@
     &:hover {
       box-shadow: var(--cwp-shadow-sm);
     }
+  }
+
+  .button-link-delete {
+    padding: 0;
+    font-size: 12px;
+    line-height: 1.4;
   }
 }
 
@@ -320,6 +327,12 @@
   }
 }
 
+.cwp-button-row {
+  display: flex;
+  gap: var(--cwp-space-sm);
+  flex-wrap: wrap;
+}
+
 .cwp-qr-preview-image {
   display: block;
   max-width: 150px;
@@ -329,6 +342,29 @@
 
 .cwp-input-suffix {
   color: #666;
+}
+
+.cwp-inline-controls {
+  margin: 0;
+}
+
+.cwp-inline-control-row {
+  display: flex;
+  gap: var(--cwp-space-lg);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: var(--cwp-space-sm);
+}
+
+.cwp-inline-control {
+  display: inline-flex;
+  gap: var(--cwp-space-xs);
+  align-items: center;
+
+  > span:first-child {
+    min-width: 1.25rem;
+    font-weight: 600;
+  }
 }
 
 .cwp-item-status-icon {
@@ -341,9 +377,12 @@
   }
 }
 
-.error-message {
-  margin-top: 4px;
-  color: var(--cwp-drag-danger);
+.cwp-inline-notice {
+  margin: var(--cwp-space-sm) 0 0;
+
+  p {
+    margin: 0.5em 0;
+  }
 }
 
 // Screen Reader Text
@@ -397,6 +436,29 @@
   padding: 20px;
   border: 1px solid #ddd;
   border-top: none;
+
+  > h2:first-child,
+  > .cwp-settings-panel:first-child h2 {
+    margin-top: 0;
+  }
+}
+
+.cwp-settings-panel {
+  margin: 0 0 var(--cwp-space-md);
+
+  h2 {
+    margin-bottom: var(--cwp-space-xs);
+  }
+
+  .description {
+    margin: 0;
+    max-width: 58rem;
+  }
+}
+
+.cwp-settings-panel + .form-table {
+  margin-top: 0;
+  margin-bottom: var(--cwp-space-xl);
 }
 
 .cwp-admin-wrapper .widefat {

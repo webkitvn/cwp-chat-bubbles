@@ -67,8 +67,8 @@
             e.preventDefault();
             activateTab('#chat-items');
             resetModalForm();
-            $('#modal-title').text('Add Contact Method');
-            openItemModal('Add Contact Method');
+            $('#modal-title').text('Add contact method');
+            openItemModal('Add contact method');
         });
 
         $('#cancel-item').on('click', function(e) {
@@ -233,7 +233,7 @@
         });
         $preview.html(`<img src="${imageUrl}" alt="Main button icon preview" style="width: 80%; height: auto;">`);
 
-        $('#upload-main-icon').text('Change Icon');
+        $('#upload-main-icon').text('Change icon');
         $('#remove-main-icon').show();
     }
 
@@ -253,7 +253,7 @@
             'margin-top': '10px'
         });
 
-        $('#upload-main-icon').text('Upload Icon');
+        $('#upload-main-icon').text('Upload icon');
         $('#remove-main-icon').hide();
     }
 
@@ -279,7 +279,7 @@
 
         $(document).on('click', '.delete-item', function() {
             const itemId = $(this).data('item-id');
-            if (confirm('Delete this contact method? People will no longer see it in the chat bubble.')) {
+            if (confirm('Delete this contact method permanently? It will disappear from your chat bubble right away.')) {
                 deleteItem(itemId);
             }
         });
@@ -291,7 +291,7 @@
             const $contactLabel = $('#contact-label');
             const $contactDescription = $('#contact-description');
 
-            $contactLabel.text('Contact Details');
+            $contactLabel.text('Contact details');
             $contactField.attr('placeholder', 'Add a phone number, username, or link');
             $contactDescription.text('Choose a chat app to see what to enter here.');
             $contactField.attr('pattern', '');
@@ -305,7 +305,7 @@
 
         $contactField.attr('placeholder', config.placeholder);
 
-        let fieldLabel = 'Contact Details';
+        let fieldLabel = 'Contact details';
         let description = '';
         switch (config.contact_field) {
             case 'number':
@@ -406,16 +406,40 @@
         const $field = $('#' + fieldId);
         removeFieldError(fieldId);
 
-        const $error = $('<div class="error-message"></div>').text(message);
+        const errorId = `${fieldId}-error`;
+        const existingDescription = $field.attr('aria-describedby');
+        if (existingDescription) {
+            $field.attr('data-original-described-by', existingDescription);
+            $field.attr('aria-describedby', `${existingDescription} ${errorId}`);
+        } else {
+            $field.attr('aria-describedby', errorId);
+        }
+
+        const $error = $('<div></div>', {
+            id: errorId,
+            class: 'notice notice-error inline cwp-inline-notice',
+            role: 'alert',
+            'aria-live': 'assertive',
+        }).append($('<p></p>').text(message));
 
         $field.after($error);
-        $field.addClass('error');
+        $field.addClass('error').attr('aria-invalid', 'true');
     }
 
     function removeFieldError(fieldId) {
         const $field = $('#' + fieldId);
-        $field.removeClass('error');
-        $field.siblings('.error-message').remove();
+        const originalDescription = $field.attr('data-original-described-by');
+
+        $field.removeClass('error').removeAttr('aria-invalid');
+
+        if (originalDescription) {
+            $field.attr('aria-describedby', originalDescription);
+            $field.removeAttr('data-original-described-by');
+        } else {
+            $field.removeAttr('aria-describedby');
+        }
+
+        $('#' + fieldId + '-error').remove();
     }
 
     function editItem(itemId) {
@@ -425,7 +449,7 @@
             return;
         }
 
-        $('#modal-title').text('Edit Contact Method');
+        $('#modal-title').text('Edit contact method');
         $('#item-id').val(itemId);
         $('#platform').val($item.data('platform'));
         $('#label').val($item.data('label'));
@@ -451,7 +475,7 @@
             clearQRCodePreview();
         }
 
-        openItemModal('Edit Contact Method');
+        openItemModal('Edit contact method');
     }
 
     function deleteItem(itemId) {
@@ -496,7 +520,7 @@
                 }
             })
             .finally(() => {
-                $saveButton.prop('disabled', false).text('Save Contact Method');
+                $saveButton.prop('disabled', false).text('Save contact method');
             });
     }
 
@@ -526,8 +550,14 @@
         $('#item-id').val('');
         clearQRCodePreview();
         updateContactFieldForPlatform('');
-        $('.error-message').remove();
+        $('.cwp-inline-notice').remove();
         $('#cwp-item-form .error').removeClass('error');
+        $('#cwp-item-form [aria-invalid="true"]').removeAttr('aria-invalid');
+        $('#cwp-item-form [data-original-described-by]').each(function() {
+            const $field = $(this);
+            $field.attr('aria-describedby', $field.attr('data-original-described-by'));
+            $field.removeAttr('data-original-described-by');
+        });
     }
 
     function refreshItemsList(itemsHtml) {
@@ -549,14 +579,14 @@
     function setQRCodePreview(attachmentId, imageUrl) {
         $('#qr-code-id').val(attachmentId);
         $('#qr-preview').html(`<img src="${imageUrl}" alt="QR code preview" class="cwp-qr-preview-image">`);
-        $('#upload-qr-code').text('Change QR Code');
+        $('#upload-qr-code').text('Change QR code');
         $('#remove-qr-code').show();
     }
 
     function clearQRCodePreview() {
         $('#qr-code-id').val(0);
         $('#qr-preview').empty();
-        $('#upload-qr-code').text('Upload QR Code');
+        $('#upload-qr-code').text('Upload QR code');
         $('#remove-qr-code').hide();
     }
 

@@ -149,7 +149,7 @@ class CWP_Chat_Bubbles_Options_Page {
         ?>
         <div class="wrap cwp-admin-wrapper">
             <h1 class="wp-heading-inline"><?php esc_html_e('Chat Bubble Settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h1>
-            <a href="#chat-items" class="page-title-action" id="cwp-header-add-item"><?php esc_html_e('Add Contact Method', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
+            <a href="#chat-items" class="page-title-action" id="cwp-header-add-item"><?php esc_html_e('Add contact method', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
             <hr class="wp-header-end">
 
             <?php settings_errors(); ?>
@@ -160,55 +160,137 @@ class CWP_Chat_Bubbles_Options_Page {
                 
                 <div id="cwp-admin-tabs">
                     <nav class="nav-tab-wrapper wp-clearfix">
-                        <a href="#general-settings" class="nav-tab nav-tab-active"><?php esc_html_e('General', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
+                        <a href="#general-settings" class="nav-tab nav-tab-active"><?php esc_html_e('Basics', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
                         <a href="#chat-items" class="nav-tab"><?php esc_html_e('Contact Methods', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
                         <a href="#display-settings" class="nav-tab"><?php esc_html_e('Display', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
                         <a href="#advanced-settings" class="nav-tab"><?php esc_html_e('Advanced', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
                     </nav>
 
-                    <!-- General Settings Tab -->
+                    <!-- Basics Tab -->
                     <div id="general-settings" class="tab-content">
+                        <h2><?php esc_html_e('Basics', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h2>
+                        <p class="description"><?php esc_html_e('Choose whether the chat bubble appears on your site and how much text people see by default.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
                         <table class="form-table">
                             <tr>
-                                <th scope="row"><?php esc_html_e('Show Chat Bubble', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <th scope="row"><?php esc_html_e('Turn on chat bubble', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
                                     <label>
                                         <input type="checkbox" name="cwp_chat_bubbles_options[enabled]" value="1" <?php checked($options['enabled']); ?>>
-                                        <?php esc_html_e('Show the chat bubble on your site', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        <?php esc_html_e('Show the chat bubble on your site.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                     </label>
                                 </td>
                             </tr>
                             <tr>
-                                <th scope="row"><?php esc_html_e('Show Automatically', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <th scope="row"><?php esc_html_e('Show it automatically', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
                                     <label>
                                         <input type="checkbox" name="cwp_chat_bubbles_options[auto_load]" value="1" <?php checked($options['auto_load']); ?>>
-                                        <?php esc_html_e('Show the chat bubble automatically across your site', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        <?php esc_html_e('Add the chat bubble across your site automatically.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                     </label>
-                                    <p class="description"><?php esc_html_e('Turn this off if you only want to place the chat bubble with a shortcode.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                    <p class="description"><?php esc_html_e('Turn this off if you only want to place the chat bubble with the shortcode.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
                                 </td>
                             </tr>
                             <tr>
-                                <th scope="row"><?php esc_html_e('Show Contact Names', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <th scope="row"><?php esc_html_e('Show contact labels', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
                                     <label>
                                         <input type="checkbox" name="cwp_chat_bubbles_options[show_labels]" value="1" <?php checked($options['show_labels']); ?>>
-                                        <?php esc_html_e('Show a text label next to each contact method', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        <?php esc_html_e('Show a label next to each contact method.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                     </label>
                                     <p class="description"><?php esc_html_e('This changes every contact method at once.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
                                 </td>
                             </tr>
+                        </table>
+                    </div>
+
+                <!-- Chat Items Tab -->
+                <div id="chat-items" class="tab-content" style="display: none;">
+                    <div class="cwp-items-header">
+                        <div>
+                            <h3><?php esc_html_e('Contact methods', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
+                            <p class="description"><?php esc_html_e('Add, edit, or reorder the ways people can reach you. Changes save automatically.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                        </div>
+                        <button type="button" class="button" id="add-new-item">
+                            <?php esc_html_e('Add contact method', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                        </button>
+                    </div>
+
+                    <div id="cwp-items-container">
+                        <?php $this->render_items_list($items); ?>
+                    </div>
+                </div>
+
+                    <!-- Display Settings Tab -->
+                    <div id="display-settings" class="tab-content" style="display: none;">
+                        <div class="cwp-settings-panel">
+                            <h2><?php esc_html_e('Placement and opening', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h2>
+                            <p class="description"><?php esc_html_e('Choose where the bubble sits and what people see first when it appears.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                        </div>
+                        <table class="form-table">
                             <tr>
-                                <th scope="row"><?php esc_html_e('Main Button Icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <th scope="row"><?php esc_html_e('Choose a corner', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <select name="cwp_chat_bubbles_options[position]">
+                                        <option value="bottom-right" <?php selected($options['position'], 'bottom-right'); ?>><?php esc_html_e('Bottom Right', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                        <option value="bottom-left" <?php selected($options['position'], 'bottom-left'); ?>><?php esc_html_e('Bottom Left', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                        <option value="top-right" <?php selected($options['position'], 'top-right'); ?>><?php esc_html_e('Top Right', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                        <option value="top-left" <?php selected($options['position'], 'top-left'); ?>><?php esc_html_e('Top Left', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Fine-tune position', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <fieldset class="cwp-inline-controls">
+                                        <legend class="screen-reader-text"><?php esc_html_e('Position adjustments', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></legend>
+                                        <div class="cwp-inline-control-row">
+                                            <label class="cwp-inline-control">
+                                                <span><?php esc_html_e('X', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></span>
+                                                <input type="number" name="cwp_chat_bubbles_options[offset_x]" value="<?php echo esc_attr($options['offset_x'] ?? 0); ?>" min="-200" max="200" step="1" class="small-text">
+                                                <span class="cwp-input-suffix">px</span>
+                                            </label>
+                                            <label class="cwp-inline-control">
+                                                <span><?php esc_html_e('Y', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></span>
+                                                <input type="number" name="cwp_chat_bubbles_options[offset_y]" value="<?php echo esc_attr($options['offset_y'] ?? 0); ?>" min="-200" max="200" step="1" class="small-text">
+                                                <span class="cwp-input-suffix">px</span>
+                                            </label>
+                                        </div>
+                                        <p class="description">
+                                            <?php esc_html_e('Use this if the bubble overlaps other parts of your site. Positive X moves it right. Positive Y moves it down.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </p>
+                                    </fieldset>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('When the bubble first appears', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <select id="cwp-chat-bubbles-default-state" name="cwp_chat_bubbles_options[behavior][default_state]">
+                                        <option value="closed" <?php selected($options['behavior']['default_state'], 'closed'); ?>><?php esc_html_e('Keep it closed until someone clicks', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                        <option value="open" <?php selected($options['behavior']['default_state'], 'open'); ?>><?php esc_html_e('Open it right away', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                    </select>
+                                    <p class="description"><?php esc_html_e('Use the closed option if you want the bubble to stay quieter when the page loads.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <div class="cwp-settings-panel">
+                            <h2><?php esc_html_e('Look and feel', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h2>
+                            <p class="description"><?php esc_html_e('Change the main button icon, color, and motion without editing any code.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                        </div>
+                        <table class="form-table">
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Main button icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
                                     <div class="cwp-media-upload">
                                         <input type="hidden" name="cwp_chat_bubbles_options[custom_main_icon]" id="custom-main-icon" value="<?php echo esc_attr($options['custom_main_icon'] ?? 0); ?>">
-                                        <button type="button" class="button" id="upload-main-icon">
-                                            <?php esc_html_e('Upload Icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                        </button>
-                                        <button type="button" class="button" id="remove-main-icon" style="display: <?php echo (isset($options['custom_main_icon']) && $options['custom_main_icon'] > 0) ? 'inline-block' : 'none'; ?>;">
-                                            <?php esc_html_e('Remove Icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                        </button>
+                                        <div class="cwp-button-row">
+                                            <button type="button" class="button" id="upload-main-icon">
+                                                <?php esc_html_e('Upload icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                            </button>
+                                            <button type="button" class="button" id="remove-main-icon" style="display: <?php echo (isset($options['custom_main_icon']) && $options['custom_main_icon'] > 0) ? 'inline-block' : 'none'; ?>;">
+                                                <?php esc_html_e('Remove icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                            </button>
+                                        </div>
                                         <div id="main-icon-preview" class="cwp-main-icon-preview" style="--cwp-preview-color: <?php echo esc_attr($options['main_button_color'] ?? '#52BA00'); ?>;">
                                             <?php if (isset($options['custom_main_icon']) && $options['custom_main_icon'] > 0): ?>
                                                 <?php $custom_icon_url = wp_get_attachment_url($options['custom_main_icon']); ?>
@@ -223,71 +305,15 @@ class CWP_Chat_Bubbles_Options_Page {
                                         </div>
                                     </div>
                                     <p class="description">
-                                        <?php esc_html_e('Upload an icon for the main chat button. Leave this empty to keep the default icon. Recommended size: 64x64 pixels.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        <?php esc_html_e('Upload a custom icon for the main bubble. Leave this empty to keep the default icon. Recommended size: 64x64 pixels.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                     </p>
                                 </td>
                             </tr>
-                        </table>
-                    </div>
-
-                <!-- Chat Items Tab -->
-                <div id="chat-items" class="tab-content" style="display: none;">
-                    <div class="cwp-items-header">
-                        <div>
-                            <h3><?php esc_html_e('Contact Methods', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
-                            <p class="description"><?php esc_html_e('Add, edit, or reorder the ways people can contact you. Changes save automatically.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
-                        </div>
-                        <button type="button" class="button" id="add-new-item">
-                            <?php esc_html_e('Add Contact Method', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                        </button>
-                    </div>
-
-                    <div id="cwp-items-container">
-                        <?php $this->render_items_list($items); ?>
-                    </div>
-                </div>
-
-                    <!-- Display Settings Tab -->
-                    <div id="display-settings" class="tab-content" style="display: none;">
-                        <table class="form-table">
                             <tr>
-                                <th scope="row"><?php esc_html_e('Position', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
-                                <td>
-                                    <select name="cwp_chat_bubbles_options[position]">
-                                        <option value="bottom-right" <?php selected($options['position'], 'bottom-right'); ?>><?php esc_html_e('Bottom Right', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
-                                        <option value="bottom-left" <?php selected($options['position'], 'bottom-left'); ?>><?php esc_html_e('Bottom Left', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
-                                        <option value="top-right" <?php selected($options['position'], 'top-right'); ?>><?php esc_html_e('Top Right', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
-                                        <option value="top-left" <?php selected($options['position'], 'top-left'); ?>><?php esc_html_e('Top Left', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><?php esc_html_e('Move the Bubble', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
-                                <td>
-                                    <fieldset>
-                                        <legend class="screen-reader-text"><?php esc_html_e('Position adjustments', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></legend>
-                                        <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
-                                            <label style="display: flex; align-items: center; gap: 5px;">
-                                                <span style="min-width: 20px;"><?php esc_html_e('X:', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></span>
-                                                <input type="number" name="cwp_chat_bubbles_options[offset_x]" value="<?php echo esc_attr($options['offset_x'] ?? 0); ?>" min="-200" max="200" step="1" style="width: 80px;">
-                                                <span class="cwp-input-suffix">px</span>
-                                            </label>
-                                            <label style="display: flex; align-items: center; gap: 5px;">
-                                                <span style="min-width: 20px;"><?php esc_html_e('Y:', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></span>
-                                                <input type="number" name="cwp_chat_bubbles_options[offset_y]" value="<?php echo esc_attr($options['offset_y'] ?? 0); ?>" min="-200" max="200" step="1" style="width: 80px;">
-                                                <span class="cwp-input-suffix">px</span>
-                                            </label>
-                                        </div>
-                                        <p class="description">
-                                            <?php esc_html_e('Move the bubble a few pixels if it overlaps other parts of your site. Positive X moves it right, positive Y moves it down.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                        </p>
-                                    </fieldset>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><?php esc_html_e('Bubble Color', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <th scope="row"><?php esc_html_e('Main button color', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
                                     <input type="color" name="cwp_chat_bubbles_options[main_button_color]" value="<?php echo esc_attr($options['main_button_color'] ?? '#52BA00'); ?>" class="color-field">
+                                    <p class="description"><?php esc_html_e('Choose the color people see before they open the bubble.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
                                 </td>
                             </tr>
                             <tr>
@@ -295,7 +321,7 @@ class CWP_Chat_Bubbles_Options_Page {
                                 <td>
                                     <label>
                                         <input type="checkbox" name="cwp_chat_bubbles_options[animation_enabled]" value="1" <?php checked($options['animation_enabled']); ?>>
-                                        <?php esc_html_e('Use animation when the bubble opens or moves', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        <?php esc_html_e('Use animation when the bubble opens or moves.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                     </label>
                                 </td>
                             </tr>
@@ -304,67 +330,63 @@ class CWP_Chat_Bubbles_Options_Page {
 
                     <!-- Advanced Settings Tab -->
                     <div id="advanced-settings" class="tab-content" style="display: none;">
+                        <div class="cwp-settings-panel">
+                            <h2><?php esc_html_e('When the bubble appears', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h2>
+                            <p class="description"><?php esc_html_e('Use these settings if you want the bubble to wait before showing up or react to scrolling.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                        </div>
                         <table class="form-table">
                             <tr>
-                                <th scope="row"><?php esc_html_e('When to Show the Bubble', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <th scope="row"><?php esc_html_e('Wait before showing', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
-                                    <fieldset>
-                                        <legend class="screen-reader-text"><?php esc_html_e('Opening behavior settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></legend>
-                                        <p style="margin-top: 0;">
-                                            <label for="cwp-chat-bubbles-default-state" style="display: block; font-weight: 600; margin-bottom: 6px;">
-                                                <?php esc_html_e('When the bubble first appears', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                            </label>
-                                            <select id="cwp-chat-bubbles-default-state" name="cwp_chat_bubbles_options[behavior][default_state]">
-                                                <option value="closed" <?php selected($options['behavior']['default_state'], 'closed'); ?>><?php esc_html_e('Keep it closed until someone clicks', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
-                                                <option value="open" <?php selected($options['behavior']['default_state'], 'open'); ?>><?php esc_html_e('Open it right away', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
-                                            </select>
-                                        </p>
-                                        <div style="display: flex; gap: 24px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 8px;">
-                                            <p style="margin: 0;">
-                                                <label for="cwp-chat-bubbles-display-delay" style="display: block; font-weight: 600; margin-bottom: 6px;">
-                                                    <?php esc_html_e('Wait before showing', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                                </label>
-                                                <input
-                                                    id="cwp-chat-bubbles-display-delay"
-                                                    type="number"
-                                                    name="cwp_chat_bubbles_options[behavior][display_delay]"
-                                                    value="<?php echo esc_attr($options['behavior']['display_delay']); ?>"
-                                                    min="0"
-                                                    max="30"
-                                                    step="1"
-                                                    style="width: 90px;"
-                                                >
-                                                <span class="cwp-input-suffix"><?php esc_html_e('seconds', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></span>
-                                            </p>
-                                            <p style="margin: 0;">
-                                                <label for="cwp-chat-bubbles-scroll-trigger" style="display: block; font-weight: 600; margin-bottom: 6px;">
-                                                    <?php esc_html_e('Show after scrolling', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                                </label>
-                                                <input
-                                                    id="cwp-chat-bubbles-scroll-trigger"
-                                                    type="number"
-                                                    name="cwp_chat_bubbles_options[behavior][scroll_trigger_percent]"
-                                                    value="<?php echo esc_attr($options['behavior']['scroll_trigger_percent']); ?>"
-                                                    min="0"
-                                                    max="100"
-                                                    step="5"
-                                                    style="width: 90px;"
-                                                >
-                                                <span class="cwp-input-suffix"><?php esc_html_e('% of the page', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></span>
-                                            </p>
-                                        </div>
-                                        <label style="display: block;">
-                                            <input type="checkbox" name="cwp_chat_bubbles_options[behavior][dismiss_for_session]" value="1" <?php checked(!empty($options['behavior']['dismiss_for_session'])); ?>>
-                                            <?php esc_html_e('Keep the bubble hidden until the visitor closes their browser tab', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                        </label>
-                                    </fieldset>
-                                    <p class="description">
-                                        <?php esc_html_e('Use these settings to decide when the bubble appears. Enter 0 to turn off the delay or scroll trigger.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                    </p>
+                                    <input
+                                        id="cwp-chat-bubbles-display-delay"
+                                        type="number"
+                                        name="cwp_chat_bubbles_options[behavior][display_delay]"
+                                        value="<?php echo esc_attr($options['behavior']['display_delay']); ?>"
+                                        min="0"
+                                        max="30"
+                                        step="1"
+                                        class="small-text"
+                                    >
+                                    <span class="cwp-input-suffix"><?php esc_html_e('seconds', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></span>
+                                    <p class="description"><?php esc_html_e('Set this to 0 if you want the bubble to appear as soon as the page loads.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
                                 </td>
                             </tr>
                             <tr>
-                                <th scope="row"><?php esc_html_e('Hide On These Pages', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <th scope="row"><?php esc_html_e('Show after scrolling', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <input
+                                        id="cwp-chat-bubbles-scroll-trigger"
+                                        type="number"
+                                        name="cwp_chat_bubbles_options[behavior][scroll_trigger_percent]"
+                                        value="<?php echo esc_attr($options['behavior']['scroll_trigger_percent']); ?>"
+                                        min="0"
+                                        max="100"
+                                        step="5"
+                                        class="small-text"
+                                    >
+                                    <span class="cwp-input-suffix"><?php esc_html_e('% of the page', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></span>
+                                    <p class="description"><?php esc_html_e('Set this to 0 to turn off the scroll trigger.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Keep it hidden after someone closes it', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <label>
+                                        <input type="checkbox" name="cwp_chat_bubbles_options[behavior][dismiss_for_session]" value="1" <?php checked(!empty($options['behavior']['dismiss_for_session'])); ?>>
+                                        <?php esc_html_e('Keep the bubble hidden until the visitor closes their browser tab.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                    </label>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <div class="cwp-settings-panel">
+                            <h2><?php esc_html_e('Hide on pages', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h2>
+                            <p class="description"><?php esc_html_e('Choose any pages where the bubble should stay out of the way.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                        </div>
+                        <table class="form-table">
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Pages to hide it on', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
                                     <?php if (!empty($available_pages)) : ?>
                                         <select
@@ -386,206 +408,222 @@ class CWP_Chat_Bubbles_Options_Page {
                                         <p><?php esc_html_e('There are no pages to choose from yet.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
                                     <?php endif; ?>
                                     <p class="description">
-                                        <?php esc_html_e('The chat bubble will stay hidden on the pages you select here. Hold Command on macOS or Ctrl on Windows to choose more than one page.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        <?php esc_html_e('Hold Command on macOS or Ctrl on Windows to choose more than one page.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                     </p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <div class="cwp-settings-panel">
+                            <h2><?php esc_html_e('Size and spacing', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h2>
+                            <p class="description"><?php esc_html_e('Adjust the main bubble, contact list, and QR pop-up without changing the current layout structure.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                        </div>
+                        <table class="form-table">
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Bubble size', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <input
+                                        id="cwp-chat-bubbles-bubble-size"
+                                        type="number"
+                                        name="cwp_chat_bubbles_options[appearance][bubble_size]"
+                                        value="<?php echo esc_attr($options['appearance']['bubble_size']); ?>"
+                                        min="48"
+                                        max="96"
+                                        step="1"
+                                        class="small-text"
+                                    >
+                                    <span class="cwp-input-suffix">px</span>
+                                    <p class="description"><?php esc_html_e('Controls the size of the button people click first.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
                                 </td>
                             </tr>
                             <tr>
-                                <th scope="row"><?php esc_html_e('Appearance', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <th scope="row"><?php esc_html_e('Contact list width', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
-                                    <fieldset>
-                                        <legend class="screen-reader-text"><?php esc_html_e('Appearance settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></legend>
-                                        <div style="display: flex; gap: 24px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 12px;">
-                                            <p style="margin: 0;">
-                                                <label for="cwp-chat-bubbles-bubble-size" style="display: block; font-weight: 600; margin-bottom: 6px;">
-                                                    <?php esc_html_e('Bubble size', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                                </label>
-                                                <input
-                                                    id="cwp-chat-bubbles-bubble-size"
-                                                    type="number"
-                                                    name="cwp_chat_bubbles_options[appearance][bubble_size]"
-                                                    value="<?php echo esc_attr($options['appearance']['bubble_size']); ?>"
-                                                    min="48"
-                                                    max="96"
-                                                    step="1"
-                                                    style="width: 90px;"
-                                                >
-                                                <span class="cwp-input-suffix">px</span>
-                                            </p>
-                                            <p style="margin: 0;">
-                                                <label for="cwp-chat-bubbles-panel-width" style="display: block; font-weight: 600; margin-bottom: 6px;">
-                                                    <?php esc_html_e('Contact List Width', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                                </label>
-                                                <input
-                                                    id="cwp-chat-bubbles-panel-width"
-                                                    type="number"
-                                                    name="cwp_chat_bubbles_options[appearance][panel_width]"
-                                                    value="<?php echo esc_attr($options['appearance']['panel_width']); ?>"
-                                                    min="160"
-                                                    max="320"
-                                                    step="1"
-                                                    style="width: 90px;"
-                                                >
-                                                <span class="cwp-input-suffix">px</span>
-                                            </p>
-                                            <p style="margin: 0;">
-                                                <label for="cwp-chat-bubbles-modal-width" style="display: block; font-weight: 600; margin-bottom: 6px;">
-                                                    <?php esc_html_e('QR Pop-up Width', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                                </label>
-                                                <input
-                                                    id="cwp-chat-bubbles-modal-width"
-                                                    type="number"
-                                                    name="cwp_chat_bubbles_options[appearance][modal_width]"
-                                                    value="<?php echo esc_attr($options['appearance']['modal_width']); ?>"
-                                                    min="240"
-                                                    max="420"
-                                                    step="1"
-                                                    style="width: 90px;"
-                                                >
-                                                <span class="cwp-input-suffix">px</span>
-                                            </p>
-                                            <p style="margin: 0;">
-                                                <label for="cwp-chat-bubbles-z-index" style="display: block; font-weight: 600; margin-bottom: 6px;">
-                                                    <?php esc_html_e('Bring the Bubble Forward', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                                </label>
-                                                <input
-                                                    id="cwp-chat-bubbles-z-index"
-                                                    type="number"
-                                                    name="cwp_chat_bubbles_options[appearance][z_index]"
-                                                    value="<?php echo esc_attr($options['appearance']['z_index']); ?>"
-                                                    min="100"
-                                                    max="99999"
-                                                    step="1"
-                                                    style="width: 110px;"
-                                                >
-                                            </p>
-                                        </div>
-                                        <div style="display: flex; gap: 24px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 12px;">
-                                            <p style="margin: 0;">
-                                                <label for="cwp-chat-bubbles-panel-radius" style="display: block; font-weight: 600; margin-bottom: 6px;">
-                                                    <?php esc_html_e('Round the Contact List Corners', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                                </label>
-                                                <input
-                                                    id="cwp-chat-bubbles-panel-radius"
-                                                    type="number"
-                                                    name="cwp_chat_bubbles_options[appearance][panel_radius]"
-                                                    value="<?php echo esc_attr($options['appearance']['panel_radius']); ?>"
-                                                    min="0"
-                                                    max="24"
-                                                    step="1"
-                                                    style="width: 90px;"
-                                                >
-                                                <span class="cwp-input-suffix">px</span>
-                                            </p>
-                                            <p style="margin: 0;">
-                                                <label for="cwp-chat-bubbles-modal-radius" style="display: block; font-weight: 600; margin-bottom: 6px;">
-                                                    <?php esc_html_e('Round the QR Pop-up Corners', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                                </label>
-                                                <input
-                                                    id="cwp-chat-bubbles-modal-radius"
-                                                    type="number"
-                                                    name="cwp_chat_bubbles_options[appearance][modal_radius]"
-                                                    value="<?php echo esc_attr($options['appearance']['modal_radius']); ?>"
-                                                    min="0"
-                                                    max="24"
-                                                    step="1"
-                                                    style="width: 90px;"
-                                                >
-                                                <span class="cwp-input-suffix">px</span>
-                                            </p>
-                                            <p style="margin: 0;">
-                                                <label for="cwp-chat-bubbles-item-padding-y" style="display: block; font-weight: 600; margin-bottom: 6px;">
-                                                    <?php esc_html_e('Top and Bottom Spacing', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                                </label>
-                                                <input
-                                                    id="cwp-chat-bubbles-item-padding-y"
-                                                    type="number"
-                                                    name="cwp_chat_bubbles_options[appearance][item_padding_y]"
-                                                    value="<?php echo esc_attr($options['appearance']['item_padding_y']); ?>"
-                                                    min="0"
-                                                    max="20"
-                                                    step="1"
-                                                    style="width: 90px;"
-                                                >
-                                                <span class="cwp-input-suffix">px</span>
-                                            </p>
-                                            <p style="margin: 0;">
-                                                <label for="cwp-chat-bubbles-item-padding-x" style="display: block; font-weight: 600; margin-bottom: 6px;">
-                                                    <?php esc_html_e('Left and Right Spacing', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                                </label>
-                                                <input
-                                                    id="cwp-chat-bubbles-item-padding-x"
-                                                    type="number"
-                                                    name="cwp_chat_bubbles_options[appearance][item_padding_x]"
-                                                    value="<?php echo esc_attr($options['appearance']['item_padding_x']); ?>"
-                                                    min="0"
-                                                    max="24"
-                                                    step="1"
-                                                    style="width: 90px;"
-                                                >
-                                                <span class="cwp-input-suffix">px</span>
-                                            </p>
-                                        </div>
-                                        <p style="margin: 0;">
-                                                <label for="cwp-chat-bubbles-label-text-color" style="display: block; font-weight: 600; margin-bottom: 6px;">
-                                                    <?php esc_html_e('Contact Name Color', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                            </label>
-                                            <input
-                                                id="cwp-chat-bubbles-label-text-color"
-                                                type="color"
-                                                name="cwp_chat_bubbles_options[appearance][label_text_color]"
-                                                value="<?php echo esc_attr($options['appearance']['label_text_color']); ?>"
-                                            >
-                                        </p>
-                                    </fieldset>
-                                    <p class="description">
-                                        <?php esc_html_e('Change how the bubble, contact list, and QR pop-up look. Leave these as they are to keep the current design.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                    </p>
+                                    <input
+                                        id="cwp-chat-bubbles-panel-width"
+                                        type="number"
+                                        name="cwp_chat_bubbles_options[appearance][panel_width]"
+                                        value="<?php echo esc_attr($options['appearance']['panel_width']); ?>"
+                                        min="160"
+                                        max="320"
+                                        step="1"
+                                        class="small-text"
+                                    >
+                                    <span class="cwp-input-suffix">px</span>
+                                    <p class="description"><?php esc_html_e('Make the contact list narrower or wider.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
                                 </td>
                             </tr>
                             <tr>
-                                <th scope="row"><?php esc_html_e('Share Click Data', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <th scope="row"><?php esc_html_e('QR pop-up width', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
-                                    <fieldset>
-                                        <legend class="screen-reader-text"><?php esc_html_e('Tracking settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></legend>
-                                        <label style="display: block; margin-bottom: 12px;">
-                                            <input type="checkbox" name="cwp_chat_bubbles_options[analytics][enabled]" value="1" <?php checked(!empty($options['analytics']['enabled'])); ?>>
-                                            <?php esc_html_e('Send bubble clicks to your analytics tool', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                        </label>
-                                        <div style="display: flex; gap: 24px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 8px;">
-                                            <p style="margin: 0;">
-                                                <label for="cwp-chat-bubbles-analytics-provider" style="display: block; font-weight: 600; margin-bottom: 6px;">
-                                                    <?php esc_html_e('Analytics tool', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                                </label>
-                                                <select id="cwp-chat-bubbles-analytics-provider" name="cwp_chat_bubbles_options[analytics][provider]">
-                                                    <option value="none" <?php selected($options['analytics']['provider'], 'none'); ?>><?php esc_html_e('Do not send this data anywhere else', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
-                                                    <option value="ga4" <?php selected($options['analytics']['provider'], 'ga4'); ?>><?php esc_html_e('Google Analytics 4', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
-                                                    <option value="gtm" <?php selected($options['analytics']['provider'], 'gtm'); ?>><?php esc_html_e('Google Tag Manager', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
-                                                </select>
-                                            </p>
-                                            <p style="margin: 0;">
-                                                <label for="cwp-chat-bubbles-event-prefix" style="display: block; font-weight: 600; margin-bottom: 6px;">
-                                                    <?php esc_html_e('Start event names with', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                                </label>
-                                                <input
-                                                    id="cwp-chat-bubbles-event-prefix"
-                                                    type="text"
-                                                    name="cwp_chat_bubbles_options[analytics][event_prefix]"
-                                                    value="<?php echo esc_attr($options['analytics']['event_prefix']); ?>"
-                                                    class="regular-text"
-                                                    placeholder="cwp_chat_bubbles"
-                                                >
-                                            </p>
-                                        </div>
-                                    </fieldset>
-                                    <p class="description">
-                                        <?php esc_html_e('Use this only if your site already sends data to Google Analytics 4 or Google Tag Manager and you want bubble clicks included too.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                    </p>
+                                    <input
+                                        id="cwp-chat-bubbles-modal-width"
+                                        type="number"
+                                        name="cwp_chat_bubbles_options[appearance][modal_width]"
+                                        value="<?php echo esc_attr($options['appearance']['modal_width']); ?>"
+                                        min="240"
+                                        max="420"
+                                        step="1"
+                                        class="small-text"
+                                    >
+                                    <span class="cwp-input-suffix">px</span>
+                                    <p class="description"><?php esc_html_e('Adjust the width of the QR pop-up when a contact method uses one.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
                                 </td>
                             </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Top and bottom spacing', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <input
+                                        id="cwp-chat-bubbles-item-padding-y"
+                                        type="number"
+                                        name="cwp_chat_bubbles_options[appearance][item_padding_y]"
+                                        value="<?php echo esc_attr($options['appearance']['item_padding_y']); ?>"
+                                        min="0"
+                                        max="20"
+                                        step="1"
+                                        class="small-text"
+                                    >
+                                    <span class="cwp-input-suffix">px</span>
+                                    <p class="description"><?php esc_html_e('Adds more or less breathing room above and below each contact method.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Left and right spacing', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <input
+                                        id="cwp-chat-bubbles-item-padding-x"
+                                        type="number"
+                                        name="cwp_chat_bubbles_options[appearance][item_padding_x]"
+                                        value="<?php echo esc_attr($options['appearance']['item_padding_x']); ?>"
+                                        min="0"
+                                        max="24"
+                                        step="1"
+                                        class="small-text"
+                                    >
+                                    <span class="cwp-input-suffix">px</span>
+                                    <p class="description"><?php esc_html_e('Adds more or less space on the left and right side of each contact method.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <div class="cwp-settings-panel">
+                            <h2><?php esc_html_e('Shape and layering', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h2>
+                            <p class="description"><?php esc_html_e('Tidy up corners, text color, and stacking order when the bubble overlaps other elements.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                        </div>
+                        <table class="form-table">
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Contact list corner radius', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <input
+                                        id="cwp-chat-bubbles-panel-radius"
+                                        type="number"
+                                        name="cwp_chat_bubbles_options[appearance][panel_radius]"
+                                        value="<?php echo esc_attr($options['appearance']['panel_radius']); ?>"
+                                        min="0"
+                                        max="24"
+                                        step="1"
+                                        class="small-text"
+                                    >
+                                    <span class="cwp-input-suffix">px</span>
+                                    <p class="description"><?php esc_html_e('Use a larger number to round the contact list corners more.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('QR pop-up corner radius', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <input
+                                        id="cwp-chat-bubbles-modal-radius"
+                                        type="number"
+                                        name="cwp_chat_bubbles_options[appearance][modal_radius]"
+                                        value="<?php echo esc_attr($options['appearance']['modal_radius']); ?>"
+                                        min="0"
+                                        max="24"
+                                        step="1"
+                                        class="small-text"
+                                    >
+                                    <span class="cwp-input-suffix">px</span>
+                                    <p class="description"><?php esc_html_e('Use a larger number to round the QR pop-up corners more.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Contact label color', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <input
+                                        id="cwp-chat-bubbles-label-text-color"
+                                        type="color"
+                                        name="cwp_chat_bubbles_options[appearance][label_text_color]"
+                                        value="<?php echo esc_attr($options['appearance']['label_text_color']); ?>"
+                                    >
+                                    <p class="description"><?php esc_html_e('Choose the text color for contact labels inside the list.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Layer order', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <input
+                                        id="cwp-chat-bubbles-z-index"
+                                        type="number"
+                                        name="cwp_chat_bubbles_options[appearance][z_index]"
+                                        value="<?php echo esc_attr($options['appearance']['z_index']); ?>"
+                                        min="100"
+                                        max="99999"
+                                        step="1"
+                                        class="regular-text code"
+                                    >
+                                    <p class="description"><?php esc_html_e('Increase this only if the bubble is hiding behind another element on your site.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <div class="cwp-settings-panel">
+                            <h2><?php esc_html_e('Tracking', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h2>
+                            <p class="description"><?php esc_html_e('Send click events to your analytics setup only if your site already loads Google Analytics 4 or Google Tag Manager.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                        </div>
+                        <table class="form-table">
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Send click events to analytics', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <label>
+                                        <input type="checkbox" name="cwp_chat_bubbles_options[analytics][enabled]" value="1" <?php checked(!empty($options['analytics']['enabled'])); ?>>
+                                        <?php esc_html_e('Send bubble clicks to your analytics tool.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                    </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Analytics tool', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <select id="cwp-chat-bubbles-analytics-provider" name="cwp_chat_bubbles_options[analytics][provider]">
+                                        <option value="none" <?php selected($options['analytics']['provider'], 'none'); ?>><?php esc_html_e('Do not send this data anywhere else', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                        <option value="ga4" <?php selected($options['analytics']['provider'], 'ga4'); ?>><?php esc_html_e('Google Analytics 4', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                        <option value="gtm" <?php selected($options['analytics']['provider'], 'gtm'); ?>><?php esc_html_e('Google Tag Manager', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                    </select>
+                                    <p class="description"><?php esc_html_e('Choose where those click events should go.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Start event names with', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <input
+                                        id="cwp-chat-bubbles-event-prefix"
+                                        type="text"
+                                        name="cwp_chat_bubbles_options[analytics][event_prefix]"
+                                        value="<?php echo esc_attr($options['analytics']['event_prefix']); ?>"
+                                        class="regular-text"
+                                        placeholder="cwp_chat_bubbles"
+                                    >
+                                    <p class="description"><?php esc_html_e('Use a short prefix so your bubble events are easy to spot in reports.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <div class="cwp-settings-panel">
+                            <h2><?php esc_html_e('Custom CSS', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h2>
+                            <p class="description"><?php esc_html_e('Use this for small tweaks only. Unsafe code is removed when you save.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                        </div>
+                        <table class="form-table">
                             <tr>
                                 <th scope="row">
-                                    <label for="cwp-chat-bubbles-custom-css"><?php esc_html_e('Add Your Own Styling (CSS)', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                    <label for="cwp-chat-bubbles-custom-css"><?php esc_html_e('Custom CSS', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
                                 </th>
                                 <td>
                                     <textarea
@@ -597,7 +635,7 @@ class CWP_Chat_Bubbles_Options_Page {
                                         placeholder=".cwp-chat-bubbles { z-index: 9999; }"
                                     ><?php echo esc_textarea($options['custom_css']); ?></textarea>
                                     <p class="description">
-                                        <?php esc_html_e('Add small CSS tweaks for the chat bubble. Unsafe code is removed when you save, so keep these rules simple.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        <?php esc_html_e('Add small CSS tweaks for the chat bubble. Keep these rules simple and focused.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                     </p>
                                 </td>
                             </tr>
@@ -615,7 +653,7 @@ class CWP_Chat_Bubbles_Options_Page {
                 <form id="cwp-item-form">
                     <input type="hidden" id="item-id" name="item_id" value="">
 
-                    <h2 id="modal-title"><?php esc_html_e('Add Contact Method', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h2>
+                    <h2 id="modal-title"><?php esc_html_e('Add contact method', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h2>
 
                     <table class="form-table">
                         <tr>
@@ -635,10 +673,11 @@ class CWP_Chat_Bubbles_Options_Page {
                         </tr>
                         <tr>
                             <th scope="row">
-                                <label for="label"><?php esc_html_e('Name', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                <label for="label"><?php esc_html_e('Label people will see', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
                             </th>
                             <td>
                                 <input type="text" id="label" name="label" class="regular-text" placeholder="<?php esc_attr_e('e.g. Sales team', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" required>
+                                <p class="description"><?php esc_html_e('This is the label people will see inside the contact list.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
                             </td>
                         </tr>
                         <tr>
@@ -656,18 +695,21 @@ class CWP_Chat_Bubbles_Options_Page {
                             </th>
                             <td>
                                 <input type="hidden" id="qr-code-id" name="qr_code_id" value="0">
-                                <button type="button" class="button" id="upload-qr-code">
-                                    <?php esc_html_e('Upload QR Code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                </button>
-                                <button type="button" class="button" id="remove-qr-code" style="display: none;">
-                                    <?php esc_html_e('Remove QR Code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                </button>
+                                <div class="cwp-button-row">
+                                    <button type="button" class="button" id="upload-qr-code">
+                                        <?php esc_html_e('Upload QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                    </button>
+                                    <button type="button" class="button" id="remove-qr-code" style="display: none;">
+                                        <?php esc_html_e('Remove QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                    </button>
+                                </div>
                                 <div id="qr-preview" style="margin-top: 10px;"></div>
+                                <p class="description"><?php esc_html_e('Add a QR code if people should scan before they start the chat.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
                             </td>
                         </tr>
                         <tr>
                             <th scope="row">
-                                <label for="interaction-mode"><?php esc_html_e('How This Contact Method Opens', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                <label for="interaction-mode"><?php esc_html_e('When someone clicks this option', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
                             </th>
                             <td>
                                 <select id="interaction-mode" name="interaction_mode">
@@ -707,7 +749,7 @@ class CWP_Chat_Bubbles_Options_Page {
                             <td>
                                 <label>
                                     <input type="checkbox" id="enabled" name="enabled" value="1" checked>
-                                    <?php esc_html_e('Show this contact method', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                    <?php esc_html_e('Show this contact method.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                 </label>
                             </td>
                         </tr>
@@ -715,14 +757,14 @@ class CWP_Chat_Bubbles_Options_Page {
                 </form>
                 <div class="cwp-modal-footer">
                     <button type="button" class="button" id="cancel-item"><?php esc_html_e('Cancel', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></button>
-                    <button type="button" class="button button-primary" id="save-item"><?php esc_html_e('Save Contact Method', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></button>
+                    <button type="button" class="button button-primary" id="save-item"><?php esc_html_e('Save contact method', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></button>
                 </div>
             </div>
         </div>
 
         <script>
         // Platform configuration for dynamic form updates
-        window.platformConfigs = <?php echo json_encode($supported_platforms); ?>;
+        window.platformConfigs = <?php echo wp_json_encode($supported_platforms); ?>;
         </script>
         <?php
     }
@@ -830,7 +872,7 @@ class CWP_Chat_Bubbles_Options_Page {
     private function get_item_interaction_mode_labels() {
         return array(
             'auto' => __('Use the default behavior', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
-            'direct_link' => __('Open chat right away', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+            'direct_link' => __('Open the chat right away', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
             'qr_modal' => __('Show the QR code first', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
         );
     }
@@ -846,7 +888,7 @@ class CWP_Chat_Bubbles_Options_Page {
             ?>
             <div class="cwp-empty-state">
                 <h3><?php esc_html_e('No contact methods yet', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
-                <p><?php esc_html_e('Add your first contact method so visitors know how to reach you.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                <p><?php esc_html_e('Add your first contact method so people know how to reach you.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
             </div>
             <?php
             return;
@@ -892,7 +934,7 @@ class CWP_Chat_Bubbles_Options_Page {
                                 <?php
                                 printf(
                                     /* translators: %s: interaction mode label */
-                                    esc_html__('Opens: %s', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                                    esc_html__('Click behavior: %s', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
                                     esc_html($interaction_label)
                                 );
                                 ?>
@@ -913,7 +955,7 @@ class CWP_Chat_Bubbles_Options_Page {
                         <button type="button" class="button button-small edit-item" data-item-id="<?php echo esc_attr($item['id']); ?>">
                             <?php esc_html_e('Edit', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                         </button>
-                        <button type="button" class="button button-small delete-item" data-item-id="<?php echo esc_attr($item['id']); ?>">
+                        <button type="button" class="button-link button-link-delete delete-item" data-item-id="<?php echo esc_attr($item['id']); ?>">
                             <?php esc_html_e('Delete', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                         </button>
                     </div>

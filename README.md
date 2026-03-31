@@ -6,7 +6,7 @@ A standalone WordPress plugin that auto-injects floating chat bubbles for popula
 - Auto-loads the floating bubble on the frontend, with shortcode-free default behavior.
 - Supports Phone/Hotline, Zalo, Zalo OA, WhatsApp, Viber, Telegram, Facebook Messenger, Line, and KakaoTalk.
 - Lets operators manage chat items with drag-and-drop ordering and optional QR-code dialogs.
-- Exposes advanced controls for device visibility, excluded pages, engagement behavior, business hours, appearance tuning, and analytics hooks.
+- Exposes focused controls for display behavior, excluded pages, appearance tuning, analytics hooks, and small CSS overrides.
 - Keeps runtime customization centralized through CSS variables instead of scattered inline style logic.
 - Documents the next-step migration contracts for contextual targeting and future per-item behavior storage.
 
@@ -22,10 +22,10 @@ A standalone WordPress plugin that auto-injects floating chat bubbles for popula
 ## Admin Overview
 The plugin settings screen is organized into four tabs:
 
-- `General Settings`: enable or disable the plugin, auto-load behavior, labels, and the main toggle icon.
-- `Chat Items`: manage channel entries, contact values, QR codes, and sort order.
-- `Display Settings`: configure bubble position, offsets, button color, and animation toggle.
-- `Advanced Settings`: control behavior, business hours, device visibility, page exclusions, appearance tokens, analytics hooks, and small CSS overrides.
+- `Basics`: turn the bubble on or off, choose whether it loads automatically, and decide whether labels are shown.
+- `Contact Methods`: manage channel entries, contact values, QR codes, click behavior, and sort order.
+- `Display`: control placement, opening state, the main toggle icon, color, and motion.
+- `Advanced`: fine-tune timing, excluded pages, appearance tokens, analytics hooks, and small CSS overrides.
 
 ## Data Model Notes
 - Contextual targeting migration is documented in [`docs/display-rules-migration.md`](docs/display-rules-migration.md) and [`docs/contextual-targeting-schema.md`](docs/contextual-targeting-schema.md).
@@ -33,28 +33,13 @@ The plugin settings screen is organized into four tabs:
 
 ## Advanced Settings
 
-### Behavior
+### When the bubble appears
 - `Initial state` controls whether the bubble starts closed or open on first render.
-- `Display delay` and `Scroll trigger` are stored now so frontend behavior can evolve without changing the option contract again.
-- `Dismiss for session` is available for future visitor-session flows and already persists in the normalized settings schema.
+- `Display delay` and `Scroll trigger` help the bubble wait before showing.
+- `Dismiss for session` keeps the bubble hidden after someone closes it until they leave the current tab.
 
-### Business Hours
-- You can optionally limit the widget to configured working hours.
-- Leaving timezone blank makes the schedule fall back to the site timezone.
-- Overnight windows are supported by the runtime schedule logic.
-- The current closed-hours behavior is intentionally conservative: outside configured hours the widget hides.
-
-### Device Visibility And Page Exclusions
-- Desktop, tablet, and mobile visibility can be toggled independently.
-- Existing installs retain the legacy mobile behavior through the compatibility alias until the new settings are saved.
+### Hide on pages
 - Selected excluded pages prevent auto-loading without affecting manual integration paths.
-- The long-term migration contract for contextual targeting is documented in [`docs/display-rules-migration.md`](docs/display-rules-migration.md).
-- The normalized contextual targeting option schema itself is documented in [`docs/contextual-targeting-schema.md`](docs/contextual-targeting-schema.md).
-
-### Contextual Targeting
-- Admin users can now define future-ready include and exclude rules for specific pages and public post types.
-- Named special-page contexts such as the front page, blog index, search results, archives, and 404 views use explicit `ignore/include/exclude` values instead of loose booleans.
-- This UI saves into the normalized `targeting` schema and remains separate from the legacy quick-win page exclusion controls until runtime precedence is implemented.
 
 ### Appearance
 These controls feed the plugin CSS-variable layer:
@@ -67,6 +52,11 @@ These controls feed the plugin CSS-variable layer:
 - Base z-index
 
 Defaults preserve the existing presentation, while operators can tune layout density without editing template markup.
+
+### Tracking
+- External analytics emission is opt-in.
+- `Provider` can be `none`, `ga4`, or `gtm`.
+- `Event prefix` is sanitized to lowercase snake_case and becomes the external event-name prefix.
 
 ### Accessibility
 The frontend markup and runtime now include:
@@ -128,9 +118,8 @@ vendor/bin/phpunit
 
 Current automated coverage includes:
 
-- Settings normalization and sanitization for behavior, schedule, analytics, and appearance
-- Data-service exposure of runtime settings such as schedule and analytics
-- Display-rule migration contract helpers for future contextual targeting work
+- Settings normalization and sanitization for behavior, analytics, appearance, and page exclusions
+- Data-service exposure of runtime settings such as behavior and analytics
 - Items-manager helpers for future per-item behavior storage and fallback semantics
 - Frontend template markup contracts for accessibility and analytics-related data attributes
 
