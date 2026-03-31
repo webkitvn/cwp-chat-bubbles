@@ -273,9 +273,13 @@
   }
 }
 
-.cwp-item-thickbox {
+#TB_ajaxContent.cwp-item-modal-content {
   --cwp-modal-label-width: 170px;
   --cwp-modal-control-width: 420px;
+}
+
+.cwp-item-thickbox,
+#TB_ajaxContent.cwp-item-modal-content {
   padding: 0;
   box-sizing: border-box;
 
@@ -644,6 +648,12 @@
   }
 
   .cwp-item-thickbox {
+    #cwp-item-form {
+      min-height: 0;
+    }
+  }
+
+  #TB_ajaxContent.cwp-item-modal-content {
     --cwp-modal-label-width: auto;
 
     .cwp-item-modal-body {

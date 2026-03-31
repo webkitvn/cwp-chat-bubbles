@@ -90,12 +90,14 @@
         if (typeof window.tb_show === 'function') {
             window.tb_show(title, '#TB_inline?width=720&height=640&inlineId=cwp-item-modal-inline');
             $('#TB_window').addClass('cwp-item-modal');
+            $('#TB_ajaxContent').addClass('cwp-item-modal-content');
         }
     }
 
     function closeItemModal() {
         if (typeof window.tb_remove === 'function') {
             $('#TB_window').removeClass('cwp-item-modal');
+            $('#TB_ajaxContent').removeClass('cwp-item-modal-content');
             window.tb_remove();
         }
     }
