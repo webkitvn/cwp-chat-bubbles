@@ -278,6 +278,7 @@
 }
 
 .cwp-item-thickbox {
+  --cwp-modal-inner-gutter: 8px;
   --cwp-modal-label-width: 170px;
   --cwp-modal-control-width: 420px;
   display: flex;
@@ -293,6 +294,7 @@
 
   .cwp-item-modal-intro {
     margin: 0 0 var(--cwp-space-md);
+    padding-left: var(--cwp-modal-inner-gutter);
     color: #50575e;
     font-size: 13px;
     line-height: 1.5;
@@ -311,6 +313,7 @@
 
     h3 {
       margin: 0 0 12px;
+      padding-left: var(--cwp-modal-inner-gutter);
       font-size: 14px;
       line-height: 1.4;
     }
@@ -336,18 +339,24 @@
 
   .cwp-modal-form-table th,
   .cwp-modal-form-table td {
-    padding: 12px 0;
+    padding-top: 12px;
+    padding-bottom: 12px;
     vertical-align: top;
     border-bottom: 1px solid #f0f0f1;
   }
 
   .cwp-modal-form-table th {
     width: var(--cwp-modal-label-width);
+    padding-left: var(--cwp-modal-inner-gutter);
     padding-right: 20px;
     font-size: 13px;
     font-weight: 600;
     line-height: 1.4;
     color: #1d2327;
+  }
+
+  .cwp-modal-form-table td {
+    padding-right: var(--cwp-modal-inner-gutter);
   }
 
   .cwp-modal-form-table th label {
@@ -407,7 +416,7 @@
   }
 }
 
-.cwp-modal-footer {
+  .cwp-modal-footer {
   display: flex;
   gap: var(--cwp-space-sm);
   justify-content: flex-end;
@@ -415,6 +424,9 @@
   padding: 16px 0 0;
   border-top: 1px solid #e2e4e7;
   background: #fff;
+
+  padding-left: var(--cwp-modal-inner-gutter);
+  padding-right: var(--cwp-modal-inner-gutter);
 }
 
 .cwp-settings-submit {
@@ -638,6 +650,7 @@
 
   .cwp-item-thickbox {
     --cwp-modal-label-width: auto;
+    --cwp-modal-inner-gutter: 0px;
     padding: var(--cwp-space-md);
 
     #cwp-item-form {
