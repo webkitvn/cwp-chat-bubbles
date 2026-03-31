@@ -654,131 +654,134 @@ class CWP_Chat_Bubbles_Options_Page {
                     <input type="hidden" id="item-id" name="item_id" value="">
 
                     <h2 id="modal-title" class="screen-reader-text"><?php esc_html_e('Add contact method', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h2>
-                    <p class="cwp-item-modal-intro"><?php esc_html_e('Set how this contact option looks and where it sends people.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                    <div class="cwp-item-modal-body">
+                        <p class="cwp-item-modal-intro"><?php esc_html_e('Set how this contact option looks and where it sends people.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
 
-                    <div class="cwp-item-modal-section">
-                        <h3><?php esc_html_e('Basic details', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
-                        <table class="form-table cwp-modal-form-table" role="presentation">
-                            <tbody>
-                                <tr>
-                                    <th scope="row">
-                                        <label for="platform"><?php esc_html_e('Chat app', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
-                                    </th>
-                                    <td>
-                                    <select id="platform" name="platform" required>
-                                        <option value=""><?php esc_html_e('Choose a chat app', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
-                                        <?php foreach ($supported_platforms as $platform => $config): ?>
-                                            <option value="<?php echo esc_attr($platform); ?>">
-                                                <?php echo esc_html($config['label']); ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">
-                                        <label for="label"><?php esc_html_e('Label people will see', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
-                                    </th>
-                                    <td>
-                                    <input type="text" id="label" name="label" class="regular-text" placeholder="<?php esc_attr_e('e.g. Sales team', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" required>
-                                    <p class="description"><?php esc_html_e('People see this inside the contact list.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">
-                                        <label for="contact-value" id="contact-label"><?php esc_html_e('Contact details', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
-                                    </th>
-                                    <td>
-                                    <input type="text" id="contact-value" name="contact_value" class="regular-text" placeholder="" required>
-                                    <p class="description" id="contact-description"></p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php esc_html_e('QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
-                                    <td>
-                                    <input type="hidden" id="qr-code-id" name="qr_code_id" value="0">
-                                    <div class="cwp-button-row">
-                                        <button type="button" class="button" id="upload-qr-code">
-                                            <?php esc_html_e('Upload QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                        </button>
-                                        <button type="button" class="button" id="remove-qr-code" style="display: none;">
-                                            <?php esc_html_e('Remove QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                        </button>
-                                    </div>
-                                    <div id="qr-preview"></div>
-                                    <p class="description"><?php esc_html_e('Add one if people should scan before they start the chat.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="cwp-item-modal-section">
+                            <h3><?php esc_html_e('Basic details', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
+                            <table class="form-table cwp-modal-form-table" role="presentation">
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">
+                                            <label for="platform"><?php esc_html_e('Chat app', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                        </th>
+                                        <td>
+                                        <select id="platform" name="platform" required>
+                                            <option value=""><?php esc_html_e('Choose a chat app', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                            <?php foreach ($supported_platforms as $platform => $config): ?>
+                                                <option value="<?php echo esc_attr($platform); ?>">
+                                                    <?php echo esc_html($config['label']); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">
+                                            <label for="label"><?php esc_html_e('Label people will see', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                        </th>
+                                        <td>
+                                        <input type="text" id="label" name="label" class="regular-text" placeholder="<?php esc_attr_e('e.g. Sales team', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" required>
+                                        <p class="description"><?php esc_html_e('People see this inside the contact list.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">
+                                            <label for="contact-value" id="contact-label"><?php esc_html_e('Contact details', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                        </th>
+                                        <td>
+                                        <input type="text" id="contact-value" name="contact_value" class="regular-text" placeholder="" required>
+                                        <p class="description" id="contact-description"></p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row"><?php esc_html_e('QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                        <td>
+                                        <input type="hidden" id="qr-code-id" name="qr_code_id" value="0">
+                                        <div class="cwp-button-row">
+                                            <button type="button" class="button" id="upload-qr-code">
+                                                <?php esc_html_e('Upload QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                            </button>
+                                            <button type="button" class="button" id="remove-qr-code" style="display: none;">
+                                                <?php esc_html_e('Remove QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                            </button>
+                                        </div>
+                                        <div id="qr-preview"></div>
+                                        <p class="description"><?php esc_html_e('Add one if people should scan before they start the chat.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="cwp-item-modal-section">
+                            <h3><?php esc_html_e('Click behavior', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
+                            <table class="form-table cwp-modal-form-table" role="presentation">
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">
+                                            <label for="interaction-mode"><?php esc_html_e('When someone clicks this option', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                        </th>
+                                        <td>
+                                        <select id="interaction-mode" name="interaction_mode">
+                                            <?php foreach ($this->get_item_interaction_mode_labels() as $mode => $mode_label) : ?>
+                                                <option value="<?php echo esc_attr($mode); ?>" <?php echo 'auto' === $mode ? 'selected' : ''; ?>>
+                                                    <?php echo esc_html($mode_label); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                        <p class="description">
+                                            <?php esc_html_e('Choose whether chat opens right away or shows the QR code first.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">
+                                            <label for="prefill-message"><?php esc_html_e('Starting message', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                        </th>
+                                        <td>
+                                        <textarea
+                                            id="prefill-message"
+                                            name="prefill_message"
+                                            class="large-text"
+                                            rows="3"
+                                            maxlength="500"
+                                            placeholder="<?php esc_attr_e('Optional message to start the chat with.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>"
+                                        ></textarea>
+                                        <p class="description">
+                                            <?php esc_html_e('Supported chat apps can open with this message already filled in.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="cwp-item-modal-section">
+                            <h3><?php esc_html_e('Availability', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
+                            <table class="form-table cwp-modal-form-table" role="presentation">
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">
+                                            <label for="enabled"><?php esc_html_e('Show this option', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                        </th>
+                                        <td>
+                                        <label>
+                                            <input type="checkbox" id="enabled" name="enabled" value="1" checked>
+                                            <?php esc_html_e('Show this contact method.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </label>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
-                    <div class="cwp-item-modal-section">
-                        <h3><?php esc_html_e('Click behavior', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
-                        <table class="form-table cwp-modal-form-table" role="presentation">
-                            <tbody>
-                                <tr>
-                                    <th scope="row">
-                                        <label for="interaction-mode"><?php esc_html_e('When someone clicks this option', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
-                                    </th>
-                                    <td>
-                                    <select id="interaction-mode" name="interaction_mode">
-                                        <?php foreach ($this->get_item_interaction_mode_labels() as $mode => $mode_label) : ?>
-                                            <option value="<?php echo esc_attr($mode); ?>" <?php echo 'auto' === $mode ? 'selected' : ''; ?>>
-                                                <?php echo esc_html($mode_label); ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <p class="description">
-                                        <?php esc_html_e('Choose whether chat opens right away or shows the QR code first.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                    </p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">
-                                        <label for="prefill-message"><?php esc_html_e('Starting message', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
-                                    </th>
-                                    <td>
-                                    <textarea
-                                        id="prefill-message"
-                                        name="prefill_message"
-                                        class="large-text"
-                                        rows="3"
-                                        maxlength="500"
-                                        placeholder="<?php esc_attr_e('Optional message to start the chat with.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>"
-                                    ></textarea>
-                                    <p class="description">
-                                        <?php esc_html_e('Supported chat apps can open with this message already filled in.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                    </p>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="cwp-item-modal-section">
-                        <h3><?php esc_html_e('Availability', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
-                        <table class="form-table cwp-modal-form-table" role="presentation">
-                            <tbody>
-                                <tr>
-                                    <th scope="row">
-                                        <label for="enabled"><?php esc_html_e('Show this option', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
-                                    </th>
-                                    <td>
-                                    <label>
-                                        <input type="checkbox" id="enabled" name="enabled" value="1" checked>
-                                        <?php esc_html_e('Show this contact method.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                    </label>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="cwp-modal-footer">
+                        <button type="button" class="button" id="cancel-item"><?php esc_html_e('Cancel', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></button>
+                        <button type="button" class="button button-primary" id="save-item"><?php esc_html_e('Save contact method', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></button>
                     </div>
                 </form>
-                <div class="cwp-modal-footer">
-                    <button type="button" class="button" id="cancel-item"><?php esc_html_e('Cancel', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></button>
-                    <button type="button" class="button button-primary" id="save-item"><?php esc_html_e('Save contact method', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></button>
-                </div>
             </div>
         </div>
 

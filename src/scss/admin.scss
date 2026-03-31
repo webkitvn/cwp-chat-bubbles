@@ -261,40 +261,36 @@
 }
 
 #TB_window.cwp-item-modal {
-  display: flex;
-  flex-direction: column;
   min-width: 680px;
 
   #TB_ajaxContent {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
     box-sizing: border-box;
-    width: 100% !important;
-    height: calc(100vh - 140px) !important;
-    max-height: calc(100vh - 140px);
-    padding: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0 !important;
+    width: auto !important;
+    max-height: calc(100vh - 120px);
   }
 }
 
 .cwp-item-thickbox {
-  --cwp-modal-inner-gutter: 8px;
   --cwp-modal-label-width: 170px;
   --cwp-modal-control-width: 420px;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding: 20px 24px 24px;
+  padding: 0;
   box-sizing: border-box;
 
   #cwp-item-form {
-    overflow-y: auto;
-    padding-right: 8px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+  }
+
+  .cwp-item-modal-body {
+    padding: 20px 24px 8px;
   }
 
   .cwp-item-modal-intro {
     margin: 0 0 var(--cwp-space-md);
-    padding-left: var(--cwp-modal-inner-gutter);
     color: #50575e;
     font-size: 13px;
     line-height: 1.5;
@@ -313,7 +309,6 @@
 
     h3 {
       margin: 0 0 12px;
-      padding-left: var(--cwp-modal-inner-gutter);
       font-size: 14px;
       line-height: 1.4;
     }
@@ -347,7 +342,6 @@
 
   .cwp-modal-form-table th {
     width: var(--cwp-modal-label-width);
-    padding-left: var(--cwp-modal-inner-gutter);
     padding-right: 20px;
     font-size: 13px;
     font-weight: 600;
@@ -356,7 +350,7 @@
   }
 
   .cwp-modal-form-table td {
-    padding-right: var(--cwp-modal-inner-gutter);
+    min-width: 0;
   }
 
   .cwp-modal-form-table th label {
@@ -416,17 +410,18 @@
   }
 }
 
-  .cwp-modal-footer {
+.cwp-modal-footer {
   display: flex;
   gap: var(--cwp-space-sm);
   justify-content: flex-end;
   margin-top: auto;
-  padding: 16px 0 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding: 16px 24px;
   border-top: 1px solid #e2e4e7;
   background: #fff;
-
-  padding-left: var(--cwp-modal-inner-gutter);
-  padding-right: var(--cwp-modal-inner-gutter);
+  box-shadow: 0 -1px 0 #e2e4e7;
 }
 
 .cwp-settings-submit {
@@ -650,11 +645,9 @@
 
   .cwp-item-thickbox {
     --cwp-modal-label-width: auto;
-    --cwp-modal-inner-gutter: 0px;
-    padding: var(--cwp-space-md);
 
-    #cwp-item-form {
-      padding-right: 0;
+    .cwp-item-modal-body {
+      padding: var(--cwp-space-md) var(--cwp-space-md) 8px;
     }
 
     .cwp-modal-form-table,
@@ -694,5 +687,9 @@
     .cwp-modal-form-table th label {
       padding-top: 0;
     }
+  }
+
+  .cwp-modal-footer {
+    padding: 12px var(--cwp-space-md) var(--cwp-space-md);
   }
 }
