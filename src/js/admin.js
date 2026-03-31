@@ -88,7 +88,7 @@
 
     function openItemModal(title) {
         if (typeof window.tb_show === 'function') {
-            window.tb_show(title, '#TB_inline?width=720&height=640&inlineId=cwp-item-modal-inline');
+            window.tb_show(title, '#TB_inline?width=760&height=700&inlineId=cwp-item-modal-inline');
             $('#TB_window').addClass('cwp-item-modal');
         }
     }
@@ -309,20 +309,20 @@
         let description = '';
         switch (config.contact_field) {
             case 'number':
-                fieldLabel = 'Phone Number';
-                description = 'Add the phone number people should use to reach you here.';
+                fieldLabel = 'Phone number';
+                description = 'Add the number people should use to reach you.';
                 break;
             case 'username':
                 fieldLabel = 'Username';
                 description = 'Add the username people should use. Leave out the @ symbol.';
                 break;
             case 'id':
-                fieldLabel = 'ID or Link';
-                description = 'Add the ID or link people should use to reach you.';
+                fieldLabel = 'ID or link';
+                description = 'Add the ID or link people should use.';
                 break;
         }
 
-        $contactLabel.text(`${config.label} ${fieldLabel}`);
+        $contactLabel.text(fieldLabel);
         $contactDescription.text(description);
 
         $contactField.attr('pattern', config.pattern ? config.pattern.slice(1, -1) : '');
