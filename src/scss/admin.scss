@@ -290,6 +290,7 @@
 
   .cwp-item-modal-intro {
     margin: 0;
+    padding-inline: 10px;
     color: #50575e;
     font-size: 13px;
     line-height: 1.5;
@@ -304,6 +305,7 @@
 
     h3 {
       margin: 0 0 var(--cwp-space-sm);
+      padding-inline: 10px;
       font-size: 14px;
       line-height: 1.4;
     }
@@ -327,7 +329,7 @@
 
   .form-table th,
   .form-table td {
-    padding: 0;
+    padding: 0 10px;
   }
 
   .form-table tr {
@@ -401,7 +403,7 @@
   gap: var(--cwp-space-sm);
   justify-content: flex-end;
   margin-top: auto;
-  padding-top: var(--cwp-space-md);
+  padding: var(--cwp-space-md) 10px 0;
   border-top: 1px solid #e2e4e7;
   background: #fff;
 }
