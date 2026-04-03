@@ -1,37 +1,40 @@
 ## Beads Workflow (Issue Tracking)
 
-> **Context Recovery**: Run `bd prime` after compaction, clear, or new session
+**Note:** `br` is non-invasive and never executes git commands. After `br sync --flush-only`, you must manually run `git add .beads/ && git commit`.
+
+> **Context Recovery**: Run `br prime` after compaction, clear, or new session
 
 ### Core Rules
 - Track strategic work in beads (multi-session, dependencies, discovered work)
-- Use `bd create` for issues, TodoWrite for simple single-session execution
-- When in doubt, prefer bd—persistence beats lost context
-- Git workflow: hooks auto-sync, run `bd sync` at session end
-- Session management: check `bd ready` for available work
+- Use `br create` for issues, TodoWrite for simple single-session execution
+- When in doubt, prefer `br` - persistence beats lost context
+- Git workflow: run `br sync --flush-only` at session end, then commit `.beads/`
+- Session management: check `br ready` for available work
 
 ### Essential Commands
 
 **Finding Work:**
-- `bd ready` - Show issues ready to work (no blockers)
-- `bd list --status=open` - All open issues
-- `bd list --status=in_progress` - Your active work
-- `bd show <id>` - Detailed issue view with dependencies
+- `br ready` - Show issues ready to work (no blockers)
+- `br list --status=open` - All open issues
+- `br list --status=in_progress` - Your active work
+- `br show <id>` - Detailed issue view with dependencies
 
 **Creating & Updating:**
-- `bd create --title="..." --type=task|bug|feature --priority=2` - New issue
+- `br create --title="..." --type=task|bug|feature --priority=2` - New issue
   - Priority: 0-4 or P0-P4 (0=critical, 2=medium, 4=backlog). NOT "high"/"medium"/"low"
-- `bd update <id> --status=in_progress` - Claim work
-- `bd close <id>` - Mark complete
-- `bd close <id1> <id2> ...` - Close multiple issues at once
+- `br update <id> --status=in_progress` - Claim work
+- `br close <id>` - Mark complete
+- `br close <id1> <id2> ...` - Close multiple issues at once
 
 **Dependencies:**
-- `bd dep add <issue> <depends-on>` - Add dependency
-- `bd blocked` - Show all blocked issues
+- `br dep add <issue> <depends-on>` - Add dependency
+- `br blocked` - Show all blocked issues
 
 **Sync:**
-- `bd sync` - Sync with git remote (run at session end)
-- `bd stats` - Project statistics
-- `bd doctor` - Check for issues
+- `br sync --flush-only` - Export beads state before committing `.beads/`
+- `git add .beads/ && git commit -m "sync beads"` - Commit beads state
+- `br stats` - Project statistics
+- `br doctor` - Check for issues
 
 ---
 
@@ -42,10 +45,14 @@
 ```bash
 [ ] 1. git status              # check what changed
 [ ] 2. git add <files>         # stage code changes
-[ ] 3. bd sync                 # commit beads changes
-[ ] 4. git commit -m "..."     # commit code
-[ ] 5. bd sync                 # commit any new beads changes
-[ ] 6. git push                # push to remote
+[ ] 3. br sync --flush-only    # export beads changes
+[ ] 4. git add .beads/         # stage beads state
+[ ] 5. git commit -m "sync beads" # commit beads changes
+[ ] 6. git commit -m "..."     # commit code
+[ ] 7. br sync --flush-only    # export any new beads changes
+[ ] 8. git add .beads/         # stage new beads state
+[ ] 9. git commit -m "sync beads" # commit updated beads state
+[ ] 10. git push               # push to remote
 ```
 
 **CRITICAL RULES:**
