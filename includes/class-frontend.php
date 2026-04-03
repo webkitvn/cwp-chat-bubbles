@@ -260,8 +260,9 @@ class CWP_Chat_Bubbles_Frontend {
                 <img src="<?php echo esc_url($cancel_icon); ?>" alt="<?php esc_attr_e('Close', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" class="chat-icon-close">
             </div>
             <div class="item-group <?php echo empty($settings['show_labels']) ? 'no-labels' : ''; ?>"></div>
-            <p class="cwp-chat-loading" hidden><?php esc_html_e('Loading...', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
-            <p class="cwp-chat-error" hidden><?php esc_html_e('Unable to load chat options. Please try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+            <div class="cwp-chat-status" hidden aria-live="polite">
+                <span class="cwp-chat-status-text"></span>
+            </div>
             <div class="cwp-chat-modals"></div>
         </div>
         <?php

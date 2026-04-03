@@ -165,8 +165,8 @@ const initializeChatBubbles = () => {
     const isLazy = chatBubbles.dataset.lazy === '1';
     const endpoint = chatBubbles.dataset.endpoint || '';
     const prefetchEnabled = chatBubbles.dataset.prefetch === '1';
-    const loadingNode = chatBubbles.querySelector('.cwp-chat-loading');
-    const errorNode = chatBubbles.querySelector('.cwp-chat-error');
+    const statusNode = chatBubbles.querySelector('.cwp-chat-status');
+    const statusTextNode = chatBubbles.querySelector('.cwp-chat-status-text');
 
     const state = {
         mode: isLazy ? 'lazy' : 'static',
@@ -176,12 +176,29 @@ const initializeChatBubbles = () => {
     };
 
     const setStatusUI = () => {
-        if (loadingNode) {
-            loadingNode.hidden = state.loadState !== 'loading';
+        if (!statusNode || !statusTextNode) {
+            return;
         }
-        if (errorNode) {
-            errorNode.hidden = state.loadState !== 'error';
+
+        if (state.loadState === 'loading') {
+            statusNode.hidden = false;
+            statusNode.classList.add('is-loading');
+            statusNode.classList.remove('is-error');
+            statusTextNode.textContent = 'Loading chat options...';
+            return;
         }
+
+        if (state.loadState === 'error') {
+            statusNode.hidden = false;
+            statusNode.classList.remove('is-loading');
+            statusNode.classList.add('is-error');
+            statusTextNode.textContent = 'Unable to load chat options. Tap again.';
+            return;
+        }
+
+        statusNode.hidden = true;
+        statusNode.classList.remove('is-loading', 'is-error');
+        statusTextNode.textContent = '';
     };
 
     const closeChatBubble = () => {
