@@ -163,6 +163,71 @@ class CWP_Chat_Bubbles_Data_Service {
     }
 
     /**
+     * Get lightweight shell data for lazy auto-inject rendering.
+     *
+     * @return array
+     * @since 1.1.1
+     */
+    public function get_frontend_shell_data() {
+        $lazy_enabled = (bool) apply_filters('cwp_chat_bubbles_lazy_autoload_enabled', true);
+        $prefetch_enabled = (bool) apply_filters('cwp_chat_bubbles_lazy_prefetch_enabled', true);
+
+        return array(
+            'settings' => array(
+                'position' => $this->settings->get_option('position', 'bottom-right'),
+                'main_button_color' => $this->settings->get_option('main_button_color', '#52BA00'),
+                'animation_enabled' => $this->settings->get_option('animation_enabled', true),
+                'show_labels' => $this->settings->should_show_labels()
+            ),
+            'support_icon' => $this->settings->get_main_icon_url(),
+            'cancel_icon' => CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/cancel.svg',
+            'lazy_enabled' => $lazy_enabled,
+            'prefetch_enabled' => $prefetch_enabled,
+            'lazy_endpoint' => esc_url_raw(rest_url('cwp-chat-bubbles/v1/items'))
+        );
+    }
+
+    /**
+     * Get lazy frontend items payload for REST responses.
+     * Uses object cache first, then transient fallback.
+     *
+     * @return array
+     * @since 1.1.1
+     */
+    public function get_lazy_frontend_items_payload() {
+        $data_version = $this->get_data_version();
+        $cache_key = 'cwp_frontend_items_v' . $data_version;
+
+        $cached_payload = wp_cache_get($cache_key, 'cwp_chat_bubbles');
+        if (false !== $cached_payload) {
+            return $cached_payload;
+        }
+
+        $transient_payload = get_transient($cache_key);
+        if (false !== $transient_payload) {
+            wp_cache_set($cache_key, $transient_payload, 'cwp_chat_bubbles', HOUR_IN_SECONDS);
+            return $transient_payload;
+        }
+
+        $frontend_data = $this->get_frontend_data();
+        $payload = array(
+            'items' => false === $frontend_data ? array() : $frontend_data['items'],
+            'settings' => array(
+                'show_labels' => $this->settings->should_show_labels(),
+                'position' => $this->settings->get_option('position', 'bottom-right'),
+                'main_button_color' => $this->settings->get_option('main_button_color', '#52BA00'),
+                'animation_enabled' => $this->settings->get_option('animation_enabled', true)
+            ),
+            'version' => (string) $data_version
+        );
+
+        wp_cache_set($cache_key, $payload, 'cwp_chat_bubbles', HOUR_IN_SECONDS);
+        set_transient($cache_key, $payload, HOUR_IN_SECONDS);
+
+        return $payload;
+    }
+
+    /**
      * Check if should load on current page (unified logic)
      *
      * @return bool Whether to load on current page

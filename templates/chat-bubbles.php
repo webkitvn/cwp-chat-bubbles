@@ -25,7 +25,7 @@ if (empty($items)) {
 }
 ?>
 
-<div id="chat-bubbles" class="cwp-chat-bubbles" data-position="<?php echo esc_attr($settings['position']); ?>">
+<div id="chat-bubbles" class="cwp-chat-bubbles" data-position="<?php echo esc_attr($settings['position']); ?>" data-lazy="0">
     <!-- Main Chat Button -->
     <div class="chat-icon chat-btn-toggle"
         style="background-color: <?php echo esc_attr($settings['main_button_color']); ?>">
