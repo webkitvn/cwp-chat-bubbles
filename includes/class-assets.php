@@ -35,6 +35,14 @@ class CWP_Chat_Bubbles_Assets {
     private $settings;
 
     /**
+     * Per-request file version cache
+     *
+     * @var array<string, string>
+     * @since 1.1.1
+     */
+    private $file_version_cache = array();
+
+    /**
      * Get instance
      *
      * @return CWP_Chat_Bubbles_Assets
@@ -111,18 +119,6 @@ class CWP_Chat_Bubbles_Assets {
                 $this->get_file_version('assets/js/chat-bubbles.min.js'),
                 true // Load in footer
             );
-
-            // Pass data to JavaScript
-            wp_localize_script('cwp-chat-bubbles', 'cwpChatBubbles', array(
-                'ajaxUrl' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('cwp_chat_bubbles_nonce'),
-                'platforms' => $this->get_frontend_platform_data(),
-                'settings' => array(
-                    'position' => $this->settings->get_option('position', 'bottom-right'),
-                    'animationEnabled' => $this->settings->get_option('animation_enabled', true),
-                    'showLabels' => $this->settings->get_option('show_labels', true)
-                )
-            ));
         }
     }
 
@@ -261,13 +257,25 @@ class CWP_Chat_Bubbles_Assets {
      * @since 1.0.0
      */
     private function get_file_version($file) {
-        $file_path = CWP_CHAT_BUBBLES_PLUGIN_DIR . $file;
-        
-        if (file_exists($file_path)) {
-            return filemtime($file_path);
+        if (isset($this->file_version_cache[$file])) {
+            return $this->file_version_cache[$file];
         }
-        
-        return CWP_CHAT_BUBBLES_VERSION;
+
+        $file_path = CWP_CHAT_BUBBLES_PLUGIN_DIR . $file;
+
+        // Prefer static plugin version in production to avoid repeated filesystem stats.
+        if (!defined('WP_DEBUG') || !WP_DEBUG) {
+            $this->file_version_cache[$file] = CWP_CHAT_BUBBLES_VERSION;
+            return $this->file_version_cache[$file];
+        }
+
+        if (file_exists($file_path)) {
+            $this->file_version_cache[$file] = (string) filemtime($file_path);
+            return $this->file_version_cache[$file];
+        }
+
+        $this->file_version_cache[$file] = CWP_CHAT_BUBBLES_VERSION;
+        return $this->file_version_cache[$file];
     }
 
     /**
@@ -279,17 +287,6 @@ class CWP_Chat_Bubbles_Assets {
     private function should_load_on_current_page() {
         $data_service = CWP_Chat_Bubbles_Data_Service::get_instance();
         return $data_service->should_load_on_current_page();
-    }
-
-    /**
-     * Get frontend platform data for JavaScript - Optimized with unified data service
-     *
-     * @return array Platform data for frontend
-     * @since 1.0.0
-     */
-    private function get_frontend_platform_data() {
-        $data_service = CWP_Chat_Bubbles_Data_Service::get_instance();
-        return $data_service->get_frontend_js_data();
     }
 
     /**

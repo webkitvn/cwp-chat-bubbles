@@ -41,8 +41,8 @@ if (empty($items)) {
     <div class="item-group <?php echo !$settings['show_labels'] ? 'no-labels' : ''; ?>">
         <?php foreach ($items as $item): ?>
             <?php
-            // Check if item has QR code
-            $has_qr = !empty($item['qr_code_id']) && $item['qr_code_id'] > 0;
+            // Use pre-processed flags to avoid repeated per-item lookups.
+            $has_qr = !empty($item['has_qr']);
             ?>
 
             <a href="<?php echo esc_url($item['platform_url']); ?>"
@@ -71,9 +71,9 @@ if (empty($items)) {
 
     <!-- QR Code Modals -->
     <?php foreach ($items as $item): ?>
-        <?php if (!empty($item['qr_code_id']) && $item['qr_code_id'] > 0): ?>
+        <?php if (!empty($item['has_qr'])): ?>
             <?php
-            $qr_image_url = wp_get_attachment_url($item['qr_code_id']);
+            $qr_image_url = !empty($item['qr_code_url']) ? $item['qr_code_url'] : '';
             if ($qr_image_url):
             ?>
 

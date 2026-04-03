@@ -494,28 +494,36 @@ class CWP_Chat_Bubbles_Items_Manager {
             return false;
         }
 
-        $success = true;
+        $ordered_ids = array_values(array_unique(array_filter(array_map('intval', $ordered_ids))));
+        if (empty($ordered_ids)) {
+            return false;
+        }
+
+        $cases = array();
+        $id_placeholders = array();
+        $params = array();
 
         foreach ($ordered_ids as $index => $id) {
-            $result = $wpdb->update(
-                $this->table_name,
-                array('sort_order' => $index + 1),
-                array('id' => (int) $id),
-                array('%d'),
-                array('%d')
-            );
-
-            if ($result === false) {
-                $success = false;
-            }
+            $cases[] = 'WHEN %d THEN %d';
+            $params[] = $id;
+            $params[] = $index + 1;
+            $id_placeholders[] = '%d';
         }
 
-        if ($success) {
+        $sql = "UPDATE {$this->table_name}
+                SET sort_order = CASE id " . implode(' ', $cases) . " ELSE sort_order END
+                WHERE id IN (" . implode(', ', $id_placeholders) . ')';
+
+        $prepared_sql = $wpdb->prepare($sql, array_merge($params, $ordered_ids));
+        $result = $wpdb->query($prepared_sql);
+
+        if ($result !== false) {
             // Clear cache when data changes
             $this->clear_frontend_cache();
+            return true;
         }
 
-        return $success;
+        return false;
     }
 
     /**
