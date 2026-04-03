@@ -466,12 +466,6 @@ class CWP_Chat_Bubbles_Items_Manager {
     public function delete_item($id) {
         global $wpdb;
 
-        // Get item before deletion to clean up QR code
-        $item = $this->get_item($id);
-        if ($item && !empty($item['qr_code_id'])) {
-            wp_delete_attachment($item['qr_code_id'], true);
-        }
-
         $result = $wpdb->delete(
             $this->table_name,
             array('id' => $id),

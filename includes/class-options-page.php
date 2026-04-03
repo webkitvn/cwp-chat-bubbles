@@ -598,22 +598,82 @@ class CWP_Chat_Bubbles_Options_Page {
     }
 
     /**
+     * Verify AJAX request security requirements.
+     *
+     * @param string $action_name Action name for audit logging context.
+     * @since 1.1.1
+     */
+    private function verify_ajax_request($action_name) {
+        if (!check_ajax_referer('cwp_chat_bubbles_admin', 'nonce', false)) {
+            $this->log_admin_action('security_violation', 'Invalid nonce for ' . $action_name);
+            wp_send_json_error(__('Security check failed', CWP_CHAT_BUBBLES_TEXT_DOMAIN), 403);
+        }
+
+        if (!current_user_can('manage_options')) {
+            $this->log_admin_action('security_violation', 'Insufficient permissions for ' . $action_name);
+            wp_send_json_error(__('Insufficient permissions', CWP_CHAT_BUBBLES_TEXT_DOMAIN), 403);
+        }
+    }
+
+    /**
+     * Safely read a text value from $_POST.
+     *
+     * @param string $key POST field name.
+     * @param string $default Default value.
+     * @return string
+     * @since 1.1.1
+     */
+    private function get_post_text($key, $default = '') {
+        if (!isset($_POST[$key])) {
+            return $default;
+        }
+
+        return sanitize_text_field(wp_unslash((string) $_POST[$key]));
+    }
+
+    /**
+     * Safely read an integer value from $_POST.
+     *
+     * @param string $key POST field name.
+     * @param int $default Default value.
+     * @return int
+     * @since 1.1.1
+     */
+    private function get_post_int($key, $default = 0) {
+        if (!isset($_POST[$key])) {
+            return (int) $default;
+        }
+
+        return (int) wp_unslash($_POST[$key]);
+    }
+
+    /**
+     * Safely read an integer array from $_POST.
+     *
+     * @param string $key POST field name.
+     * @return array<int>
+     * @since 1.1.1
+     */
+    private function get_post_int_array($key) {
+        if (!isset($_POST[$key])) {
+            return array();
+        }
+
+        $values = wp_unslash($_POST[$key]);
+        if (!is_array($values)) {
+            return array();
+        }
+
+        return array_map('intval', $values);
+    }
+
+    /**
      * AJAX handler for saving item
      *
      * @since 1.0.0
      */
     public function ajax_save_item() {
-        // Verify nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'cwp_chat_bubbles_admin')) {
-            $this->log_admin_action('security_violation', 'Invalid nonce for ajax_save_item');
-            wp_die(__('Security check failed', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
-        }
-
-        // Check permissions
-        if (!current_user_can('manage_options')) {
-            $this->log_admin_action('security_violation', 'Insufficient permissions for ajax_save_item');
-            wp_die(__('Insufficient permissions', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
-        }
+        $this->verify_ajax_request('ajax_save_item');
 
         // Rate limiting for AJAX requests
         $user_id = get_current_user_id();
@@ -628,12 +688,12 @@ class CWP_Chat_Bubbles_Options_Page {
         // Increment rate limit counter
         set_transient($transient_key, ($request_count ? $request_count + 1 : 1), 60);
 
-        $item_id = !empty($_POST['item_id']) ? (int) $_POST['item_id'] : 0;
-        $platform = sanitize_text_field($_POST['platform']);
-        $label = sanitize_text_field($_POST['label']);
-        $contact_value = sanitize_text_field($_POST['contact_value']);
-        $qr_code_id = !empty($_POST['qr_code_id']) ? (int) $_POST['qr_code_id'] : 0;
-        $enabled = !empty($_POST['enabled']) ? 1 : 0;
+        $item_id = $this->get_post_int('item_id');
+        $platform = $this->get_post_text('platform');
+        $label = $this->get_post_text('label');
+        $contact_value = $this->get_post_text('contact_value');
+        $qr_code_id = $this->get_post_int('qr_code_id');
+        $enabled = $this->get_post_int('enabled') ? 1 : 0;
 
         // Enhanced validation
         if (empty($platform) || empty($label) || empty($contact_value)) {
@@ -647,8 +707,8 @@ class CWP_Chat_Bubbles_Options_Page {
         }
 
         // Validate label length
-        if (strlen($label) < 2 || strlen($label) > 50) {
-            wp_send_json_error(__('Label must be between 2 and 50 characters', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+        if (strlen($label) < 2 || strlen($label) > 255) {
+            wp_send_json_error(__('Label must be between 2 and 255 characters', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
 
         // Validate contact value format based on platform
@@ -692,17 +752,7 @@ class CWP_Chat_Bubbles_Options_Page {
      * @since 1.0.0
      */
     public function ajax_delete_item() {
-        // Verify nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'cwp_chat_bubbles_admin')) {
-            $this->log_admin_action('security_violation', 'Invalid nonce for ajax_delete_item');
-            wp_die(__('Security check failed', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
-        }
-
-        // Check permissions
-        if (!current_user_can('manage_options')) {
-            $this->log_admin_action('security_violation', 'Insufficient permissions for ajax_delete_item');
-            wp_die(__('Insufficient permissions', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
-        }
+        $this->verify_ajax_request('ajax_delete_item');
 
         // Rate limiting (shared with other AJAX endpoints)
         $user_id = get_current_user_id();
@@ -716,7 +766,10 @@ class CWP_Chat_Bubbles_Options_Page {
         
         set_transient($transient_key, ($request_count ? $request_count + 1 : 1), 60);
 
-        $item_id = (int) $_POST['item_id'];
+        $item_id = $this->get_post_int('item_id');
+        if ($item_id <= 0) {
+            wp_send_json_error(__('Invalid item ID', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+        }
 
         if ($this->items_manager->delete_item($item_id)) {
             $this->log_admin_action('item_deleted', "Deleted item ID: {$item_id}");
@@ -736,17 +789,7 @@ class CWP_Chat_Bubbles_Options_Page {
      * @since 1.0.0
      */
     public function ajax_reorder_items() {
-        // Verify nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'cwp_chat_bubbles_admin')) {
-            $this->log_admin_action('security_violation', 'Invalid nonce for ajax_reorder_items');
-            wp_die(__('Security check failed', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
-        }
-
-        // Check permissions
-        if (!current_user_can('manage_options')) {
-            $this->log_admin_action('security_violation', 'Insufficient permissions for ajax_reorder_items');
-            wp_die(__('Insufficient permissions', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
-        }
+        $this->verify_ajax_request('ajax_reorder_items');
 
         // Rate limiting (shared with other AJAX endpoints)
         $user_id = get_current_user_id();
@@ -760,7 +803,11 @@ class CWP_Chat_Bubbles_Options_Page {
         
         set_transient($transient_key, ($request_count ? $request_count + 1 : 1), 60);
 
-        $ordered_ids = array_map('intval', $_POST['ordered_ids']);
+        $ordered_ids = $this->get_post_int_array('ordered_ids');
+
+        if (empty($ordered_ids)) {
+            wp_send_json_error(__('No items provided for reordering.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+        }
 
         // Validate that ordered_ids is reasonable (max 50 items)
         if (count($ordered_ids) > 50) {
@@ -807,17 +854,7 @@ class CWP_Chat_Bubbles_Options_Page {
      * @since 1.0.0
      */
     public function ajax_get_attachment_url() {
-        // Verify nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'cwp_chat_bubbles_admin')) {
-            $this->log_admin_action('security_violation', 'Invalid nonce for ajax_get_attachment_url');
-            wp_die(__('Security check failed', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
-        }
-
-        // Check permissions
-        if (!current_user_can('manage_options')) {
-            $this->log_admin_action('security_violation', 'Insufficient permissions for ajax_get_attachment_url');
-            wp_die(__('Insufficient permissions', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
-        }
+        $this->verify_ajax_request('ajax_get_attachment_url');
 
         // Rate limiting for AJAX requests (shared with other AJAX endpoints)
         $user_id = get_current_user_id();
@@ -831,7 +868,7 @@ class CWP_Chat_Bubbles_Options_Page {
         
         set_transient($transient_key, ($request_count ? $request_count + 1 : 1), 60);
 
-        $attachment_id = !empty($_POST['attachment_id']) ? (int) $_POST['attachment_id'] : 0;
+        $attachment_id = $this->get_post_int('attachment_id');
         
         if ($attachment_id > 0) {
             // Verify attachment exists and is actually an image
@@ -850,7 +887,7 @@ class CWP_Chat_Bubbles_Options_Page {
                     'image/webp'
                 );
                 
-                if (!in_array($mime_type, $allowed_mime_types)) {
+                if (!in_array($mime_type, $allowed_mime_types, true)) {
                     $this->log_admin_action('security_violation', "Invalid file type uploaded: {$mime_type}");
                     wp_send_json_error(__('Invalid file type. Only images are allowed.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
                 }
