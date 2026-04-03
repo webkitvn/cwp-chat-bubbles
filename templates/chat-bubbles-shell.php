@@ -29,8 +29,5 @@ defined('ABSPATH') or exit;
     </div>
 
     <div class="item-group <?php echo !$settings['show_labels'] ? 'no-labels' : ''; ?>"></div>
-    <div class="cwp-chat-status" hidden aria-live="polite">
-        <span class="cwp-chat-status-text"></span>
-    </div>
     <div class="cwp-chat-modals"></div>
 </div>
