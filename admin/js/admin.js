@@ -24,6 +24,24 @@
         return Object.prototype.hasOwnProperty.call(i18n, key) ? i18n[key] : fallback;
     }
 
+    function getAjaxErrorMessage(xhr, fallback) {
+        if (xhr && xhr.responseJSON) {
+            if (typeof xhr.responseJSON.data === 'string' && xhr.responseJSON.data.trim()) {
+                return xhr.responseJSON.data;
+            }
+
+            if (typeof xhr.responseJSON.message === 'string' && xhr.responseJSON.message.trim()) {
+                return xhr.responseJSON.message;
+            }
+        }
+
+        if (xhr && typeof xhr.responseText === 'string' && xhr.responseText.trim()) {
+            return xhr.responseText;
+        }
+
+        return fallback;
+    }
+
     /**
      * Initialize admin functionality
      */
@@ -258,6 +276,7 @@
     function initMainIconUpload() {
         let mainIconUploader = null;
         const $preview = $('#main-icon-preview');
+        const initialPreviewHtml = $preview.html();
         const initialBgColor = $preview.data('bg-color');
 
         if (initialBgColor) {
@@ -292,7 +311,7 @@
         });
 
         $('#remove-main-icon').on('click', function() {
-            removeMainIconPreview();
+            removeMainIconPreview(initialPreviewHtml);
         });
 
         // Update preview background color when main button color changes
@@ -327,12 +346,12 @@
     /**
      * Remove main icon preview
      */
-    function removeMainIconPreview() {
+    function removeMainIconPreview(initialPreviewHtml = '') {
         $('#custom-main-icon').val(0);
         
         // Reset preview state.
         const $preview = $('#main-icon-preview');
-        $preview.empty();
+        $preview.html(initialPreviewHtml);
         $preview.css('background-color', '');
         
         $('#upload-main-icon').text(t('uploadIcon', 'Upload icon'));
@@ -352,7 +371,7 @@
                 // Add QR code indicator if not already present
                 const $info = $item.find('.cwp-item-content');
                 if (!$info.find('.dashicons-format-image').length) {
-                    $info.append('<br><span class="dashicons dashicons-format-image cwp-qr-indicator" title="Has QR code"></span>');
+                    $info.append('<br><span class="dashicons dashicons-format-image cwp-qr-indicator" title="' + t('hasQrCode', 'Has QR code') + '"></span>');
                 }
             }
         });
@@ -412,13 +431,13 @@
         let description = '';
         switch (config.contact_field) {
             case 'number':
-                description = 'Enter the phone number or ID for this platform.';
+                description = t('contactDescriptionNumber', 'Enter the phone number or ID for this platform.');
                 break;
             case 'username':
-                description = 'Enter the username (without @ symbol).';
+                description = t('contactDescriptionUsername', 'Enter the username (without @ symbol).');
                 break;
             case 'id':
-                description = 'Enter the unique ID for this platform.';
+                description = t('contactDescriptionId', 'Enter the unique ID for this platform.');
                 break;
         }
         $contactDescription.text(description);
@@ -484,7 +503,7 @@
      */
     function setQRCodePreview(attachmentId, imageUrl) {
         $('#qr-code-id').val(attachmentId);
-        $('#qr-preview').html('<img src="' + imageUrl + '" class="cwp-qr-image" alt="QR code preview">');
+        $('#qr-preview').html('<img src="' + imageUrl + '" class="cwp-qr-image" alt="' + t('qrCodePreviewAlt', 'QR code preview') + '">');
         $('#upload-qr-code').text(t('changeQrCode', 'Change QR code'));
         $('#remove-qr-code').show();
     }
@@ -594,7 +613,8 @@
                     $('#qr-code-id').val(itemData.qr_code_id);
                     $('#upload-qr-code').text(t('changeQrCode', 'Change QR code'));
                     $('#remove-qr-code').show();
-                    showNotice('warning', 'QR code was found, but preview could not load.');
+                    const fallback = t('qrPreviewLoadFailed', 'QR code was found, but preview could not load.');
+                    showNotice('warning', getAjaxErrorMessage(xhr, fallback));
                 }
             });
         } else {
@@ -637,8 +657,9 @@
                     showNotice('error', response.data || t('saveFailed', 'We could not save this contact button. Please try again.'));
                 }
             },
-            error: function() {
-                showNotice('error', t('networkError', 'We could not connect. Please check your connection and try again.'));
+            error: function(xhr) {
+                const fallback = t('networkError', 'We could not connect. Please check your connection and try again.');
+                showNotice('error', getAjaxErrorMessage(xhr, fallback));
             },
             complete: function() {
                 $('#save-item').prop('disabled', false).text(t('saveContactButton', 'Save contact button'));
@@ -667,8 +688,9 @@
                     showNotice('error', response.data || t('deleteFailed', 'We could not remove this contact button. Please try again.'));
                 }
             },
-            error: function() {
-                showNotice('error', t('networkError', 'We could not connect. Please check your connection and try again.'));
+            error: function(xhr) {
+                const fallback = t('networkError', 'We could not connect. Please check your connection and try again.');
+                showNotice('error', getAjaxErrorMessage(xhr, fallback));
             }
         });
     }
@@ -692,8 +714,9 @@
                     showNotice('error', response.data || t('reorderFailed', 'We could not update the order. Please try again.'));
                 }
             },
-            error: function() {
-                showNotice('error', t('networkError', 'We could not connect. Please check your connection and try again.'));
+            error: function(xhr) {
+                const fallback = t('networkError', 'We could not connect. Please check your connection and try again.');
+                showNotice('error', getAjaxErrorMessage(xhr, fallback));
             }
         });
     }

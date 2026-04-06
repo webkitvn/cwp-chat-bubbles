@@ -52,3 +52,4 @@ node_modules/
 .qoder/rules/byterover-rules.md
 .augment/rules/byterover-rules.md
 .gitnexus
+.phpunit.result.cache

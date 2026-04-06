@@ -211,13 +211,30 @@ class CWP_Chat_Bubbles_Data_Service {
         }
 
         $frontend_data = $this->get_frontend_data();
+        $frontend_settings = false === $frontend_data ? array() : $frontend_data['settings'];
+        $public_items = array();
+        $source_items = false === $frontend_data ? array() : $frontend_data['items'];
+
+        foreach ($source_items as $item) {
+            $public_items[] = array(
+                'id' => $item['id'],
+                'platform' => $item['platform'],
+                'label' => $item['label'],
+                'platform_url' => $item['platform_url'],
+                'platform_icon' => $item['platform_icon'],
+                'platform_color' => $item['platform_color'],
+                'qr_code_url' => $item['qr_code_url'],
+                'has_qr' => $item['has_qr'],
+            );
+        }
+
         $payload = array(
-            'items' => false === $frontend_data ? array() : $frontend_data['items'],
+            'items' => $public_items,
             'settings' => array(
-                'show_labels' => $this->settings->should_show_labels(),
-                'position' => $this->settings->get_option('position', 'bottom-right'),
-                'main_button_color' => $this->settings->get_option('main_button_color', '#52BA00'),
-                'animation_enabled' => $this->settings->get_option('animation_enabled', true)
+                'show_labels' => !empty($frontend_settings['show_labels']),
+                'position' => isset($frontend_settings['position']) ? $frontend_settings['position'] : 'bottom-right',
+                'main_button_color' => isset($frontend_settings['main_button_color']) ? $frontend_settings['main_button_color'] : '#52BA00',
+                'animation_enabled' => isset($frontend_settings['animation_enabled']) ? $frontend_settings['animation_enabled'] : true
             ),
             'version' => (string) $data_version
         );
@@ -226,6 +243,36 @@ class CWP_Chat_Bubbles_Data_Service {
         set_transient($cache_key, $payload, HOUR_IN_SECONDS);
 
         return $payload;
+    }
+
+    /**
+     * Delete stale lazy payload transients for a data version.
+     *
+     * @param string|int $data_version Data version value.
+     * @since 1.1.1
+     */
+    public function clear_lazy_items_transients_for_version($data_version) {
+        global $wpdb;
+
+        if (!is_object($wpdb) || !isset($wpdb->options)) {
+            return;
+        }
+
+        $version = sanitize_key((string) $data_version);
+        if ('' === $version) {
+            return;
+        }
+
+        $like_pattern = $wpdb->esc_like('_transient_cwp_frontend_items_v' . $version . '_s') . '%';
+        $timeout_like_pattern = $wpdb->esc_like('_transient_timeout_cwp_frontend_items_v' . $version . '_s') . '%';
+
+        $wpdb->query(
+            $wpdb->prepare(
+                "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+                $like_pattern,
+                $timeout_like_pattern
+            )
+        );
     }
 
     /**

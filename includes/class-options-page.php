@@ -629,7 +629,12 @@ class CWP_Chat_Bubbles_Options_Page {
             return $default;
         }
 
-        return sanitize_text_field(wp_unslash((string) $_POST[$key]));
+        $value = wp_unslash($_POST[$key]);
+        if (!is_scalar($value)) {
+            return $default;
+        }
+
+        return sanitize_text_field((string) $value);
     }
 
     /**
@@ -645,7 +650,12 @@ class CWP_Chat_Bubbles_Options_Page {
             return (int) $default;
         }
 
-        return (int) wp_unslash($_POST[$key]);
+        $value = wp_unslash($_POST[$key]);
+        if (!is_scalar($value)) {
+            return (int) $default;
+        }
+
+        return (int) $value;
     }
 
     /**
@@ -665,7 +675,7 @@ class CWP_Chat_Bubbles_Options_Page {
             return array();
         }
 
-        return array_map('intval', $values);
+        return array_map('intval', array_filter($values, 'is_scalar'));
     }
 
     /**

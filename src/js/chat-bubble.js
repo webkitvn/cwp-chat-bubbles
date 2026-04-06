@@ -167,6 +167,11 @@ const initializeChatBubbles = () => {
         return;
     }
 
+    if (chatBubbles.dataset.cwpInitialized === '1') {
+        return;
+    }
+    chatBubbles.dataset.cwpInitialized = '1';
+
     const isLazy = chatBubbles.dataset.lazy === '1';
     const endpoint = chatBubbles.dataset.endpoint || '';
     const prefetchEnabled = chatBubbles.dataset.prefetch === '1';
@@ -192,8 +197,10 @@ const initializeChatBubbles = () => {
     };
 
     const closeChatModal = () => {
-        chatBubbles.querySelectorAll('.bubble-modal.active').forEach((modal) => {
+        chatBubbles.querySelectorAll('.bubble-modal').forEach((modal) => {
             modal.classList.remove('active');
+            modal.setAttribute('aria-hidden', 'true');
+            modal.tabIndex = -1;
         });
     };
 
@@ -201,8 +208,12 @@ const initializeChatBubbles = () => {
         chatBubbles.querySelectorAll('.bubble-modal').forEach((modal) => {
             if (modal.id === targetId) {
                 modal.classList.add('active');
+                modal.setAttribute('aria-hidden', 'false');
+                modal.tabIndex = 0;
             } else {
                 modal.classList.remove('active');
+                modal.setAttribute('aria-hidden', 'true');
+                modal.tabIndex = -1;
             }
         });
     };
@@ -233,7 +244,12 @@ const initializeChatBubbles = () => {
 
             return await response.json();
         } catch (error) {
-            if (attempt === 0) {
+            const message = error && typeof error.message === 'string' ? error.message : '';
+            const statusMatch = message.match(/^HTTP\s+(\d{3})$/);
+            const statusCode = statusMatch ? parseInt(statusMatch[1], 10) : null;
+            const shouldRetry = (statusCode === null) || statusCode === 429 || (statusCode >= 500 && statusCode < 600);
+
+            if (attempt === 0 && shouldRetry) {
                 await wait(RETRY_DELAY);
                 return fetchItemsPayload(1);
             }

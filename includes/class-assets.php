@@ -218,6 +218,12 @@ class CWP_Chat_Bubbles_Assets {
                     'contactLabelDefault' => __('Contact details', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
                     'contactPlaceholderDefault' => __('Enter contact details', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
                     'contactDescriptionDefault' => __('Choose a platform to see what format to use.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'contactDescriptionNumber' => __('Enter the phone number or ID for this platform.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'contactDescriptionUsername' => __('Enter the username (without @ symbol).', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'contactDescriptionId' => __('Enter the unique ID for this platform.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'hasQrCode' => __('Has QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'qrCodePreviewAlt' => __('QR code preview', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'qrPreviewLoadFailed' => __('QR code was found, but preview could not load.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
                     'dismissNotice' => __('Dismiss this notice.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
                 ),
             ));

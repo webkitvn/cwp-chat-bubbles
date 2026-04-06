@@ -423,6 +423,8 @@ class CWP_Chat_Bubbles_Items_Manager {
     private function increment_data_version() {
         $current_version = (int) get_option('cwp_chat_bubbles_data_version', 1);
         $new_version = $current_version + 1;
+
+        CWP_Chat_Bubbles_Data_Service::get_instance()->clear_lazy_items_transients_for_version($current_version);
         
         update_option('cwp_chat_bubbles_data_version', $new_version);
         wp_cache_set('cwp_chat_bubbles_data_version', $new_version, 'cwp_chat_bubbles', DAY_IN_SECONDS);
