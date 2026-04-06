@@ -269,6 +269,97 @@
             visibility: visible;
         }
     }
+
+    &.is-expanded-default,
+    &[data-layout="expanded"] {
+        .item-group {
+            position: relative;
+            opacity: 1;
+            visibility: visible;
+            min-width: 0;
+            background-color: transparent;
+            box-shadow: none;
+            gap: 8px;
+            right: auto;
+            overflow: visible;
+            .chat-item {
+                width: auto;
+                padding: 0;
+                margin: 0;
+                border-bottom: none;
+                position: relative;
+                gap: 0.5rem;
+                &:hover {
+                    background-color: transparent;
+                }
+
+                img {
+                    width: 40px;
+                    height: 40px;
+                    transition: transform 0.2s ease;
+                }
+
+                .chat-item-text {
+                    margin-left: 0;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+                    z-index: 2;
+            }
+                &:hover {
+                    .chat-item-text {
+                        opacity: 1;
+                        visibility: visible;
+                    }
+                }
+            }
+
+            .chat-item:hover{
+                .chat-item-text {
+                    opacity: 1;
+                    visibility: visible;
+                }
+                img{
+                    transform: scale(1.1);
+                }
+            }
+
+            &.no-labels {
+                .chat-item .chat-item-text {
+                    position: absolute;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    white-space: nowrap;
+                    background-color: #fff;
+                    color: #333;
+                    border-radius: 999px;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                    padding: 6px 10px;
+                    font-size: 12px;
+                    line-height: 1;
+                    pointer-events: none;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: opacity 0.2s ease, visibility 0.2s ease;
+                    z-index: 2;
+                }
+            }
+        }
+    }
+
+    &[data-layout="expanded"][data-position*="-right"] {
+        .item-group{
+            .chat-item{
+                flex-direction: row-reverse;
+            }
+        }
+    }
+
+    &[data-layout="expanded"][data-position*="-left"] {
+        .item-group.no-labels .chat-item .chat-item-text {
+            left: calc(100% + 8px);
+        }
+    }
 }
 
 @keyframes chat-button-play {

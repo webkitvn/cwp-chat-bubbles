@@ -37,6 +37,7 @@ class TestSettings extends TestCase {
         $this->assertArrayHasKey('main_button_color', $defaults);
         $this->assertArrayHasKey('animation_enabled', $defaults);
         $this->assertArrayHasKey('show_labels', $defaults);
+        $this->assertArrayHasKey('default_layout', $defaults);
         $this->assertArrayHasKey('custom_css', $defaults);
         $this->assertArrayHasKey('load_on_mobile', $defaults);
         $this->assertArrayHasKey('exclude_pages', $defaults);
@@ -57,6 +58,7 @@ class TestSettings extends TestCase {
         $this->assertEquals('#52BA00', $defaults['main_button_color']);
         $this->assertTrue($defaults['animation_enabled']);
         $this->assertTrue($defaults['show_labels']);
+        $this->assertEquals('toggle', $defaults['default_layout']);
         $this->assertTrue($defaults['load_on_mobile']);
         $this->assertEquals('', $defaults['custom_css']);
         $this->assertEquals(array(), $defaults['exclude_pages']);
@@ -76,6 +78,7 @@ class TestSettings extends TestCase {
             'main_button_color' => '#FF5733',
             'animation_enabled' => true,
             'show_labels' => true,
+            'default_layout' => 'expanded',
             'load_on_mobile' => true,
             'custom_css' => '.test { color: red; }',
             'exclude_pages' => array(1, 2, 3),
@@ -92,6 +95,7 @@ class TestSettings extends TestCase {
         $this->assertEquals('#FF5733', $sanitized['main_button_color']);
         $this->assertTrue($sanitized['animation_enabled']);
         $this->assertTrue($sanitized['show_labels']);
+        $this->assertEquals('expanded', $sanitized['default_layout']);
         $this->assertTrue($sanitized['load_on_mobile']);
         $this->assertEquals('.test { color: red; }', $sanitized['custom_css']);
         $this->assertEquals(array(1, 2, 3), $sanitized['exclude_pages']);
@@ -204,6 +208,20 @@ class TestSettings extends TestCase {
         $this->assertFalse($sanitized['animation_enabled']);
         $this->assertFalse($sanitized['show_labels']);
         $this->assertFalse($sanitized['load_on_mobile']);
+        $this->assertEquals('toggle', $sanitized['default_layout']);
+    }
+
+    /**
+     * Test sanitize_options validates default layout
+     */
+    public function test_sanitize_options_default_layout_validation() {
+        $input = array(
+            'default_layout' => 'unknown-layout',
+        );
+
+        $sanitized = $this->settings->sanitize_options($input);
+
+        $this->assertEquals('toggle', $sanitized['default_layout']);
     }
 
     /**

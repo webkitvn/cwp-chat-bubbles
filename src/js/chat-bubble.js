@@ -46,7 +46,9 @@ const renderLazyItems = (chatBubbles, payload) => {
 
     const items = Array.isArray(payload.items) ? payload.items : [];
     const showLabels = !!(payload.settings && payload.settings.show_labels);
+    const defaultLayout = (payload.settings && payload.settings.default_layout) ? payload.settings.default_layout : 'toggle';
     const cancelIcon = (chatBubbles.querySelector('.chat-icon-close') || {}).src || '';
+    chatBubbles.dataset.layout = defaultLayout;
 
     if (showLabels) {
         itemGroup.classList.remove('no-labels');
@@ -163,7 +165,9 @@ const initializeChatBubbles = () => {
     }
 
     const chatToggle = chatBubbles.querySelector('.chat-btn-toggle');
-    if (!chatToggle) {
+    const layoutMode = chatBubbles.dataset.layout || 'toggle';
+    const isExpandedLayout = layoutMode === 'expanded';
+    if (!isExpandedLayout && !chatToggle) {
         return;
     }
 
@@ -180,7 +184,8 @@ const initializeChatBubbles = () => {
         mode: isLazy ? 'lazy' : 'static',
         loadState: isLazy ? 'idle' : 'loaded',
         loadPromise: null,
-        itemsLoaded: !isLazy
+        itemsLoaded: !isLazy,
+        isExpandedLayout
     };
 
     const setStatusUI = () => {
@@ -319,19 +324,21 @@ const initializeChatBubbles = () => {
         }, PREFETCH_DELAY);
     };
 
-    chatToggle.addEventListener('click', async (event) => {
-        event.preventDefault();
-        closeChatModal();
+    if (chatToggle) {
+        chatToggle.addEventListener('click', async (event) => {
+            event.preventDefault();
+            closeChatModal();
 
-        if (state.mode === 'lazy' && !state.itemsLoaded) {
-            const result = await ensureItemsLoaded();
-            if (result === 'error' || result === 'empty') {
-                return;
+            if (state.mode === 'lazy' && !state.itemsLoaded) {
+                const result = await ensureItemsLoaded();
+                if (result === 'error' || result === 'empty') {
+                    return;
+                }
             }
-        }
 
-        chatBubbles.classList.toggle('active');
-    });
+            chatBubbles.classList.toggle('active');
+        });
+    }
 
     chatBubbles.addEventListener('click', (event) => {
         const closeButton = event.target.closest('.bubble-modal-close');
@@ -355,17 +362,28 @@ const initializeChatBubbles = () => {
 
     document.addEventListener('click', (event) => {
         if (!chatBubbles.contains(event.target)) {
-            closeChatBubble();
+            if (!state.isExpandedLayout) {
+                closeChatBubble();
+            }
             closeChatModal();
         }
     });
 
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
-            closeChatBubble();
+            if (!state.isExpandedLayout) {
+                closeChatBubble();
+            }
             closeChatModal();
         }
     });
+
+    if (state.isExpandedLayout) {
+        if (state.mode === 'lazy' && !state.itemsLoaded) {
+            void ensureItemsLoaded();
+        }
+        chatBubbles.classList.add('is-expanded-default');
+    }
 
     triggerPrefetch();
 };

@@ -259,11 +259,14 @@ class CWP_Chat_Bubbles_Frontend {
              data-position="<?php echo esc_attr($settings['position'] ?? 'bottom-right'); ?>"
              data-lazy="1"
              data-endpoint="<?php echo esc_url($lazy_endpoint); ?>"
-             data-prefetch="<?php echo $prefetch_enabled ? '1' : '0'; ?>">
-            <div class="chat-icon chat-btn-toggle" style="background-color: <?php echo esc_attr($settings['main_button_color'] ?? '#52BA00'); ?>">
-                <img src="<?php echo esc_url($support_icon); ?>" alt="<?php esc_attr_e('Support', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" class="chat-icon-open">
-                <img src="<?php echo esc_url($cancel_icon); ?>" alt="<?php esc_attr_e('Close', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" class="chat-icon-close">
-            </div>
+             data-prefetch="<?php echo $prefetch_enabled ? '1' : '0'; ?>"
+             data-layout="<?php echo esc_attr($settings['default_layout'] ?? 'toggle'); ?>">
+            <?php if (($settings['default_layout'] ?? 'toggle') !== 'expanded'): ?>
+                <div class="chat-icon chat-btn-toggle" style="background-color: <?php echo esc_attr($settings['main_button_color'] ?? '#52BA00'); ?>">
+                    <img src="<?php echo esc_url($support_icon); ?>" alt="<?php esc_attr_e('Support', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" class="chat-icon-open">
+                    <img src="<?php echo esc_url($cancel_icon); ?>" alt="<?php esc_attr_e('Close', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" class="chat-icon-close">
+                </div>
+            <?php endif; ?>
             <div class="item-group <?php echo empty($settings['show_labels']) ? 'no-labels' : ''; ?>"></div>
             <div class="cwp-chat-modals"></div>
         </div>
@@ -288,12 +291,15 @@ class CWP_Chat_Bubbles_Frontend {
      */
     private function render_fallback_template($vars) {
         extract($vars);
+        $default_layout = isset($settings['default_layout']) ? $settings['default_layout'] : 'toggle';
         ?>
-        <div id="chat-bubbles" class="cwp-chat-bubbles">
-            <div class="chat-icon chat-btn-toggle">
-                <img src="<?php echo esc_url($support_icon); ?>" alt="<?php esc_attr_e('Support', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>">
-                <img src="<?php echo esc_url($cancel_icon); ?>" alt="<?php esc_attr_e('Close', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" class="close">
-            </div>
+        <div id="chat-bubbles" class="cwp-chat-bubbles" data-layout="<?php echo esc_attr($default_layout); ?>">
+            <?php if ('expanded' !== $default_layout): ?>
+                <div class="chat-icon chat-btn-toggle">
+                    <img src="<?php echo esc_url($support_icon); ?>" alt="<?php esc_attr_e('Support', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>">
+                    <img src="<?php echo esc_url($cancel_icon); ?>" alt="<?php esc_attr_e('Close', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" class="close">
+                </div>
+            <?php endif; ?>
             
             <div class="item-group">
                 <?php foreach ($items as $item): ?>

@@ -204,6 +204,22 @@ class CWP_Chat_Bubbles_Options_Page {
                                 </td>
                             </tr>
                             <tr>
+                                <th scope="row"><?php esc_html_e('Default layout', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <td>
+                                    <select name="cwp_chat_bubbles_options[default_layout]">
+                                        <option value="toggle" <?php selected($options['default_layout'] ?? 'toggle', 'toggle'); ?>>
+                                            <?php esc_html_e('Toggle (click to open)', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </option>
+                                        <option value="expanded" <?php selected($options['default_layout'] ?? 'toggle', 'expanded'); ?>>
+                                            <?php esc_html_e('Expanded (always show items)', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </option>
+                                    </select>
+                                    <p class="description">
+                                        <?php esc_html_e('Expanded layout hides the main toggle and keeps all contact buttons visible.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
                                 <th scope="row"><?php esc_html_e('Show on mobile', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
                                     <label>

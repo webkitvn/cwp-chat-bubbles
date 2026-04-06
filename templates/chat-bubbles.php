@@ -25,17 +25,20 @@ if (empty($items)) {
 }
 ?>
 
-<div id="chat-bubbles" class="cwp-chat-bubbles" data-position="<?php echo esc_attr($settings['position']); ?>" data-lazy="0">
-    <!-- Main Chat Button -->
-    <div class="chat-icon chat-btn-toggle"
-        style="background-color: <?php echo esc_attr($settings['main_button_color']); ?>">
-        <img src="<?php echo esc_url($support_icon); ?>"
-            alt="<?php esc_attr_e('Support', 'cwp-chat-bubbles'); ?>"
-            class="chat-icon-open">
-        <img src="<?php echo esc_url($cancel_icon); ?>"
-            alt="<?php esc_attr_e('Close', 'cwp-chat-bubbles'); ?>"
-            class="chat-icon-close">
-    </div>
+<?php $default_layout = isset($settings['default_layout']) ? $settings['default_layout'] : 'toggle'; ?>
+<div id="chat-bubbles" class="cwp-chat-bubbles" data-position="<?php echo esc_attr($settings['position']); ?>" data-lazy="0" data-layout="<?php echo esc_attr($default_layout); ?>">
+    <?php if ('expanded' !== $default_layout): ?>
+        <!-- Main Chat Button -->
+        <div class="chat-icon chat-btn-toggle"
+            style="background-color: <?php echo esc_attr($settings['main_button_color']); ?>">
+            <img src="<?php echo esc_url($support_icon); ?>"
+                alt="<?php esc_attr_e('Support', 'cwp-chat-bubbles'); ?>"
+                class="chat-icon-open">
+            <img src="<?php echo esc_url($cancel_icon); ?>"
+                alt="<?php esc_attr_e('Close', 'cwp-chat-bubbles'); ?>"
+                class="chat-icon-close">
+        </div>
+    <?php endif; ?>
 
     <!-- Platform Items Group -->
     <div class="item-group <?php echo !$settings['show_labels'] ? 'no-labels' : ''; ?>">
