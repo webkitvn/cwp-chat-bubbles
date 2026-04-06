@@ -28,6 +28,18 @@ A modern, standalone WordPress plugin that auto-injects floating chat bubbles fo
 - **Frontend**: Chat bubbles appear automatically in the bottom-right corner of every page
 - **Admin**: Configure platforms, upload QR codes, customize appearance, and manage advanced options via the **Chat Bubbles** menu
 
+## Tracking (GTM / GA4)
+- The frontend emits `dataLayer` events and a browser custom event (`cwpChatBubbles:track`) for chat interactions.
+- Core events:
+  - `chat_bubble_open`
+  - `chat_bubble_close`
+  - `chat_item_click`
+  - `chat_modal_open`
+  - `chat_modal_close`
+  - `chat_cta_click`
+- Common event parameters: `component`, `layout`, `mode`, `position`, `platform`, `item_id`, `item_label`, `has_qr`, `source`.
+- Markup also includes GTM-friendly attributes such as `data-track`, `data-platform`, `data-item-id`, and `data-item-label`.
+
 ## License
 GPLv2 or later. See [LICENSE](LICENSE) file.
 

@@ -91,6 +91,7 @@ class CWP_Chat_Bubbles_Settings {
             'main_button_color' => '#52BA00',
             'animation_enabled' => true,
             'show_labels' => true,              // Global setting for all items
+            'default_layout' => 'toggle',       // Layout mode: toggle|expanded
             'offset_x' => 0,                    // Horizontal offset in pixels (-200 to 200)
             'offset_y' => 0,                    // Vertical offset in pixels (-200 to 200)
             
@@ -144,6 +145,19 @@ class CWP_Chat_Bubbles_Settings {
         $sanitized['show_labels'] = isset($options['show_labels'])
             ? (bool) $options['show_labels']
             : false;
+        
+        $sanitized['default_layout'] = 'toggle';
+        if (isset($options['default_layout'])) {
+            $layout = (string) $options['default_layout'];
+            $layout = strtolower(trim($layout));
+            $layout = preg_replace('/[^a-z0-9_-]/', '', $layout);
+            $sanitized['default_layout'] = is_string($layout) ? $layout : 'toggle';
+        }
+
+        $valid_layouts = array('toggle', 'expanded');
+        if (!in_array($sanitized['default_layout'], $valid_layouts, true)) {
+            $sanitized['default_layout'] = 'toggle';
+        }
 
         // Sanitize offset settings
         $sanitized['offset_x'] = isset($options['offset_x']) 
@@ -309,6 +323,16 @@ class CWP_Chat_Bubbles_Settings {
      */
     public function should_show_labels() {
         return (bool) $this->get_option('show_labels', true);
+    }
+
+    /**
+     * Get default layout mode
+     *
+     * @return string Layout mode (toggle|expanded)
+     * @since 1.1.2
+     */
+    public function get_default_layout() {
+        return (string) $this->get_option('default_layout', 'toggle');
     }
 
     /**

@@ -100,7 +100,8 @@ class CWP_Chat_Bubbles_Data_Service {
                 'position' => $this->settings->get_option('position', 'bottom-right'),
                 'main_button_color' => $this->settings->get_option('main_button_color', '#52BA00'),
                 'animation_enabled' => $this->settings->get_option('animation_enabled', true),
-                'show_labels' => $this->settings->should_show_labels()
+                'show_labels' => $this->settings->should_show_labels(),
+                'default_layout' => $this->settings->get_default_layout()
             ),
             'support_icon' => $this->settings->get_main_icon_url(),
             'cancel_icon' => CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/cancel.svg'
@@ -177,7 +178,8 @@ class CWP_Chat_Bubbles_Data_Service {
                 'position' => $this->settings->get_option('position', 'bottom-right'),
                 'main_button_color' => $this->settings->get_option('main_button_color', '#52BA00'),
                 'animation_enabled' => $this->settings->get_option('animation_enabled', true),
-                'show_labels' => $this->settings->should_show_labels()
+                'show_labels' => $this->settings->should_show_labels(),
+                'default_layout' => $this->settings->get_default_layout()
             ),
             'support_icon' => $this->settings->get_main_icon_url(),
             'cancel_icon' => CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/cancel.svg',
@@ -234,7 +236,8 @@ class CWP_Chat_Bubbles_Data_Service {
                 'show_labels' => !empty($frontend_settings['show_labels']),
                 'position' => isset($frontend_settings['position']) ? $frontend_settings['position'] : 'bottom-right',
                 'main_button_color' => isset($frontend_settings['main_button_color']) ? $frontend_settings['main_button_color'] : '#52BA00',
-                'animation_enabled' => isset($frontend_settings['animation_enabled']) ? $frontend_settings['animation_enabled'] : true
+                'animation_enabled' => isset($frontend_settings['animation_enabled']) ? $frontend_settings['animation_enabled'] : true,
+                'default_layout' => isset($frontend_settings['default_layout']) ? $frontend_settings['default_layout'] : 'toggle'
             ),
             'version' => (string) $data_version
         );
@@ -343,7 +346,8 @@ class CWP_Chat_Bubbles_Data_Service {
             'main_button_color' => $this->settings->get_option('main_button_color', '#52BA00'),
             'animation_enabled' => $this->settings->get_option('animation_enabled', true),
             'show_labels' => $this->settings->should_show_labels(),
-            'custom_main_icon' => $this->settings->get_option('custom_main_icon', 0)
+            'custom_main_icon' => $this->settings->get_option('custom_main_icon', 0),
+            'default_layout' => $this->settings->get_default_layout()
         );
         
         return substr(md5(serialize($relevant_settings)), 0, 8);

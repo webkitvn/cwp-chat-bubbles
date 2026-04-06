@@ -284,6 +284,7 @@ final class CWP_Chat_Bubbles {
             'main_button_color' => '#52BA00',
             'animation_enabled' => true,
             'show_labels' => true,
+            'default_layout' => 'toggle',
             
             // Advanced settings
             'custom_css' => '',

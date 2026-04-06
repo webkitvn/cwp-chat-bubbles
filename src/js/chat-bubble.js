@@ -33,6 +33,58 @@ const shouldSkipPrefetch = () => {
     return connection.effectiveType === '2g' || connection.effectiveType === 'slow-2g';
 };
 
+const normalizeTrackingValue = (value, fallback = '') => {
+    if (value === undefined || value === null) {
+        return fallback;
+    }
+    return String(value).trim();
+};
+
+const pushTrackingEvent = (chatBubbles, eventName, params = {}) => {
+    const dataset = chatBubbles ? chatBubbles.dataset : {};
+    const payload = {
+        event: eventName,
+        component: 'cwp_chat_bubbles',
+        layout: normalizeTrackingValue(dataset.layout, 'toggle'),
+        mode: normalizeTrackingValue(dataset.lazy, '0') === '1' ? 'lazy' : 'static',
+        position: normalizeTrackingValue(dataset.position, 'unknown'),
+        ...params
+    };
+
+    if (Array.isArray(window.dataLayer)) {
+        window.dataLayer.push(payload);
+    }
+
+    document.dispatchEvent(new CustomEvent('cwpChatBubbles:track', {
+        detail: payload
+    }));
+};
+
+const getItemTrackingPayload = (item) => {
+    if (!item) {
+        return {};
+    }
+
+    return {
+        platform: normalizeTrackingValue(item.dataset.platform, 'unknown'),
+        item_id: normalizeTrackingValue(item.dataset.itemId, ''),
+        item_label: normalizeTrackingValue(item.dataset.itemLabel, ''),
+        has_qr: normalizeTrackingValue(item.dataset.hasQr, '0') === '1'
+    };
+};
+
+const getModalTrackingPayload = (modal) => {
+    if (!modal) {
+        return {};
+    }
+
+    return {
+        platform: normalizeTrackingValue(modal.dataset.platform, 'unknown'),
+        item_id: normalizeTrackingValue(modal.dataset.itemId, ''),
+        item_label: normalizeTrackingValue(modal.dataset.itemLabel, '')
+    };
+};
+
 const renderLazyItems = (chatBubbles, payload) => {
     const itemGroup = chatBubbles.querySelector('.item-group');
     const modalContainer = chatBubbles.querySelector('.cwp-chat-modals');
@@ -46,7 +98,9 @@ const renderLazyItems = (chatBubbles, payload) => {
 
     const items = Array.isArray(payload.items) ? payload.items : [];
     const showLabels = !!(payload.settings && payload.settings.show_labels);
+    const defaultLayout = (payload.settings && payload.settings.default_layout) ? payload.settings.default_layout : 'toggle';
     const cancelIcon = (chatBubbles.querySelector('.chat-icon-close') || {}).src || '';
+    chatBubbles.dataset.layout = defaultLayout;
 
     if (showLabels) {
         itemGroup.classList.remove('no-labels');
@@ -62,6 +116,11 @@ const renderLazyItems = (chatBubbles, payload) => {
         itemLink.className = `chat-item chat-item-${item.platform}`;
         itemLink.href = item.platform_url || '#';
         itemLink.title = item.label || item.platform || '';
+        itemLink.dataset.platform = item.platform || '';
+        itemLink.dataset.itemId = String(item.id || '');
+        itemLink.dataset.itemLabel = item.label || '';
+        itemLink.dataset.hasQr = item.has_qr ? '1' : '0';
+        itemLink.dataset.track = 'chat-item';
 
         if (item.has_qr) {
             itemLink.dataset.bubbleModal = `modal-${item.id}`;
@@ -94,10 +153,15 @@ const renderLazyItems = (chatBubbles, payload) => {
             modal.id = `modal-${item.id}`;
             modal.tabIndex = -1;
             modal.setAttribute('aria-hidden', 'true');
+            modal.dataset.platform = item.platform || '';
+            modal.dataset.itemId = String(item.id || '');
+            modal.dataset.itemLabel = item.label || '';
+            modal.dataset.track = 'chat-modal';
 
             const closeButton = document.createElement('button');
             closeButton.className = 'bubble-modal-close';
             closeButton.setAttribute('aria-label', t('closeModalAria', 'Close modal'));
+            closeButton.dataset.track = 'chat-modal-close';
             if (cancelIcon) {
                 const closeImage = document.createElement('img');
                 closeImage.src = cancelIcon;
@@ -122,10 +186,14 @@ const renderLazyItems = (chatBubbles, payload) => {
 
             if (item.platform_url && item.platform_url !== '#') {
                 const action = document.createElement('a');
-                action.className = 'btn';
+                action.className = 'btn chat-modal-cta';
                 action.href = item.platform_url;
                 action.target = '_blank';
                 action.rel = 'noopener noreferrer';
+                action.dataset.platform = item.platform || '';
+                action.dataset.itemId = String(item.id || '');
+                action.dataset.itemLabel = item.label || '';
+                action.dataset.track = 'chat-modal-cta';
                 if (item.platform_color) {
                     action.style.backgroundColor = item.platform_color;
                 }
@@ -163,7 +231,9 @@ const initializeChatBubbles = () => {
     }
 
     const chatToggle = chatBubbles.querySelector('.chat-btn-toggle');
-    if (!chatToggle) {
+    const layoutMode = chatBubbles.dataset.layout || 'toggle';
+    const isExpandedLayout = layoutMode === 'expanded';
+    if (!isExpandedLayout && !chatToggle) {
         return;
     }
 
@@ -180,7 +250,8 @@ const initializeChatBubbles = () => {
         mode: isLazy ? 'lazy' : 'static',
         loadState: isLazy ? 'idle' : 'loaded',
         loadPromise: null,
-        itemsLoaded: !isLazy
+        itemsLoaded: !isLazy,
+        isExpandedLayout
     };
 
     const setStatusUI = () => {
@@ -197,11 +268,16 @@ const initializeChatBubbles = () => {
     };
 
     const closeChatModal = () => {
+        let hadOpenModal = false;
         chatBubbles.querySelectorAll('.bubble-modal').forEach((modal) => {
+            if (modal.classList.contains('active')) {
+                hadOpenModal = true;
+            }
             modal.classList.remove('active');
             modal.setAttribute('aria-hidden', 'true');
             modal.tabIndex = -1;
         });
+        return hadOpenModal;
     };
 
     const openChatModal = (targetId) => {
@@ -319,25 +395,45 @@ const initializeChatBubbles = () => {
         }, PREFETCH_DELAY);
     };
 
-    chatToggle.addEventListener('click', async (event) => {
-        event.preventDefault();
-        closeChatModal();
+    if (chatToggle) {
+        chatToggle.addEventListener('click', async (event) => {
+            event.preventDefault();
+            closeChatModal();
 
-        if (state.mode === 'lazy' && !state.itemsLoaded) {
-            const result = await ensureItemsLoaded();
-            if (result === 'error' || result === 'empty') {
-                return;
+            if (state.mode === 'lazy' && !state.itemsLoaded) {
+                const result = await ensureItemsLoaded();
+                if (result === 'error' || result === 'empty') {
+                    return;
+                }
             }
-        }
 
-        chatBubbles.classList.toggle('active');
-    });
+            chatBubbles.classList.toggle('active');
+            const isOpen = chatBubbles.classList.contains('active');
+            pushTrackingEvent(chatBubbles, isOpen ? 'chat_bubble_open' : 'chat_bubble_close', {
+                source: 'toggle_button'
+            });
+        });
+    }
 
     chatBubbles.addEventListener('click', (event) => {
+        const cta = event.target.closest('.chat-modal-cta');
+        if (cta) {
+            pushTrackingEvent(chatBubbles, 'chat_cta_click', {
+                source: 'modal_cta',
+                ...getItemTrackingPayload(cta)
+            });
+            return;
+        }
+
         const closeButton = event.target.closest('.bubble-modal-close');
         if (closeButton) {
             event.preventDefault();
+            const modal = closeButton.closest('.bubble-modal');
             closeChatModal();
+            pushTrackingEvent(chatBubbles, 'chat_modal_close', {
+                source: 'modal_close_button',
+                ...getModalTrackingPayload(modal)
+            });
             return;
         }
 
@@ -346,26 +442,69 @@ const initializeChatBubbles = () => {
             return;
         }
 
+        pushTrackingEvent(chatBubbles, 'chat_item_click', {
+            source: 'chat_item',
+            ...getItemTrackingPayload(item)
+        });
+
         const target = item.getAttribute('data-bubble-modal');
         if (target) {
             event.preventDefault();
             openChatModal(target);
+            const modal = chatBubbles.querySelector(`#${target}`);
+            pushTrackingEvent(chatBubbles, 'chat_modal_open', {
+                source: 'chat_item',
+                ...getModalTrackingPayload(modal)
+            });
         }
     });
 
     document.addEventListener('click', (event) => {
         if (!chatBubbles.contains(event.target)) {
-            closeChatBubble();
-            closeChatModal();
+            if (!state.isExpandedLayout) {
+                const wasOpen = chatBubbles.classList.contains('active');
+                closeChatBubble();
+                if (wasOpen) {
+                    pushTrackingEvent(chatBubbles, 'chat_bubble_close', {
+                        source: 'outside_click'
+                    });
+                }
+            }
+            const hadOpenModal = closeChatModal();
+            if (hadOpenModal) {
+                pushTrackingEvent(chatBubbles, 'chat_modal_close', {
+                    source: 'outside_click'
+                });
+            }
         }
     });
 
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
-            closeChatBubble();
-            closeChatModal();
+            if (!state.isExpandedLayout) {
+                const wasOpen = chatBubbles.classList.contains('active');
+                closeChatBubble();
+                if (wasOpen) {
+                    pushTrackingEvent(chatBubbles, 'chat_bubble_close', {
+                        source: 'escape_key'
+                    });
+                }
+            }
+            const hadOpenModal = closeChatModal();
+            if (hadOpenModal) {
+                pushTrackingEvent(chatBubbles, 'chat_modal_close', {
+                    source: 'escape_key'
+                });
+            }
         }
     });
+
+    if (state.isExpandedLayout) {
+        if (state.mode === 'lazy' && !state.itemsLoaded) {
+            void ensureItemsLoaded();
+        }
+        chatBubbles.classList.add('is-expanded-default');
+    }
 
     triggerPrefetch();
 };
