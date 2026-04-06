@@ -119,6 +119,19 @@ class CWP_Chat_Bubbles_Assets {
                 $this->get_file_version('assets/js/chat-bubbles.min.js'),
                 true // Load in footer
             );
+
+            wp_localize_script(
+                'cwp-chat-bubbles',
+                'cwpChatBubbles',
+                array(
+                    'i18n' => array(
+                        'closeModalAria' => __('Close modal', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                        'closeIconAlt' => __('Close', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                        'openLabelPrefix' => __('Open', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                        'qrCodeAltFallback' => __('QR', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    ),
+                )
+            );
         }
     }
 
@@ -189,6 +202,14 @@ class CWP_Chat_Bubbles_Assets {
                     'labelMax' => __('Use 255 characters or fewer for the button label.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
                     'contactRequired' => __('Enter contact details.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
                     'genericFormatError' => __('The contact details format is not valid for this platform.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'phoneFormatError' => __('Enter a valid phone number, for example +1234567890 or 0123456789.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'zaloFormatError' => __('Enter a valid Zalo phone number with 9 to 11 digits.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'whatsappFormatError' => __('Enter a valid WhatsApp number with country code.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'viberFormatError' => __('Enter a valid Viber phone number, for example +1234567890.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'telegramFormatError' => __('Enter a Telegram username with 5 to 32 characters (letters, numbers, underscore).', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'messengerFormatError' => __('Enter a valid Facebook username (letters, numbers, dots).', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'lineFormatError' => __('Enter a valid Line ID (letters, numbers, dots, dashes, underscore).', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'kakaotalkFormatError' => __('Enter a valid KakaoTalk ID (letters, numbers, underscore, dash).', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
                     'fixErrors' => __('Please fix the highlighted fields and try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
                     'networkError' => __('We could not connect. Please check your connection and try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
                     'saveFailed' => __('We could not save this contact button. Please try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),

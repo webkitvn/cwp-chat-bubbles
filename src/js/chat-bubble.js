@@ -10,6 +10,11 @@
 const LAZY_FETCH_TIMEOUT = 4000;
 const PREFETCH_DELAY = 2500;
 const RETRY_DELAY = 300;
+const frontendI18n = (window.cwpChatBubbles && window.cwpChatBubbles.i18n) ? window.cwpChatBubbles.i18n : {};
+
+const t = (key, fallback) => (
+    Object.prototype.hasOwnProperty.call(frontendI18n, key) ? frontendI18n[key] : fallback
+);
 
 const wait = (ms) => new Promise((resolve) => {
     window.setTimeout(resolve, ms);
@@ -92,11 +97,11 @@ const renderLazyItems = (chatBubbles, payload) => {
 
             const closeButton = document.createElement('button');
             closeButton.className = 'bubble-modal-close';
-            closeButton.setAttribute('aria-label', 'Close modal');
+            closeButton.setAttribute('aria-label', t('closeModalAria', 'Close modal'));
             if (cancelIcon) {
                 const closeImage = document.createElement('img');
                 closeImage.src = cancelIcon;
-                closeImage.alt = 'Close';
+                closeImage.alt = t('closeIconAlt', 'Close');
                 closeButton.appendChild(closeImage);
             }
 
@@ -109,7 +114,7 @@ const renderLazyItems = (chatBubbles, payload) => {
             heading.textContent = item.label || '';
             const qrImage = document.createElement('img');
             qrImage.src = item.qr_code_url;
-            qrImage.alt = `${item.label || 'QR'} QR Code`;
+            qrImage.alt = `${item.label || t('qrCodeAltFallback', 'QR')} QR Code`;
             qrImage.loading = 'lazy';
             qrWrapper.append(heading, qrImage);
 
@@ -136,7 +141,7 @@ const renderLazyItems = (chatBubbles, payload) => {
                 iconWrapper.appendChild(actionIcon);
 
                 const label = document.createElement('span');
-                label.textContent = `Open ${item.label || ''}`.trim();
+                label.textContent = `${t('openLabelPrefix', 'Open')} ${item.label || ''}`.trim();
 
                 action.append(iconWrapper, label);
                 body.appendChild(action);

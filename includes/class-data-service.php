@@ -196,7 +196,8 @@ class CWP_Chat_Bubbles_Data_Service {
      */
     public function get_lazy_frontend_items_payload() {
         $data_version = $this->get_data_version();
-        $cache_key = 'cwp_frontend_items_v' . $data_version;
+        $settings_hash = $this->get_settings_hash();
+        $cache_key = 'cwp_frontend_items_v' . $data_version . '_s' . $settings_hash;
 
         $cached_payload = wp_cache_get($cache_key, 'cwp_chat_bubbles');
         if (false !== $cached_payload) {

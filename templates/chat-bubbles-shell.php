@@ -21,10 +21,10 @@ defined('ABSPATH') or exit;
     <div class="chat-icon chat-btn-toggle"
         style="background-color: <?php echo esc_attr($settings['main_button_color']); ?>">
         <img src="<?php echo esc_url($support_icon); ?>"
-            alt="<?php esc_attr_e('Support', 'cwp-chat-bubbles'); ?>"
+            alt="<?php esc_attr_e('Support', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>"
             class="chat-icon-open">
         <img src="<?php echo esc_url($cancel_icon); ?>"
-            alt="<?php esc_attr_e('Close', 'cwp-chat-bubbles'); ?>"
+            alt="<?php esc_attr_e('Close', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>"
             class="chat-icon-close">
     </div>
 

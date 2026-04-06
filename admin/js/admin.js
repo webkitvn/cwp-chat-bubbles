@@ -448,28 +448,28 @@
             // Provide specific error messages based on platform
             switch (platform) {
                 case 'phone':
-                    errorMessage = 'Enter a valid phone number, for example +1234567890 or 0123456789.';
+                    errorMessage = t('phoneFormatError', 'Enter a valid phone number, for example +1234567890 or 0123456789.');
                     break;
                 case 'zalo':
-                    errorMessage = 'Enter a valid Zalo phone number with 9 to 11 digits.';
+                    errorMessage = t('zaloFormatError', 'Enter a valid Zalo phone number with 9 to 11 digits.');
                     break;
                 case 'whatsapp':
-                    errorMessage = 'Enter a valid WhatsApp number with country code.';
+                    errorMessage = t('whatsappFormatError', 'Enter a valid WhatsApp number with country code.');
                     break;
                 case 'viber':
-                    errorMessage = 'Enter a valid Viber phone number, for example +1234567890.';
+                    errorMessage = t('viberFormatError', 'Enter a valid Viber phone number, for example +1234567890.');
                     break;
                 case 'telegram':
-                    errorMessage = 'Enter a Telegram username with 5 to 32 characters (letters, numbers, underscore).';
+                    errorMessage = t('telegramFormatError', 'Enter a Telegram username with 5 to 32 characters (letters, numbers, underscore).');
                     break;
                 case 'messenger':
-                    errorMessage = 'Enter a valid Facebook username (letters, numbers, dots).';
+                    errorMessage = t('messengerFormatError', 'Enter a valid Facebook username (letters, numbers, dots).');
                     break;
                 case 'line':
-                    errorMessage = 'Enter a valid Line ID (letters, numbers, dots, dashes, underscore).';
+                    errorMessage = t('lineFormatError', 'Enter a valid Line ID (letters, numbers, dots, dashes, underscore).');
                     break;
                 case 'kakaotalk':
-                    errorMessage = 'Enter a valid KakaoTalk ID (letters, numbers, underscore, dash).';
+                    errorMessage = t('kakaotalkFormatError', 'Enter a valid KakaoTalk ID (letters, numbers, underscore, dash).');
                     break;
             }
             
