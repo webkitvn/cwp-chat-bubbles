@@ -151,8 +151,9 @@ class CWP_Chat_Bubbles_Options_Page {
         $items = $this->items_manager->get_all_items();
         $supported_platforms = $this->items_manager->get_supported_platforms();
         ?>
-        <div class="wrap">
-            <h1><?php esc_html_e('CWP Chat Bubbles Settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h1>
+        <div class="wrap cwp-admin-wrapper">
+            <h1 class="wp-heading-inline"><?php esc_html_e('Chat Bubbles', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h1>
+            <hr class="wp-header-end">
             
             <?php 
             // Display admin notices (success/error messages)
@@ -164,85 +165,65 @@ class CWP_Chat_Bubbles_Options_Page {
                 <?php wp_nonce_field('cwp_chat_bubbles_settings', 'cwp_chat_bubbles_nonce'); ?>
                 
                 <div id="cwp-admin-tabs">
-                    <nav class="nav-tab-wrapper">
-                        <a href="#general-settings" class="nav-tab nav-tab-active"><?php esc_html_e('General Settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
-                        <a href="#chat-items" class="nav-tab"><?php esc_html_e('Chat Items', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
-                        <a href="#display-settings" class="nav-tab"><?php esc_html_e('Display Settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
+                    <nav class="nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e('Settings sections', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>">
+                        <a href="#chat-items" class="nav-tab nav-tab-active"><?php esc_html_e('Contact Buttons', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
+                        <a href="#general-settings" class="nav-tab"><?php esc_html_e('General', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
+                        <a href="#display-settings" class="nav-tab"><?php esc_html_e('Display', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></a>
                     </nav>
 
                     <!-- General Settings Tab -->
-                    <div id="general-settings" class="tab-content">
-                        <table class="form-table">
+                    <div id="general-settings" class="tab-content" style="display: none;">
+                        <table class="form-table" role="presentation">
                             <tr>
-                                <th scope="row"><?php esc_html_e('Enable Plugin', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <th scope="row"><?php esc_html_e('Enable chat bubbles', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
                                     <label>
                                         <input type="checkbox" name="cwp_chat_bubbles_options[enabled]" value="1" <?php checked($options['enabled']); ?>>
-                                        <?php esc_html_e('Enable chat bubbles on the website', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        <?php esc_html_e('Show chat bubbles on your website', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                     </label>
                                 </td>
                             </tr>
                             <tr>
-                                <th scope="row"><?php esc_html_e('Auto Load', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <th scope="row"><?php esc_html_e('Auto show on pages', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
                                     <label>
                                         <input type="checkbox" name="cwp_chat_bubbles_options[auto_load]" value="1" <?php checked($options['auto_load']); ?>>
-                                        <?php esc_html_e('Automatically display on all pages (recommended)', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        <?php esc_html_e('Show automatically on all pages (recommended)', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                     </label>
-                                    <p class="description"><?php esc_html_e('When enabled, chat bubbles will appear automatically. Disable this if you want to use shortcodes only.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                    <p class="description"><?php esc_html_e('Turn this off if you only want to place chat bubbles with shortcode.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
                                 </td>
                             </tr>
                             <tr>
-                                <th scope="row"><?php esc_html_e('Show Labels', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <th scope="row"><?php esc_html_e('Show labels', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
                                     <label>
                                         <input type="checkbox" name="cwp_chat_bubbles_options[show_labels]" value="1" <?php checked($options['show_labels']); ?>>
-                                        <?php esc_html_e('Show text labels for all chat items', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        <?php esc_html_e('Show text next to each contact button', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                     </label>
-                                    <p class="description"><?php esc_html_e('This setting applies to all chat items globally.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                                    <p class="description"><?php esc_html_e('This applies to all contact buttons.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
                                 </td>
                             </tr>
                             <tr>
-                                <th scope="row"><?php esc_html_e('Custom Main Icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <th scope="row"><?php esc_html_e('Show on mobile', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
-                                    <div class="cwp-media-upload">
-                                        <input type="hidden" name="cwp_chat_bubbles_options[custom_main_icon]" id="custom-main-icon" value="<?php echo esc_attr($options['custom_main_icon'] ?? 0); ?>">
-                                        <button type="button" class="button" id="upload-main-icon">
-                                            <?php esc_html_e('Upload Custom Icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                        </button>
-                                        <button type="button" class="button" id="remove-main-icon" style="display: <?php echo (isset($options['custom_main_icon']) && $options['custom_main_icon'] > 0) ? 'inline-block' : 'none'; ?>;">
-                                            <?php esc_html_e('Remove Custom Icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                        </button>
-                                        <div id="main-icon-preview" style="margin-top: 10px; display: flex; justify-content: center; align-items: center; border-radius: 50%; width: 64px; height: 64px; background-color: <?php echo esc_attr($options['main_button_color'] ?? '#52BA00'); ?>;">
-                                            <?php if (isset($options['custom_main_icon']) && $options['custom_main_icon'] > 0): ?>
-                                                <?php $custom_icon_url = wp_get_attachment_url($options['custom_main_icon']); ?>
-                                                <?php if ($custom_icon_url): ?>
-                                                    <img src="<?php echo esc_url($custom_icon_url); ?>" alt="<?php esc_attr_e('Custom main icon preview', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" style="width:80%; height:auto;">
-                                                <?php else: ?>
-                                                    <img src="<?php echo esc_url(CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/support.svg'); ?>" alt="<?php esc_attr_e('Default main icon preview', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" style="width:80%; height:auto;">
-                                                <?php endif; ?>
-                                            <?php else: ?>
-                                                <img src="<?php echo esc_url(CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/support.svg'); ?>" alt="<?php esc_attr_e('Default main icon preview', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" style="width:80%; height:auto;">
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-                                    <p class="description">
-                                        <?php esc_html_e('Upload a custom icon for the main chat button. Leave empty to use the default support icon. Recommended size: 64x64 pixels.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                    </p>
+                                    <label>
+                                        <input type="checkbox" name="cwp_chat_bubbles_options[load_on_mobile]" value="1" <?php checked($options['load_on_mobile']); ?>>
+                                        <?php esc_html_e('Show chat bubbles on phones and tablets', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                    </label>
                                 </td>
                             </tr>
                         </table>
                     </div>
 
                 <!-- Chat Items Tab -->
-                <div id="chat-items" class="tab-content" style="display: none;">
+                <div id="chat-items" class="tab-content">
                     <div class="cwp-items-header">
                         <div>
-                            <h3><?php esc_html_e('Manage Chat Items', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
-                            <p class="description"><?php esc_html_e('Add, edit, or reorder your chat items. Changes are saved automatically.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                            <h3><?php esc_html_e('Contact buttons', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
+                            <p class="description"><?php esc_html_e('Add, edit, or reorder contact buttons. Reordering is saved automatically.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
                         </div>
                         <button type="button" class="button button-primary" id="add-new-item">
-                            <?php esc_html_e('Add New Item', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                            <?php esc_html_e('Add contact button', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                         </button>
                     </div>
 
@@ -253,7 +234,7 @@ class CWP_Chat_Bubbles_Options_Page {
 
                     <!-- Display Settings Tab -->
                     <div id="display-settings" class="tab-content" style="display: none;">
-                        <table class="form-table">
+                        <table class="form-table" role="presentation">
                             <tr>
                                 <th scope="row"><?php esc_html_e('Position', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
@@ -266,49 +247,69 @@ class CWP_Chat_Bubbles_Options_Page {
                                 </td>
                             </tr>
                             <tr>
-                                <th scope="row"><?php esc_html_e('Position Offset', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <th scope="row"><?php esc_html_e('Position offset', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
                                     <fieldset>
                                         <legend class="screen-reader-text"><?php esc_html_e('Position Offset Settings', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></legend>
-                                        <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
-                                            <label style="display: flex; align-items: center; gap: 5px;">
-                                                <span style="min-width: 20px;"><?php esc_html_e('X:', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></span>
-                                                <input type="number" name="cwp_chat_bubbles_options[offset_x]" value="<?php echo esc_attr($options['offset_x'] ?? 0); ?>" min="-200" max="200" step="1" style="width: 80px;">
-                                                <span style="color: #666;">px</span>
+                                        <div class="cwp-offset-fields">
+                                            <label class="cwp-offset-field">
+                                                <span><?php esc_html_e('X', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></span>
+                                                <input type="number" name="cwp_chat_bubbles_options[offset_x]" value="<?php echo esc_attr($options['offset_x'] ?? 0); ?>" min="-200" max="200" step="1" class="small-text">
+                                                <span class="description">px</span>
                                             </label>
-                                            <label style="display: flex; align-items: center; gap: 5px;">
-                                                <span style="min-width: 20px;"><?php esc_html_e('Y:', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></span>
-                                                <input type="number" name="cwp_chat_bubbles_options[offset_y]" value="<?php echo esc_attr($options['offset_y'] ?? 0); ?>" min="-200" max="200" step="1" style="width: 80px;">
-                                                <span style="color: #666;">px</span>
+                                            <label class="cwp-offset-field">
+                                                <span><?php esc_html_e('Y', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></span>
+                                                <input type="number" name="cwp_chat_bubbles_options[offset_y]" value="<?php echo esc_attr($options['offset_y'] ?? 0); ?>" min="-200" max="200" step="1" class="small-text">
+                                                <span class="description">px</span>
                                             </label>
                                         </div>
                                         <p class="description">
-                                            <?php esc_html_e('Fine-tune the position with pixel-level adjustments. Positive X moves right, negative moves left. Positive Y moves down, negative moves up.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                            <?php esc_html_e('Fine-tune placement in pixels. Positive X moves right; positive Y moves down.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                         </p>
                                     </fieldset>
                                 </td>
                             </tr>
                             <tr>
-                                <th scope="row"><?php esc_html_e('Main Button Color', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <th scope="row"><?php esc_html_e('Main button color', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
                                     <input type="color" name="cwp_chat_bubbles_options[main_button_color]" value="<?php echo esc_attr($options['main_button_color'] ?? '#52BA00'); ?>" class="color-field">
                                 </td>
                             </tr>
                             <tr>
-                                <th scope="row"><?php esc_html_e('Animations', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <th scope="row"><?php esc_html_e('Main button icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
-                                    <label>
-                                        <input type="checkbox" name="cwp_chat_bubbles_options[animation_enabled]" value="1" <?php checked($options['animation_enabled']); ?>>
-                                        <?php esc_html_e('Enable animations and effects', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
-                                    </label>
+                                    <div class="cwp-media-upload">
+                                        <input type="hidden" name="cwp_chat_bubbles_options[custom_main_icon]" id="custom-main-icon" value="<?php echo esc_attr($options['custom_main_icon'] ?? 0); ?>">
+                                        <button type="button" class="button" id="upload-main-icon">
+                                            <?php esc_html_e('Upload icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </button>
+                                        <button type="button" class="button <?php echo (isset($options['custom_main_icon']) && $options['custom_main_icon'] > 0) ? '' : 'cwp-hidden'; ?>" id="remove-main-icon">
+                                            <?php esc_html_e('Remove icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        </button>
+                                        <div id="main-icon-preview" class="cwp-main-icon-preview" data-bg-color="<?php echo esc_attr($options['main_button_color'] ?? '#52BA00'); ?>">
+                                            <?php if (isset($options['custom_main_icon']) && $options['custom_main_icon'] > 0): ?>
+                                                <?php $custom_icon_url = wp_get_attachment_url($options['custom_main_icon']); ?>
+                                                <?php if ($custom_icon_url): ?>
+                                                    <img src="<?php echo esc_url($custom_icon_url); ?>" alt="<?php esc_attr_e('Custom main icon preview', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" class="cwp-main-icon-image">
+                                                <?php else: ?>
+                                                    <img src="<?php echo esc_url(CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/support.svg'); ?>" alt="<?php esc_attr_e('Default main icon preview', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" class="cwp-main-icon-image">
+                                                <?php endif; ?>
+                                            <?php else: ?>
+                                                <img src="<?php echo esc_url(CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/support.svg'); ?>" alt="<?php esc_attr_e('Default main icon preview', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" class="cwp-main-icon-image">
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                    <p class="description">
+                                        <?php esc_html_e('Use your own icon for the main button. Recommended size: 64 × 64 px.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                    </p>
                                 </td>
                             </tr>
                             <tr>
-                                <th scope="row"><?php esc_html_e('Load on Mobile', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
+                                <th scope="row"><?php esc_html_e('Animation effects', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></th>
                                 <td>
                                     <label>
-                                        <input type="checkbox" name="cwp_chat_bubbles_options[load_on_mobile]" value="1" <?php checked($options['load_on_mobile']); ?>>
-                                        <?php esc_html_e('Show chat bubbles on mobile devices', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        <input type="checkbox" name="cwp_chat_bubbles_options[animation_enabled]" value="1" <?php checked($options['animation_enabled']); ?>>
+                                        <?php esc_html_e('Use animation when opening and hovering', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                     </label>
                                 </td>
                             </tr>
@@ -317,7 +318,7 @@ class CWP_Chat_Bubbles_Options_Page {
                 </div>
                 
                 <!-- Single submit button for all tabs -->
-                <div style="margin-top: 20px; padding: 20px; background: #fff; border: 1px solid #ddd; border-top: none;">
+                <div class="cwp-settings-actions">
                     <?php submit_button(); ?>
                 </div>
             </form>
@@ -326,21 +327,21 @@ class CWP_Chat_Bubbles_Options_Page {
             <div id="cwp-item-modal" class="cwp-modal">
                 <div class="cwp-modal-content">
                     <div class="cwp-modal-header">
-                        <h3 id="modal-title"><?php esc_html_e('Add New Item', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
-                        <button type="button" class="cwp-modal-close">&times;</button>
+                        <h3 id="modal-title"><?php esc_html_e('Add Contact Button', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
+                        <button type="button" class="cwp-modal-close" aria-label="<?php esc_attr_e('Close dialog', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>">&times;</button>
                     </div>
                     <div class="cwp-modal-body">
                         <form id="cwp-item-form">
                             <input type="hidden" id="item-id" name="item_id" value="">
                             
-                            <table class="form-table">
+                            <table class="form-table" role="presentation">
                                 <tr>
                                     <th scope="row">
-                                        <label for="platform"><?php esc_html_e('Platform Type', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                        <label for="platform"><?php esc_html_e('Platform', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
                                     </th>
                                     <td>
                                         <select id="platform" name="platform" required>
-                                            <option value=""><?php esc_html_e('Select Platform', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
+                                            <option value=""><?php esc_html_e('Choose a platform', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></option>
                                             <?php foreach ($supported_platforms as $platform => $config): ?>
                                                 <option value="<?php echo esc_attr($platform); ?>">
                                                     <?php echo esc_html($config['label']); ?>
@@ -351,15 +352,15 @@ class CWP_Chat_Bubbles_Options_Page {
                                 </tr>
                                 <tr>
                                     <th scope="row">
-                                        <label for="label"><?php esc_html_e('Display Label', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                        <label for="label"><?php esc_html_e('Button label', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
                                     </th>
                                     <td>
-                                        <input type="text" id="label" name="label" class="regular-text" placeholder="<?php esc_attr_e('e.g., Business Support', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" required>
+                                        <input type="text" id="label" name="label" class="regular-text" placeholder="<?php esc_attr_e('Example: Sales Team', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" required>
                                     </td>
                                 </tr>
                                 <tr>
                                     <th scope="row">
-                                        <label for="contact-value" id="contact-label"><?php esc_html_e('Contact Info', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                        <label for="contact-value" id="contact-label"><?php esc_html_e('Contact details', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
                                     </th>
                                     <td>
                                         <input type="text" id="contact-value" name="contact_value" class="regular-text" placeholder="" required>
@@ -368,27 +369,28 @@ class CWP_Chat_Bubbles_Options_Page {
                                 </tr>
                                 <tr>
                                     <th scope="row">
-                                        <label for="qr-code"><?php esc_html_e('QR Code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                        <label for="qr-code"><?php esc_html_e('QR code image', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
                                     </th>
                                     <td>
                                         <input type="hidden" id="qr-code-id" name="qr_code_id" value="0">
                                         <button type="button" class="button" id="upload-qr-code">
-                                            <?php esc_html_e('Upload QR Code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                            <?php esc_html_e('Upload QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                         </button>
-                                        <button type="button" class="button" id="remove-qr-code" style="display: none;">
-                                            <?php esc_html_e('Remove QR Code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                        <button type="button" class="button cwp-hidden" id="remove-qr-code">
+                                            <?php esc_html_e('Remove QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                         </button>
-                                        <div id="qr-preview" style="margin-top: 10px;"></div>
+                                        <div id="qr-preview" class="cwp-qr-preview"></div>
+                                        <p class="description"><?php esc_html_e('Optional. Add a QR code that opens this contact method.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
                                     </td>
                                 </tr>
                                 <tr>
                                     <th scope="row">
-                                        <label for="enabled"><?php esc_html_e('Status', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
+                                        <label for="enabled"><?php esc_html_e('Visibility', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></label>
                                     </th>
                                     <td>
                                         <label>
                                             <input type="checkbox" id="enabled" name="enabled" value="1" checked>
-                                            <?php esc_html_e('Enable this item', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                                            <?php esc_html_e('Show this contact button', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                                         </label>
                                     </td>
                                 </tr>
@@ -397,7 +399,7 @@ class CWP_Chat_Bubbles_Options_Page {
                     </div>
                     <div class="cwp-modal-footer">
                         <button type="button" class="button" id="cancel-item"><?php esc_html_e('Cancel', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></button>
-                        <button type="button" class="button button-primary" id="save-item"><?php esc_html_e('Save Item', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></button>
+                        <button type="button" class="button button-primary" id="save-item"><?php esc_html_e('Save contact button', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></button>
                     </div>
                 </div>
             </div>
@@ -431,7 +433,7 @@ class CWP_Chat_Bubbles_Options_Page {
             add_settings_error(
                 'cwp_chat_bubbles_messages',
                 'cwp_chat_bubbles_message',
-                __('Too many requests. Please wait a moment before trying again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                __('You are saving too quickly. Please wait a moment and try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
                 'error'
             );
             return;
@@ -454,7 +456,7 @@ class CWP_Chat_Bubbles_Options_Page {
                 add_settings_error(
                     'cwp_chat_bubbles_messages',
                     'cwp_chat_bubbles_message',
-                    __('Settings saved successfully!', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    __('Your changes have been saved.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
                     'success'
                 );
             } catch (Exception $e) {
@@ -464,7 +466,7 @@ class CWP_Chat_Bubbles_Options_Page {
                 add_settings_error(
                     'cwp_chat_bubbles_messages',
                     'cwp_chat_bubbles_message',
-                    __('Failed to save settings.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    __('We could not save your changes. Please try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
                     'error'
                 );
             }
@@ -481,8 +483,8 @@ class CWP_Chat_Bubbles_Options_Page {
         if (empty($items)) {
             ?>
             <div class="cwp-empty-state">
-                <h3><?php esc_html_e('No chat items found', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
-                <p><?php esc_html_e('Click "Add New Item" to create your first chat bubble item.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
+                <h3><?php esc_html_e('No contact buttons yet', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></h3>
+                <p><?php esc_html_e('Click "Add contact button" to create your first one.', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?></p>
             </div>
             <?php
             return;
@@ -505,27 +507,26 @@ class CWP_Chat_Bubbles_Options_Page {
                      data-qr-code-id="<?php echo esc_attr($item['qr_code_id']); ?>">
                     <span class="cwp-item-drag dashicons dashicons-move"></span>
                     <img class="cwp-item-icon" src="<?php echo esc_url($this->get_platform_icon_url($item['platform'])); ?>" alt="<?php echo esc_attr($platform_label); ?>">
-                    <div class="cwp-item-info">
-                        <strong><?php echo esc_html($item['label']); ?></strong>
-                        <br>
-                        <small><?php echo esc_html($platform_label); ?>: <?php echo esc_html($item['contact_value']); ?></small>
+                    <div class="cwp-item-content">
+                        <p class="cwp-item-title"><?php echo esc_html($item['label']); ?></p>
+                        <p class="cwp-item-meta"><?php echo esc_html($platform_label); ?>: <?php echo esc_html($item['contact_value']); ?></p>
                         <?php if (!empty($item['qr_code_id'])): ?>
-                            <span class="dashicons dashicons-format-image" title="<?php esc_attr_e('Has QR Code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>"></span>
+                            <span class="dashicons dashicons-format-image cwp-qr-indicator" title="<?php esc_attr_e('Has QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>"></span>
                         <?php endif; ?>
                     </div>
                     <div class="cwp-item-status">
                         <?php if ($item['enabled']): ?>
-                            <span class="dashicons dashicons-yes-alt" style="color: green;" title="<?php esc_attr_e('Enabled', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>"></span>
+                            <span class="dashicons dashicons-yes-alt" title="<?php esc_attr_e('Visible', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>"></span>
                         <?php else: ?>
-                            <span class="dashicons dashicons-dismiss" style="color: red;" title="<?php esc_attr_e('Disabled', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>"></span>
+                            <span class="dashicons dashicons-dismiss" title="<?php esc_attr_e('Hidden', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>"></span>
                         <?php endif; ?>
                     </div>
                     <div class="cwp-item-actions">
                         <button type="button" class="button button-small edit-item" data-item-id="<?php echo esc_attr($item['id']); ?>">
                             <?php esc_html_e('Edit', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                         </button>
-                        <button type="button" class="button button-small delete-item" data-item-id="<?php echo esc_attr($item['id']); ?>">
-                            <?php esc_html_e('Delete', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
+                        <button type="button" class="button-link button-link-delete delete-item" data-item-id="<?php echo esc_attr($item['id']); ?>">
+                            <?php esc_html_e('Remove', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>
                         </button>
                     </div>
                 </div>
@@ -606,12 +607,12 @@ class CWP_Chat_Bubbles_Options_Page {
     private function verify_ajax_request($action_name) {
         if (!check_ajax_referer('cwp_chat_bubbles_admin', 'nonce', false)) {
             $this->log_admin_action('security_violation', 'Invalid nonce for ' . $action_name);
-            wp_send_json_error(__('Security check failed', CWP_CHAT_BUBBLES_TEXT_DOMAIN), 403);
+            wp_send_json_error(__('Your session has expired. Refresh this page and try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN), 403);
         }
 
         if (!current_user_can('manage_options')) {
             $this->log_admin_action('security_violation', 'Insufficient permissions for ' . $action_name);
-            wp_send_json_error(__('Insufficient permissions', CWP_CHAT_BUBBLES_TEXT_DOMAIN), 403);
+            wp_send_json_error(__('You do not have permission to do this action.', CWP_CHAT_BUBBLES_TEXT_DOMAIN), 403);
         }
     }
 
@@ -682,7 +683,7 @@ class CWP_Chat_Bubbles_Options_Page {
         
         if ($request_count && $request_count >= 20) {
             $this->log_admin_action('rate_limited', 'AJAX request rate limited for ajax_save_item');
-            wp_send_json_error(__('Too many requests. Please wait a moment before trying again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+            wp_send_json_error(__('You are saving too quickly. Please wait a moment and try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
         
         // Increment rate limit counter
@@ -697,23 +698,23 @@ class CWP_Chat_Bubbles_Options_Page {
 
         // Enhanced validation
         if (empty($platform) || empty($label) || empty($contact_value)) {
-            wp_send_json_error(__('Required fields are missing', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+            wp_send_json_error(__('Please fill in all required fields.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
 
         // Validate platform is supported
         $supported_platforms = $this->items_manager->get_supported_platforms();
         if (!array_key_exists($platform, $supported_platforms)) {
-            wp_send_json_error(__('Invalid platform selected', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+            wp_send_json_error(__('That platform is not valid. Please choose another one.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
 
         // Validate label length
         if (strlen($label) < 2 || strlen($label) > 255) {
-            wp_send_json_error(__('Label must be between 2 and 255 characters', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+            wp_send_json_error(__('The button label must be between 2 and 255 characters.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
 
         // Validate contact value format based on platform
         if (!$this->items_manager->validate_contact_value($platform, $contact_value)) {
-            wp_send_json_error(__('Invalid contact value format for selected platform', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+            wp_send_json_error(__('The contact details format is not valid for this platform.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
 
         $item_data = array(
@@ -737,12 +738,12 @@ class CWP_Chat_Bubbles_Options_Page {
         if ($result) {
             $this->log_admin_action('item_' . $action, "Item {$action}: {$label} ({$platform})");
             wp_send_json_success(array(
-                'message' => sprintf(__('Item %s successfully', CWP_CHAT_BUBBLES_TEXT_DOMAIN), $action),
+                'message' => sprintf(__('Contact button %s successfully.', CWP_CHAT_BUBBLES_TEXT_DOMAIN), $action),
                 'items_html' => $this->get_items_list_html()
             ));
         } else {
             $this->log_admin_action('item_save_error', "Failed to {$action} item: {$label} ({$platform})");
-            wp_send_json_error(__('Failed to save item', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+            wp_send_json_error(__('We could not save this contact button. Please try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
     }
 
@@ -761,25 +762,25 @@ class CWP_Chat_Bubbles_Options_Page {
         
         if ($request_count && $request_count >= 20) {
             $this->log_admin_action('rate_limited', 'AJAX request rate limited for ajax_delete_item');
-            wp_send_json_error(__('Too many requests. Please wait a moment before trying again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+            wp_send_json_error(__('You are making changes too quickly. Please wait a moment and try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
         
         set_transient($transient_key, ($request_count ? $request_count + 1 : 1), 60);
 
         $item_id = $this->get_post_int('item_id');
         if ($item_id <= 0) {
-            wp_send_json_error(__('Invalid item ID', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+            wp_send_json_error(__('This contact button could not be found.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
 
         if ($this->items_manager->delete_item($item_id)) {
             $this->log_admin_action('item_deleted', "Deleted item ID: {$item_id}");
             wp_send_json_success(array(
-                'message' => __('Item deleted successfully', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                'message' => __('Contact button removed.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
                 'items_html' => $this->get_items_list_html()
             ));
         } else {
             $this->log_admin_action('item_delete_error', "Failed to delete item ID: {$item_id}");
-            wp_send_json_error(__('Failed to delete item', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+            wp_send_json_error(__('We could not remove this contact button. Please try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
     }
 
@@ -798,7 +799,7 @@ class CWP_Chat_Bubbles_Options_Page {
         
         if ($request_count && $request_count >= 20) {
             $this->log_admin_action('rate_limited', 'AJAX request rate limited for ajax_reorder_items');
-            wp_send_json_error(__('Too many requests. Please wait a moment before trying again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+            wp_send_json_error(__('You are reordering too quickly. Please wait a moment and try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
         
         set_transient($transient_key, ($request_count ? $request_count + 1 : 1), 60);
@@ -806,7 +807,7 @@ class CWP_Chat_Bubbles_Options_Page {
         $ordered_ids = $this->get_post_int_array('ordered_ids');
 
         if (empty($ordered_ids)) {
-            wp_send_json_error(__('No items provided for reordering.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+            wp_send_json_error(__('No contact buttons were provided for reordering.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
 
         // Validate that ordered_ids is reasonable (max 50 items)
@@ -817,10 +818,10 @@ class CWP_Chat_Bubbles_Options_Page {
 
         if ($this->items_manager->reorder_items($ordered_ids)) {
             $this->log_admin_action('items_reordered', 'Reordered ' . count($ordered_ids) . ' items');
-            wp_send_json_success(__('Items reordered successfully', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+            wp_send_json_success(__('Order updated.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         } else {
             $this->log_admin_action('reorder_error', 'Failed to reorder ' . count($ordered_ids) . ' items');
-            wp_send_json_error(__('Failed to reorder items', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+            wp_send_json_error(__('We could not update the order. Please try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
     }
 
@@ -863,7 +864,7 @@ class CWP_Chat_Bubbles_Options_Page {
         
         if ($request_count && $request_count >= 20) {
             $this->log_admin_action('rate_limited', 'AJAX request rate limited for ajax_get_attachment_url');
-            wp_die(__('Too many requests. Please wait a moment before trying again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+            wp_die(__('You are requesting files too quickly. Please wait a moment and try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
         }
         
         set_transient($transient_key, ($request_count ? $request_count + 1 : 1), 60);
@@ -889,7 +890,7 @@ class CWP_Chat_Bubbles_Options_Page {
                 
                 if (!in_array($mime_type, $allowed_mime_types, true)) {
                     $this->log_admin_action('security_violation', "Invalid file type uploaded: {$mime_type}");
-                    wp_send_json_error(__('Invalid file type. Only images are allowed.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+                    wp_send_json_error(__('Please upload an image file (JPG, PNG, GIF, or WebP).', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
                 }
                 
                 // Check file size (max 2MB for QR codes)
@@ -897,7 +898,7 @@ class CWP_Chat_Bubbles_Options_Page {
                     $file_size = filesize($file_path);
                     if ($file_size > 2 * 1024 * 1024) { // 2MB
                         $this->log_admin_action('security_violation', "File too large: " . number_format($file_size / 1024 / 1024, 2) . "MB");
-                        wp_send_json_error(__('File too large. Maximum size is 2MB.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+                        wp_send_json_error(__('This image is too large. Maximum size is 2MB.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
                     }
                 }
                 
@@ -910,6 +911,6 @@ class CWP_Chat_Bubbles_Options_Page {
         }
         
         $this->log_admin_action('invalid_attachment', "Invalid attachment ID requested: {$attachment_id}");
-        wp_send_json_error(__('Invalid attachment ID', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
+        wp_send_json_error(__('We could not load that image. Please select another file.', CWP_CHAT_BUBBLES_TEXT_DOMAIN));
     }
 } 

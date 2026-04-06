@@ -169,7 +169,36 @@ class CWP_Chat_Bubbles_Assets {
             // Pass data to admin JavaScript
             wp_localize_script('cwp-chat-bubbles-admin', 'wpAjax', array(
                 'ajaxurl' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('cwp_chat_bubbles_admin')
+                'nonce' => wp_create_nonce('cwp_chat_bubbles_admin'),
+                'i18n' => array(
+                    'addContactButton' => __('Add contact button', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'editContactButton' => __('Edit contact button', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'saveContactButton' => __('Save contact button', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'saving' => __('Saving…', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'uploadIcon' => __('Upload icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'changeIcon' => __('Change icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'removeIcon' => __('Remove icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'uploadQrCode' => __('Upload QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'changeQrCode' => __('Change QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'removeQrCode' => __('Remove QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'confirmRemoveItem' => __('Remove this contact button?', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'confirmRemoveItemDetail' => __('This action cannot be undone.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'selectPlatform' => __('Please choose a platform.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'labelRequired' => __('Enter a button label.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'labelMin' => __('Use at least 2 characters for the button label.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'labelMax' => __('Use 255 characters or fewer for the button label.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'contactRequired' => __('Enter contact details.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'genericFormatError' => __('The contact details format is not valid for this platform.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'fixErrors' => __('Please fix the highlighted fields and try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'networkError' => __('We could not connect. Please check your connection and try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'saveFailed' => __('We could not save this contact button. Please try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'deleteFailed' => __('We could not remove this contact button. Please try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'reorderFailed' => __('We could not update the order. Please try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'contactLabelDefault' => __('Contact details', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'contactPlaceholderDefault' => __('Enter contact details', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'contactDescriptionDefault' => __('Choose a platform to see what format to use.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'dismissNotice' => __('Dismiss this notice.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                ),
             ));
         }
     }
