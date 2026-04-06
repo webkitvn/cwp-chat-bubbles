@@ -163,6 +163,119 @@ class CWP_Chat_Bubbles_Data_Service {
     }
 
     /**
+     * Get lightweight shell data for lazy auto-inject rendering.
+     *
+     * @return array
+     * @since 1.1.1
+     */
+    public function get_frontend_shell_data() {
+        $lazy_enabled = (bool) apply_filters('cwp_chat_bubbles_lazy_autoload_enabled', true);
+        $prefetch_enabled = (bool) apply_filters('cwp_chat_bubbles_lazy_prefetch_enabled', true);
+
+        return array(
+            'settings' => array(
+                'position' => $this->settings->get_option('position', 'bottom-right'),
+                'main_button_color' => $this->settings->get_option('main_button_color', '#52BA00'),
+                'animation_enabled' => $this->settings->get_option('animation_enabled', true),
+                'show_labels' => $this->settings->should_show_labels()
+            ),
+            'support_icon' => $this->settings->get_main_icon_url(),
+            'cancel_icon' => CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/cancel.svg',
+            'lazy_enabled' => $lazy_enabled,
+            'prefetch_enabled' => $prefetch_enabled,
+            'lazy_endpoint' => esc_url_raw(rest_url('cwp-chat-bubbles/v1/items'))
+        );
+    }
+
+    /**
+     * Get lazy frontend items payload for REST responses.
+     * Uses object cache first, then transient fallback.
+     *
+     * @return array
+     * @since 1.1.1
+     */
+    public function get_lazy_frontend_items_payload() {
+        $data_version = $this->get_data_version();
+        $settings_hash = $this->get_settings_hash();
+        $cache_key = 'cwp_frontend_items_v' . $data_version . '_s' . $settings_hash;
+
+        $cached_payload = wp_cache_get($cache_key, 'cwp_chat_bubbles');
+        if (false !== $cached_payload) {
+            return $cached_payload;
+        }
+
+        $transient_payload = get_transient($cache_key);
+        if (false !== $transient_payload) {
+            wp_cache_set($cache_key, $transient_payload, 'cwp_chat_bubbles', HOUR_IN_SECONDS);
+            return $transient_payload;
+        }
+
+        $frontend_data = $this->get_frontend_data();
+        $frontend_settings = false === $frontend_data ? array() : $frontend_data['settings'];
+        $public_items = array();
+        $source_items = false === $frontend_data ? array() : $frontend_data['items'];
+
+        foreach ($source_items as $item) {
+            $public_items[] = array(
+                'id' => $item['id'],
+                'platform' => $item['platform'],
+                'label' => $item['label'],
+                'platform_url' => $item['platform_url'],
+                'platform_icon' => $item['platform_icon'],
+                'platform_color' => $item['platform_color'],
+                'qr_code_url' => $item['qr_code_url'],
+                'has_qr' => $item['has_qr'],
+            );
+        }
+
+        $payload = array(
+            'items' => $public_items,
+            'settings' => array(
+                'show_labels' => !empty($frontend_settings['show_labels']),
+                'position' => isset($frontend_settings['position']) ? $frontend_settings['position'] : 'bottom-right',
+                'main_button_color' => isset($frontend_settings['main_button_color']) ? $frontend_settings['main_button_color'] : '#52BA00',
+                'animation_enabled' => isset($frontend_settings['animation_enabled']) ? $frontend_settings['animation_enabled'] : true
+            ),
+            'version' => (string) $data_version
+        );
+
+        wp_cache_set($cache_key, $payload, 'cwp_chat_bubbles', HOUR_IN_SECONDS);
+        set_transient($cache_key, $payload, HOUR_IN_SECONDS);
+
+        return $payload;
+    }
+
+    /**
+     * Delete stale lazy payload transients for a data version.
+     *
+     * @param string|int $data_version Data version value.
+     * @since 1.1.1
+     */
+    public function clear_lazy_items_transients_for_version($data_version) {
+        global $wpdb;
+
+        if (!is_object($wpdb) || !isset($wpdb->options)) {
+            return;
+        }
+
+        $version = sanitize_key((string) $data_version);
+        if ('' === $version) {
+            return;
+        }
+
+        $like_pattern = $wpdb->esc_like('_transient_cwp_frontend_items_v' . $version . '_s') . '%';
+        $timeout_like_pattern = $wpdb->esc_like('_transient_timeout_cwp_frontend_items_v' . $version . '_s') . '%';
+
+        $wpdb->query(
+            $wpdb->prepare(
+                "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+                $like_pattern,
+                $timeout_like_pattern
+            )
+        );
+    }
+
+    /**
      * Check if should load on current page (unified logic)
      *
      * @return bool Whether to load on current page

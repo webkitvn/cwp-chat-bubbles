@@ -423,6 +423,8 @@ class CWP_Chat_Bubbles_Items_Manager {
     private function increment_data_version() {
         $current_version = (int) get_option('cwp_chat_bubbles_data_version', 1);
         $new_version = $current_version + 1;
+
+        CWP_Chat_Bubbles_Data_Service::get_instance()->clear_lazy_items_transients_for_version($current_version);
         
         update_option('cwp_chat_bubbles_data_version', $new_version);
         wp_cache_set('cwp_chat_bubbles_data_version', $new_version, 'cwp_chat_bubbles', DAY_IN_SECONDS);
@@ -466,10 +468,9 @@ class CWP_Chat_Bubbles_Items_Manager {
     public function delete_item($id) {
         global $wpdb;
 
-        // Get item before deletion to clean up QR code
         $item = $this->get_item($id);
         if ($item && !empty($item['qr_code_id'])) {
-            wp_delete_attachment($item['qr_code_id'], true);
+            wp_delete_attachment((int) $item['qr_code_id'], true);
         }
 
         $result = $wpdb->delete(
@@ -500,28 +501,36 @@ class CWP_Chat_Bubbles_Items_Manager {
             return false;
         }
 
-        $success = true;
+        $ordered_ids = array_values(array_unique(array_filter(array_map('intval', $ordered_ids))));
+        if (empty($ordered_ids)) {
+            return false;
+        }
+
+        $cases = array();
+        $id_placeholders = array();
+        $params = array();
 
         foreach ($ordered_ids as $index => $id) {
-            $result = $wpdb->update(
-                $this->table_name,
-                array('sort_order' => $index + 1),
-                array('id' => (int) $id),
-                array('%d'),
-                array('%d')
-            );
-
-            if ($result === false) {
-                $success = false;
-            }
+            $cases[] = 'WHEN %d THEN %d';
+            $params[] = $id;
+            $params[] = $index + 1;
+            $id_placeholders[] = '%d';
         }
 
-        if ($success) {
+        $sql = "UPDATE {$this->table_name}
+                SET sort_order = CASE id " . implode(' ', $cases) . " ELSE sort_order END
+                WHERE id IN (" . implode(', ', $id_placeholders) . ')';
+
+        $prepared_sql = $wpdb->prepare($sql, array_merge($params, $ordered_ids));
+        $result = $wpdb->query($prepared_sql);
+
+        if ($result !== false) {
             // Clear cache when data changes
             $this->clear_frontend_cache();
+            return true;
         }
 
-        return $success;
+        return false;
     }
 
     /**

@@ -18,6 +18,29 @@
     // Global variables
     let currentEditingItem = null;
     let mediaUploader = null;
+    const i18n = (typeof wpAjax !== 'undefined' && wpAjax.i18n) ? wpAjax.i18n : {};
+
+    function t(key, fallback) {
+        return Object.prototype.hasOwnProperty.call(i18n, key) ? i18n[key] : fallback;
+    }
+
+    function getAjaxErrorMessage(xhr, fallback) {
+        if (xhr && xhr.responseJSON) {
+            if (typeof xhr.responseJSON.data === 'string' && xhr.responseJSON.data.trim()) {
+                return xhr.responseJSON.data;
+            }
+
+            if (typeof xhr.responseJSON.message === 'string' && xhr.responseJSON.message.trim()) {
+                return xhr.responseJSON.message;
+            }
+        }
+
+        if (xhr && typeof xhr.responseText === 'string' && xhr.responseText.trim()) {
+            return xhr.responseText;
+        }
+
+        return fallback;
+    }
 
     /**
      * Initialize admin functionality
@@ -60,7 +83,7 @@
         $('#add-new-item').on('click', function() {
             currentEditingItem = null;
             resetModalForm();
-            $('#modal-title').text('Add New Item');
+            $('#modal-title').text(t('addContactButton', 'Add contact button'));
             $('#cwp-item-modal').addClass('active');
         });
 
@@ -160,27 +183,27 @@
         switch (fieldSelector) {
             case '#platform':
                 if (!value) {
-                    showFieldError(fieldSelector, 'Please select a platform type');
+                    showFieldError(fieldSelector, t('selectPlatform', 'Please choose a platform.'));
                     return false;
                 }
                 break;
                 
             case '#label':
                 if (!value) {
-                    showFieldError(fieldSelector, 'Display label is required');
+                    showFieldError(fieldSelector, t('labelRequired', 'Enter a button label.'));
                     return false;
                 } else if (value.length < 2) {
-                    showFieldError(fieldSelector, 'Display label must be at least 2 characters long');
+                    showFieldError(fieldSelector, t('labelMin', 'Use at least 2 characters for the button label.'));
                     return false;
                 } else if (value.length > 255) {
-                    showFieldError(fieldSelector, 'Display label must be less than 255 characters');
+                    showFieldError(fieldSelector, t('labelMax', 'Use 255 characters or fewer for the button label.'));
                     return false;
                 }
                 break;
                 
             case '#contact-value':
                 if (!value) {
-                    showFieldError(fieldSelector, 'Contact information is required');
+                    showFieldError(fieldSelector, t('contactRequired', 'Enter contact details.'));
                     return false;
                 } else {
                     return validateContactValue();
@@ -217,9 +240,9 @@
             }
             
             mediaUploader = wp.media({
-                title: 'Select QR Code Image',
+                title: t('uploadQrCode', 'Upload QR code'),
                 button: {
-                    text: 'Use This Image'
+                    text: t('uploadQrCode', 'Upload QR code')
                 },
                 multiple: false,
                 library: {
@@ -252,6 +275,13 @@
      */
     function initMainIconUpload() {
         let mainIconUploader = null;
+        const $preview = $('#main-icon-preview');
+        const initialPreviewHtml = $preview.html();
+        const initialBgColor = $preview.data('bg-color');
+
+        if (initialBgColor) {
+            $preview.css('background-color', initialBgColor);
+        }
 
         $('#upload-main-icon').on('click', function(e) {
             e.preventDefault();
@@ -262,9 +292,9 @@
             }
             
             mainIconUploader = wp.media({
-                title: 'Select Custom Main Icon',
+                title: t('uploadIcon', 'Upload icon'),
                 button: {
-                    text: 'Use This Icon'
+                    text: t('uploadIcon', 'Upload icon')
                 },
                 multiple: false,
                 library: {
@@ -281,7 +311,7 @@
         });
 
         $('#remove-main-icon').on('click', function() {
-            removeMainIconPreview();
+            removeMainIconPreview(initialPreviewHtml);
         });
 
         // Update preview background color when main button color changes
@@ -304,45 +334,27 @@
         // Get the main button color from the color input
         const mainButtonColor = $('input[name="cwp_chat_bubbles_options[main_button_color]"]').val() || '#52BA00';
         
-        // Update the preview container to match the new template structure
+        // Keep layout styles in CSS and only update dynamic values.
         const $preview = $('#main-icon-preview');
-        $preview.css({
-            'display': 'flex',
-            'justify-content': 'center',
-            'align-items': 'center',
-            'border-radius': '50%',
-            'width': '64px',
-            'height': '64px',
-            'background-color': mainButtonColor,
-            'margin-top': '10px'
-        });
-        $preview.html(`<img src="${imageUrl}" alt="Custom main icon preview" style="width: 80%; height: auto;">`);
+        $preview.css('background-color', mainButtonColor);
+        $preview.html('<img src="' + imageUrl + '" alt="Custom main icon preview" class="cwp-main-icon-image">');
         
-        $('#upload-main-icon').text('Change Custom Icon');
+        $('#upload-main-icon').text(t('changeIcon', 'Change icon'));
         $('#remove-main-icon').show();
     }
 
     /**
      * Remove main icon preview
      */
-    function removeMainIconPreview() {
+    function removeMainIconPreview(initialPreviewHtml = '') {
         $('#custom-main-icon').val(0);
         
-        // Reset the preview container styles and content
+        // Reset preview state.
         const $preview = $('#main-icon-preview');
-        $preview.empty();
-        $preview.css({
-            'display': '',
-            'justify-content': '',
-            'align-items': '',
-            'border-radius': '',
-            'width': '',
-            'height': '',
-            'background-color': '',
-            'margin-top': '10px'
-        });
+        $preview.html(initialPreviewHtml);
+        $preview.css('background-color', '');
         
-        $('#upload-main-icon').text('Upload Custom Icon');
+        $('#upload-main-icon').text(t('uploadIcon', 'Upload icon'));
         $('#remove-main-icon').hide();
     }
 
@@ -357,9 +369,9 @@
             
             if (qrCodeId && qrCodeId > 0) {
                 // Add QR code indicator if not already present
-                const $info = $item.find('.cwp-item-info');
+                const $info = $item.find('.cwp-item-content');
                 if (!$info.find('.dashicons-format-image').length) {
-                    $info.append('<br><span class="dashicons dashicons-format-image" title="Has QR Code" style="color: #0073aa;"></span>');
+                    $info.append('<br><span class="dashicons dashicons-format-image cwp-qr-indicator" title="' + t('hasQrCode', 'Has QR code') + '"></span>');
                 }
             }
         });
@@ -378,7 +390,11 @@
         // Delete item
         $(document).on('click', '.delete-item', function() {
             const itemId = $(this).data('item-id');
-            if (confirm('Are you sure you want to delete this item?')) {
+            const label = $(`.cwp-item[data-item-id="${itemId}"]`).data('label') || '';
+            const message = label
+                ? `${t('confirmRemoveItem', 'Remove this contact button?')}\n${label}\n\n${t('confirmRemoveItemDetail', 'This action cannot be undone.')}`
+                : `${t('confirmRemoveItem', 'Remove this contact button?')}\n\n${t('confirmRemoveItemDetail', 'This action cannot be undone.')}`;
+            if (confirm(message)) {
                 deleteItem(itemId);
             }
         });
@@ -395,9 +411,9 @@
             const $contactLabel = $('#contact-label');
             const $contactDescription = $('#contact-description');
             
-            $contactLabel.text('Contact Value');
-            $contactField.attr('placeholder', 'Enter contact information');
-            $contactDescription.text('Select a platform to see specific instructions.');
+            $contactLabel.text(t('contactLabelDefault', 'Contact details'));
+            $contactField.attr('placeholder', t('contactPlaceholderDefault', 'Enter contact details'));
+            $contactDescription.text(t('contactDescriptionDefault', 'Choose a platform to see what format to use.'));
             $contactField.attr('pattern', '');
             return;
         }
@@ -415,13 +431,13 @@
         let description = '';
         switch (config.contact_field) {
             case 'number':
-                description = 'Enter the phone number or ID for this platform.';
+                description = t('contactDescriptionNumber', 'Enter the phone number or ID for this platform.');
                 break;
             case 'username':
-                description = 'Enter the username (without @ symbol).';
+                description = t('contactDescriptionUsername', 'Enter the username (without @ symbol).');
                 break;
             case 'id':
-                description = 'Enter the unique ID for this platform.';
+                description = t('contactDescriptionId', 'Enter the unique ID for this platform.');
                 break;
         }
         $contactDescription.text(description);
@@ -446,33 +462,33 @@
         const isValid = regex.test(contactValue);
 
         if (!isValid) {
-            let errorMessage = 'Invalid format for this platform.';
+            let errorMessage = t('genericFormatError', 'The contact details format is not valid for this platform.');
             
             // Provide specific error messages based on platform
             switch (platform) {
                 case 'phone':
-                    errorMessage = 'Please enter a valid phone number (e.g., +1234567890 or 0123456789)';
+                    errorMessage = t('phoneFormatError', 'Enter a valid phone number, for example +1234567890 or 0123456789.');
                     break;
                 case 'zalo':
-                    errorMessage = 'Please enter a valid Zalo phone number (9-11 digits, e.g., 0123456789)';
+                    errorMessage = t('zaloFormatError', 'Enter a valid Zalo phone number with 9 to 11 digits.');
                     break;
                 case 'whatsapp':
-                    errorMessage = 'Please enter a valid WhatsApp number with country code (e.g., 1234567890)';
+                    errorMessage = t('whatsappFormatError', 'Enter a valid WhatsApp number with country code.');
                     break;
                 case 'viber':
-                    errorMessage = 'Please enter a valid Viber phone number (e.g., +1234567890)';
+                    errorMessage = t('viberFormatError', 'Enter a valid Viber phone number, for example +1234567890.');
                     break;
                 case 'telegram':
-                    errorMessage = 'Please enter a valid Telegram username (5-32 characters, letters, numbers, underscore only)';
+                    errorMessage = t('telegramFormatError', 'Enter a Telegram username with 5 to 32 characters (letters, numbers, underscore).');
                     break;
                 case 'messenger':
-                    errorMessage = 'Please enter a valid Facebook username (letters, numbers, dots only)';
+                    errorMessage = t('messengerFormatError', 'Enter a valid Facebook username (letters, numbers, dots).');
                     break;
                 case 'line':
-                    errorMessage = 'Please enter a valid Line ID (letters, numbers, dots, dashes, underscore only)';
+                    errorMessage = t('lineFormatError', 'Enter a valid Line ID (letters, numbers, dots, dashes, underscore).');
                     break;
                 case 'kakaotalk':
-                    errorMessage = 'Please enter a valid KakaoTalk ID (letters, numbers, underscore, dash only)';
+                    errorMessage = t('kakaotalkFormatError', 'Enter a valid KakaoTalk ID (letters, numbers, underscore, dash).');
                     break;
             }
             
@@ -487,8 +503,8 @@
      */
     function setQRCodePreview(attachmentId, imageUrl) {
         $('#qr-code-id').val(attachmentId);
-        $('#qr-preview').html(`<img src="${imageUrl}" style="max-width: 150px; height: auto; border: 1px solid #ddd;">`);
-        $('#upload-qr-code').text('Change QR Code');
+        $('#qr-preview').html('<img src="' + imageUrl + '" class="cwp-qr-image" alt="' + t('qrCodePreviewAlt', 'QR code preview') + '">');
+        $('#upload-qr-code').text(t('changeQrCode', 'Change QR code'));
         $('#remove-qr-code').show();
     }
 
@@ -498,7 +514,7 @@
     function removeQRCodePreview() {
         $('#qr-code-id').val(0);
         $('#qr-preview').empty();
-        $('#upload-qr-code').text('Upload QR Code');
+        $('#upload-qr-code').text(t('uploadQrCode', 'Upload QR code'));
         $('#remove-qr-code').hide();
     }
 
@@ -541,7 +557,7 @@
         populateModalForm(itemData);
         
         currentEditingItem = itemId;
-        $('#modal-title').text('Edit Item');
+        $('#modal-title').text(t('editContactButton', 'Edit contact button'));
         $('#cwp-item-modal').addClass('active');
     }
 
@@ -587,17 +603,18 @@
                     } else {
                         // Fallback: Set QR code ID without preview
                         $('#qr-code-id').val(itemData.qr_code_id);
-                        $('#upload-qr-code').text('Update QR Code');
+                        $('#upload-qr-code').text(t('changeQrCode', 'Change QR code'));
                         $('#remove-qr-code').show();
-                        showNotice('warning', 'QR code found but preview unavailable');
+                        showNotice('warning', 'QR code was found, but preview is unavailable.');
                     }
                 },
                 error: function(xhr, status, error) {
                     // Fallback: Set QR code ID without preview
                     $('#qr-code-id').val(itemData.qr_code_id);
-                    $('#upload-qr-code').text('Update QR Code');
+                    $('#upload-qr-code').text(t('changeQrCode', 'Change QR code'));
                     $('#remove-qr-code').show();
-                    showNotice('warning', 'QR code found but preview failed to load');
+                    const fallback = t('qrPreviewLoadFailed', 'QR code was found, but preview could not load.');
+                    showNotice('warning', getAjaxErrorMessage(xhr, fallback));
                 }
             });
         } else {
@@ -628,7 +645,7 @@
             processData: false,
             contentType: false,
             beforeSend: function() {
-                $('#save-item').prop('disabled', true).text('Saving...');
+                $('#save-item').prop('disabled', true).text(t('saving', 'Saving…'));
             },
             success: function(response) {
                 if (response.success) {
@@ -637,14 +654,15 @@
                     showNotice('success', response.data.message);
                     initSortable(); // Reinitialize sortable after content update
                 } else {
-                    showNotice('error', response.data || 'Failed to save item');
+                    showNotice('error', response.data || t('saveFailed', 'We could not save this contact button. Please try again.'));
                 }
             },
-            error: function() {
-                showNotice('error', 'Network error occurred');
+            error: function(xhr) {
+                const fallback = t('networkError', 'We could not connect. Please check your connection and try again.');
+                showNotice('error', getAjaxErrorMessage(xhr, fallback));
             },
             complete: function() {
-                $('#save-item').prop('disabled', false).text('Save Item');
+                $('#save-item').prop('disabled', false).text(t('saveContactButton', 'Save contact button'));
             }
         });
     }
@@ -667,11 +685,12 @@
                     showNotice('success', response.data.message);
                     initSortable(); // Reinitialize sortable after content update
                 } else {
-                    showNotice('error', response.data || 'Failed to delete item');
+                    showNotice('error', response.data || t('deleteFailed', 'We could not remove this contact button. Please try again.'));
                 }
             },
-            error: function() {
-                showNotice('error', 'Network error occurred');
+            error: function(xhr) {
+                const fallback = t('networkError', 'We could not connect. Please check your connection and try again.');
+                showNotice('error', getAjaxErrorMessage(xhr, fallback));
             }
         });
     }
@@ -692,11 +711,12 @@
                 if (response.success) {
                     showNotice('success', response.data);
                 } else {
-                    showNotice('error', response.data || 'Failed to reorder items');
+                    showNotice('error', response.data || t('reorderFailed', 'We could not update the order. Please try again.'));
                 }
             },
-            error: function() {
-                showNotice('error', 'Network error occurred');
+            error: function(xhr) {
+                const fallback = t('networkError', 'We could not connect. Please check your connection and try again.');
+                showNotice('error', getAjaxErrorMessage(xhr, fallback));
             }
         });
     }
@@ -711,27 +731,27 @@
         // Validate platform selection
         const platform = $('#platform').val();
         if (!platform || platform.trim() === '') {
-            showFieldError('#platform', 'Please select a platform type');
+            showFieldError('#platform', t('selectPlatform', 'Please choose a platform.'));
             isValid = false;
         }
 
         // Validate label
         const label = $('#label').val().trim();
         if (!label) {
-            showFieldError('#label', 'Display label is required');
+            showFieldError('#label', t('labelRequired', 'Enter a button label.'));
             isValid = false;
         } else if (label.length < 2) {
-            showFieldError('#label', 'Display label must be at least 2 characters long');
+            showFieldError('#label', t('labelMin', 'Use at least 2 characters for the button label.'));
             isValid = false;
         } else if (label.length > 255) {
-            showFieldError('#label', 'Display label must be less than 255 characters');
+            showFieldError('#label', t('labelMax', 'Use 255 characters or fewer for the button label.'));
             isValid = false;
         }
 
         // Validate contact value
         const contactValue = $('#contact-value').val().trim();
         if (!contactValue) {
-            showFieldError('#contact-value', 'Contact information is required');
+            showFieldError('#contact-value', t('contactRequired', 'Enter contact details.'));
             isValid = false;
         } else if (!validateContactValue()) {
             // validateContactValue() already shows its own error message
@@ -740,7 +760,7 @@
 
         // Show general error message if validation fails
         if (!isValid) {
-            showFormError('Please correct the highlighted errors before saving.');
+            showFormError(t('fixErrors', 'Please fix the highlighted fields and try again.'));
         }
 
         return isValid;
@@ -762,7 +782,6 @@
         // Add new error message (use text() to prevent XSS)
         const $errorDiv = $('<div>')
             .addClass('field-error')
-            .css({ color: '#d63638', fontSize: '12px', marginTop: '5px' })
             .text(message);
         $field.after($errorDiv);
     }
@@ -779,15 +798,6 @@
         // Add new form error at the top (use text() to prevent XSS)
         const $errorDiv = $('<div>')
             .addClass('form-error')
-            .css({
-                background: '#fbeaea',
-                border: '1px solid #d63638',
-                borderRadius: '4px',
-                padding: '10px',
-                marginBottom: '15px',
-                color: '#d63638',
-                fontWeight: '500'
-            })
             .text(message);
         $modalBody.prepend($errorDiv);
     }
@@ -805,24 +815,41 @@
      * Show admin notice
      */
     function showNotice(type, message) {
-        const noticeClass = type === 'success' ? 'notice-success' : 'notice-error';
+        let noticeClass = 'notice-info';
+        if (type === 'success') {
+            noticeClass = 'notice-success';
+        } else if (type === 'warning') {
+            noticeClass = 'notice-warning';
+        } else if (type === 'error') {
+            noticeClass = 'notice-error';
+        }
         
         // Build notice element safely (use text() to prevent XSS)
         const $notice = $('<div>')
             .addClass('notice')
             .addClass(noticeClass)
             .addClass('is-dismissible')
-            .append($('<p>').text(message));
-        
-        $('.wrap h1').after($notice);
-        
-        // Auto-dismiss after 3 seconds
-        setTimeout(function() {
-            $notice.fadeOut(function() {
-                $(this).remove();
-            });
-        }, 3000);
+            .append($('<p>').text(message))
+            .append(
+                $('<button>')
+                    .attr('type', 'button')
+                    .addClass('notice-dismiss')
+                    .append($('<span>').addClass('screen-reader-text').text(t('dismissNotice', 'Dismiss this notice.')))
+            );
+
+        const $target = $('.wrap .wp-header-end').first();
+        if ($target.length) {
+            $target.after($notice);
+        } else {
+            $('.wrap h1').first().after($notice);
+        }
     }
+
+    $(document).on('click', '.notice.is-dismissible .notice-dismiss', function() {
+        $(this).closest('.notice').fadeOut(function() {
+            $(this).remove();
+        });
+    });
 
     // Initialize when DOM is ready
     $(document).ready(init);

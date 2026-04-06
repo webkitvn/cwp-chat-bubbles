@@ -2,7 +2,7 @@
 
 // CSS Variables
 :root {
-  --cwp-drag-primary: #2271b1;
+  --cwp-drag-primary: var(--wp-admin-theme-color, #2271b1);
   --cwp-drag-success: #46b450;
   --cwp-drag-warning: #ffb900;
   --cwp-drag-danger: #d63638;
@@ -177,6 +177,7 @@
   display: flex;
   gap: var(--cwp-space-xs);
   margin-left: var(--cwp-space-sm);
+  align-items: center;
 
   .button {
     padding: 6px 12px;
@@ -187,6 +188,10 @@
     &:hover {
       box-shadow: var(--cwp-shadow-sm);
     }
+  }
+
+  .button-link-delete {
+    text-decoration: none;
   }
 }
 
@@ -399,6 +404,64 @@
   }
 }
 
+.cwp-main-icon-preview {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+}
+
+.cwp-main-icon-image {
+  width: 80%;
+  height: auto;
+}
+
+.cwp-offset-fields {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.cwp-offset-field {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cwp-offset-field > span:first-child {
+  min-width: 20px;
+}
+
+.cwp-settings-actions {
+  margin-top: 20px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-top: none;
+}
+
+.cwp-qr-indicator {
+  color: var(--wp-admin-theme-color, #2271b1);
+}
+
+.cwp-qr-preview {
+  margin-top: 10px;
+}
+
+.cwp-qr-image {
+  max-width: 150px;
+  height: auto;
+  border: 1px solid #ddd;
+}
+
+.cwp-hidden {
+  display: none !important;
+}
+
 // Items List Container
 .cwp-items-list {
   border: 1px solid #ddd;
@@ -428,6 +491,16 @@
   margin-bottom: 15px;
   color: #d63638;
   font-weight: 500;
+}
+
+.cwp-modal-body .field-error {
+  color: var(--cwp-drag-danger);
+  font-size: 12px;
+  margin-top: var(--cwp-space-xs);
+}
+
+.cwp-modal-body .error {
+  border-color: var(--cwp-drag-danger);
 }
 
 // Save Button Loading State

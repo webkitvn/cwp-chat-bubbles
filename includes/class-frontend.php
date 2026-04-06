@@ -92,6 +92,12 @@ class CWP_Chat_Bubbles_Frontend {
             return;
         }
 
+        if ($this->should_use_lazy_autoload()) {
+            $shell_data = $data_service->get_frontend_shell_data();
+            $this->render_shell_template($shell_data);
+            return;
+        }
+
         // Get processed frontend data (single source of truth)
         $frontend_data = $data_service->get_frontend_data();
         if (false === $frontend_data) {
@@ -185,6 +191,29 @@ class CWP_Chat_Bubbles_Frontend {
     }
 
     /**
+     * Render lazy shell template for auto-inject mode.
+     *
+     * @param array $shell_data Lightweight frontend shell data.
+     * @since 1.1.1
+     */
+    private function render_shell_template($shell_data) {
+        $template_path = $this->locate_template('chat-bubbles-shell.php');
+
+        if ($template_path) {
+            $settings = isset($shell_data['settings']) ? $shell_data['settings'] : array();
+            $support_icon = isset($shell_data['support_icon']) ? $shell_data['support_icon'] : '';
+            $cancel_icon = isset($shell_data['cancel_icon']) ? $shell_data['cancel_icon'] : '';
+            $lazy_enabled = !empty($shell_data['lazy_enabled']);
+            $prefetch_enabled = !empty($shell_data['prefetch_enabled']);
+            $lazy_endpoint = isset($shell_data['lazy_endpoint']) ? $shell_data['lazy_endpoint'] : '';
+            include $template_path;
+            return;
+        }
+
+        $this->render_shell_fallback_template($shell_data);
+    }
+
+    /**
      * Locate template file
      *
      * @param string $template_name Template file name
@@ -210,6 +239,45 @@ class CWP_Chat_Bubbles_Frontend {
         }
 
         return false;
+    }
+
+    /**
+     * Render minimal shell fallback template when custom template is missing.
+     *
+     * @param array $vars Template variables.
+     * @since 1.1.1
+     */
+    private function render_shell_fallback_template($vars) {
+        $settings = isset($vars['settings']) ? $vars['settings'] : array();
+        $support_icon = isset($vars['support_icon']) ? $vars['support_icon'] : CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/support.svg';
+        $cancel_icon = isset($vars['cancel_icon']) ? $vars['cancel_icon'] : CWP_CHAT_BUBBLES_PLUGIN_URL . 'assets/images/cancel.svg';
+        $lazy_endpoint = isset($vars['lazy_endpoint']) ? $vars['lazy_endpoint'] : esc_url_raw(rest_url('cwp-chat-bubbles/v1/items'));
+        $prefetch_enabled = !empty($vars['prefetch_enabled']);
+        ?>
+        <div id="chat-bubbles"
+             class="cwp-chat-bubbles"
+             data-position="<?php echo esc_attr($settings['position'] ?? 'bottom-right'); ?>"
+             data-lazy="1"
+             data-endpoint="<?php echo esc_url($lazy_endpoint); ?>"
+             data-prefetch="<?php echo $prefetch_enabled ? '1' : '0'; ?>">
+            <div class="chat-icon chat-btn-toggle" style="background-color: <?php echo esc_attr($settings['main_button_color'] ?? '#52BA00'); ?>">
+                <img src="<?php echo esc_url($support_icon); ?>" alt="<?php esc_attr_e('Support', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" class="chat-icon-open">
+                <img src="<?php echo esc_url($cancel_icon); ?>" alt="<?php esc_attr_e('Close', CWP_CHAT_BUBBLES_TEXT_DOMAIN); ?>" class="chat-icon-close">
+            </div>
+            <div class="item-group <?php echo empty($settings['show_labels']) ? 'no-labels' : ''; ?>"></div>
+            <div class="cwp-chat-modals"></div>
+        </div>
+        <?php
+    }
+
+    /**
+     * Determine whether lazy autoload is enabled for auto-inject rendering.
+     *
+     * @return bool
+     * @since 1.1.1
+     */
+    private function should_use_lazy_autoload() {
+        return (bool) apply_filters('cwp_chat_bubbles_lazy_autoload_enabled', true);
     }
 
     /**

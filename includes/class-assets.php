@@ -35,6 +35,14 @@ class CWP_Chat_Bubbles_Assets {
     private $settings;
 
     /**
+     * Per-request file version cache
+     *
+     * @var array<string, string>
+     * @since 1.1.1
+     */
+    private $file_version_cache = array();
+
+    /**
      * Get instance
      *
      * @return CWP_Chat_Bubbles_Assets
@@ -112,17 +120,18 @@ class CWP_Chat_Bubbles_Assets {
                 true // Load in footer
             );
 
-            // Pass data to JavaScript
-            wp_localize_script('cwp-chat-bubbles', 'cwpChatBubbles', array(
-                'ajaxUrl' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('cwp_chat_bubbles_nonce'),
-                'platforms' => $this->get_frontend_platform_data(),
-                'settings' => array(
-                    'position' => $this->settings->get_option('position', 'bottom-right'),
-                    'animationEnabled' => $this->settings->get_option('animation_enabled', true),
-                    'showLabels' => $this->settings->get_option('show_labels', true)
+            wp_localize_script(
+                'cwp-chat-bubbles',
+                'cwpChatBubbles',
+                array(
+                    'i18n' => array(
+                        'closeModalAria' => __('Close modal', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                        'closeIconAlt' => __('Close', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                        'openLabelPrefix' => __('Open', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                        'qrCodeAltFallback' => __('QR', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    ),
                 )
-            ));
+            );
         }
     }
 
@@ -173,7 +182,50 @@ class CWP_Chat_Bubbles_Assets {
             // Pass data to admin JavaScript
             wp_localize_script('cwp-chat-bubbles-admin', 'wpAjax', array(
                 'ajaxurl' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('cwp_chat_bubbles_admin')
+                'nonce' => wp_create_nonce('cwp_chat_bubbles_admin'),
+                'i18n' => array(
+                    'addContactButton' => __('Add contact button', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'editContactButton' => __('Edit contact button', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'saveContactButton' => __('Save contact button', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'saving' => __('Saving…', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'uploadIcon' => __('Upload icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'changeIcon' => __('Change icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'removeIcon' => __('Remove icon', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'uploadQrCode' => __('Upload QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'changeQrCode' => __('Change QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'removeQrCode' => __('Remove QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'confirmRemoveItem' => __('Remove this contact button?', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'confirmRemoveItemDetail' => __('This action cannot be undone.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'selectPlatform' => __('Please choose a platform.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'labelRequired' => __('Enter a button label.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'labelMin' => __('Use at least 2 characters for the button label.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'labelMax' => __('Use 255 characters or fewer for the button label.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'contactRequired' => __('Enter contact details.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'genericFormatError' => __('The contact details format is not valid for this platform.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'phoneFormatError' => __('Enter a valid phone number, for example +1234567890 or 0123456789.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'zaloFormatError' => __('Enter a valid Zalo phone number with 9 to 11 digits.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'whatsappFormatError' => __('Enter a valid WhatsApp number with country code.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'viberFormatError' => __('Enter a valid Viber phone number, for example +1234567890.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'telegramFormatError' => __('Enter a Telegram username with 5 to 32 characters (letters, numbers, underscore).', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'messengerFormatError' => __('Enter a valid Facebook username (letters, numbers, dots).', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'lineFormatError' => __('Enter a valid Line ID (letters, numbers, dots, dashes, underscore).', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'kakaotalkFormatError' => __('Enter a valid KakaoTalk ID (letters, numbers, underscore, dash).', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'fixErrors' => __('Please fix the highlighted fields and try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'networkError' => __('We could not connect. Please check your connection and try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'saveFailed' => __('We could not save this contact button. Please try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'deleteFailed' => __('We could not remove this contact button. Please try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'reorderFailed' => __('We could not update the order. Please try again.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'contactLabelDefault' => __('Contact details', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'contactPlaceholderDefault' => __('Enter contact details', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'contactDescriptionDefault' => __('Choose a platform to see what format to use.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'contactDescriptionNumber' => __('Enter the phone number or ID for this platform.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'contactDescriptionUsername' => __('Enter the username (without @ symbol).', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'contactDescriptionId' => __('Enter the unique ID for this platform.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'hasQrCode' => __('Has QR code', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'qrCodePreviewAlt' => __('QR code preview', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'qrPreviewLoadFailed' => __('QR code was found, but preview could not load.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                    'dismissNotice' => __('Dismiss this notice.', CWP_CHAT_BUBBLES_TEXT_DOMAIN),
+                ),
             ));
         }
     }
@@ -261,13 +313,25 @@ class CWP_Chat_Bubbles_Assets {
      * @since 1.0.0
      */
     private function get_file_version($file) {
-        $file_path = CWP_CHAT_BUBBLES_PLUGIN_DIR . $file;
-        
-        if (file_exists($file_path)) {
-            return filemtime($file_path);
+        if (isset($this->file_version_cache[$file])) {
+            return $this->file_version_cache[$file];
         }
-        
-        return CWP_CHAT_BUBBLES_VERSION;
+
+        $file_path = CWP_CHAT_BUBBLES_PLUGIN_DIR . $file;
+
+        // Prefer static plugin version in production to avoid repeated filesystem stats.
+        if (!defined('WP_DEBUG') || !WP_DEBUG) {
+            $this->file_version_cache[$file] = CWP_CHAT_BUBBLES_VERSION;
+            return $this->file_version_cache[$file];
+        }
+
+        if (file_exists($file_path)) {
+            $this->file_version_cache[$file] = (string) filemtime($file_path);
+            return $this->file_version_cache[$file];
+        }
+
+        $this->file_version_cache[$file] = CWP_CHAT_BUBBLES_VERSION;
+        return $this->file_version_cache[$file];
     }
 
     /**
@@ -279,17 +343,6 @@ class CWP_Chat_Bubbles_Assets {
     private function should_load_on_current_page() {
         $data_service = CWP_Chat_Bubbles_Data_Service::get_instance();
         return $data_service->should_load_on_current_page();
-    }
-
-    /**
-     * Get frontend platform data for JavaScript - Optimized with unified data service
-     *
-     * @return array Platform data for frontend
-     * @since 1.0.0
-     */
-    private function get_frontend_platform_data() {
-        $data_service = CWP_Chat_Bubbles_Data_Service::get_instance();
-        return $data_service->get_frontend_js_data();
     }
 
     /**

@@ -223,6 +223,30 @@
             }
         }
     }
+
+    &.is-loading {
+        .chat-icon {
+            &::before {
+                display: none;
+            }
+
+            img {
+                display: none !important;
+            }
+
+            &::after {
+                content: "";
+                display: block;
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                border: 3px solid rgba(255, 255, 255, 0.35);
+                border-top-color: #fff;
+                animation: cwp-chat-spinner-spin 0.8s linear infinite;
+                z-index: 2;
+            }
+        }
+    }
     &.active {
         .chat-icon{
             transform: scale(0.8);
@@ -262,5 +286,11 @@
         opacity: 0;
         width: 150%;
         height: 150%;
+    }
+}
+
+@keyframes cwp-chat-spinner-spin {
+    to {
+        transform: rotate(360deg);
     }
 }
