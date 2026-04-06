@@ -26,7 +26,7 @@ if (empty($items)) {
 ?>
 
 <?php $default_layout = isset($settings['default_layout']) ? $settings['default_layout'] : 'toggle'; ?>
-<div id="chat-bubbles" class="cwp-chat-bubbles" data-position="<?php echo esc_attr($settings['position']); ?>" data-lazy="0" data-layout="<?php echo esc_attr($default_layout); ?>">
+<div id="chat-bubbles" class="cwp-chat-bubbles" data-position="<?php echo esc_attr($settings['position']); ?>" data-lazy="0" data-layout="<?php echo esc_attr($default_layout); ?>" data-component="cwp-chat-bubbles">
     <?php if ('expanded' !== $default_layout): ?>
         <!-- Main Chat Button -->
         <div class="chat-icon chat-btn-toggle"
@@ -50,6 +50,11 @@ if (empty($items)) {
 
             <a href="<?php echo esc_url($item['platform_url']); ?>"
                 class="chat-item chat-item-<?php echo esc_attr($item['platform']); ?>"
+                data-track="chat-item"
+                data-platform="<?php echo esc_attr($item['platform']); ?>"
+                data-item-id="<?php echo esc_attr($item['id']); ?>"
+                data-item-label="<?php echo esc_attr($item['label']); ?>"
+                data-has-qr="<?php echo $has_qr ? '1' : '0'; ?>"
                 <?php if ($has_qr): ?>
                 data-bubble-modal="modal-<?php echo esc_attr($item['id']); ?>"
                 data-no-direct-link="true"
@@ -83,9 +88,14 @@ if (empty($items)) {
                 <div class="bubble-modal"
                     id="modal-<?php echo esc_attr($item['id']); ?>"
                     tabindex="-1"
-                    aria-hidden="true">
+                    aria-hidden="true"
+                    data-track="chat-modal"
+                    data-platform="<?php echo esc_attr($item['platform']); ?>"
+                    data-item-id="<?php echo esc_attr($item['id']); ?>"
+                    data-item-label="<?php echo esc_attr($item['label']); ?>">
 
                     <button class="bubble-modal-close"
+                        data-track="chat-modal-close"
                         aria-label="<?php esc_attr_e('Close modal', 'cwp-chat-bubbles'); ?>">
                         <img src="<?php echo esc_url($cancel_icon); ?>"
                             alt="<?php esc_attr_e('Close', 'cwp-chat-bubbles'); ?>">
@@ -100,9 +110,13 @@ if (empty($items)) {
                         </div>
 
                         <?php if ($item['platform_url'] !== '#'): ?>
-                            <a class="btn"
+                            <a class="btn chat-modal-cta"
                                 href="<?php echo esc_url($item['platform_url']); ?>"
                                 target="_blank"
+                                data-track="chat-modal-cta"
+                                data-platform="<?php echo esc_attr($item['platform']); ?>"
+                                data-item-id="<?php echo esc_attr($item['id']); ?>"
+                                data-item-label="<?php echo esc_attr($item['label']); ?>"
                                 rel="noopener noreferrer" style="background-color: <?php echo esc_attr($item['platform_color']); ?>;">
                                 <div class="icon">
                                     <img src="<?php echo esc_url($item['platform_icon']); ?>"

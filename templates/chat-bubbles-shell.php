@@ -17,7 +17,8 @@ defined('ABSPATH') or exit;
     data-lazy="<?php echo !empty($lazy_enabled) ? '1' : '0'; ?>"
     data-endpoint="<?php echo esc_url($lazy_endpoint); ?>"
     data-prefetch="<?php echo !empty($prefetch_enabled) ? '1' : '0'; ?>"
-    data-layout="<?php echo esc_attr(isset($settings['default_layout']) ? $settings['default_layout'] : 'toggle'); ?>">
+    data-layout="<?php echo esc_attr(isset($settings['default_layout']) ? $settings['default_layout'] : 'toggle'); ?>"
+    data-component="cwp-chat-bubbles">
 
     <?php if ((isset($settings['default_layout']) ? $settings['default_layout'] : 'toggle') !== 'expanded'): ?>
         <div class="chat-icon chat-btn-toggle"
