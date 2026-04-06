@@ -200,7 +200,12 @@ class CWP_Chat_Bubbles_Frontend {
         $template_path = $this->locate_template('chat-bubbles-shell.php');
 
         if ($template_path) {
-            extract($shell_data);
+            $settings = isset($shell_data['settings']) ? $shell_data['settings'] : array();
+            $support_icon = isset($shell_data['support_icon']) ? $shell_data['support_icon'] : '';
+            $cancel_icon = isset($shell_data['cancel_icon']) ? $shell_data['cancel_icon'] : '';
+            $lazy_enabled = !empty($shell_data['lazy_enabled']);
+            $prefetch_enabled = !empty($shell_data['prefetch_enabled']);
+            $lazy_endpoint = isset($shell_data['lazy_endpoint']) ? $shell_data['lazy_endpoint'] : '';
             include $template_path;
             return;
         }

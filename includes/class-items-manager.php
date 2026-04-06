@@ -466,6 +466,11 @@ class CWP_Chat_Bubbles_Items_Manager {
     public function delete_item($id) {
         global $wpdb;
 
+        $item = $this->get_item($id);
+        if ($item && !empty($item['qr_code_id'])) {
+            wp_delete_attachment((int) $item['qr_code_id'], true);
+        }
+
         $result = $wpdb->delete(
             $this->table_name,
             array('id' => $id),
